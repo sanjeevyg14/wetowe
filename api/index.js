@@ -1,6 +1,6 @@
-const app = require('../backend/server');
+import app from '../backend/server.cjs';
 
 // Vercel serverless function handler
-module.exports = (req, res) => {
+export default (req, res) => {
   return app(req, res);
 };
