@@ -24,16 +24,16 @@ const Navbar: React.FC = () => {
             <Link to="/" className="group">
               <div className="flex items-center gap-3">
                 <img 
-                  src="https://ui-avatars.com/api/?name=Wheel+to+Wilderness&background=3A4D39&color=F9F5EB&rounded=false&size=128" 
+                  src="../components/wetowe1.png" 
                   alt="Wheel to Wilderness" 
-                  className="h-10 w-10 rounded-md object-cover shadow-sm group-hover:rotate-3 transition-transform duration-300"
+                  className="h-35 w-20 rounded-md group-hover:rotate-3 transition-transform duration-300"
                 />
                 <div className="flex flex-col">
                   <span className="font-bold text-lg md:text-xl tracking-tight text-brand-black leading-none uppercase">
                     Wheel to <span className="text-brand-olive">Wilderness</span>
                   </span>
                   <span className="text-[10px] font-medium text-brand-sage tracking-widest uppercase mt-0.5">
-                    Est. 2024
+                    Lets's Get Lost Together
                   </span>
                 </div>
               </div>
