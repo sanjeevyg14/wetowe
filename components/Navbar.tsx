@@ -24,7 +24,7 @@ const Navbar: React.FC = () => {
             <Link to="/" className="group">
               <div className="flex items-center gap-3">
                 <img 
-                  src="../components/wetowe1.png" 
+                  src="/wetowe1.png" 
                   alt="Wheel to Wilderness" 
                   className="h-35 w-20 rounded-md group-hover:rotate-3 transition-transform duration-300"
                 />
