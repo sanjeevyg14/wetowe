@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const Testimonial = require('../models/Testimonial');
+const Testimonial = require('../models/Testimonial.cjs');
 
 // GET all testimonials
 router.get('/', async (req, res) => {

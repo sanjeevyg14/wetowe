@@ -1,45 +1,60 @@
-import { Trip, BookingStats, BlogPost, Testimonial, Booking, Enquiry, User } from '../types';
-import { trips as seedTrips, adminStats, blogs as seedBlogs, testimonials as seedTestimonials, mockBookings, mockEnquiries } from './mockData';
+import { Trip, BookingStats, Testimonial, Booking, Enquiry, User } from '../types';
 
-// Use relative path to leverage Vite proxy or VITE_API_URL env var
-// We use optional chaining (?.) to prevent crashing if import.meta.env is undefined
 const API_URL = (import.meta as any)?.env?.VITE_API_URL || '/api'; 
 
-const getAuthHeaders = () => {
+const getAuthHeaders = (): HeadersInit => {
+    const headers = new Headers();
+    headers.append('Content-Type', 'application/json');
     const token = localStorage.getItem('token');
-    return token ? { 
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}` 
-    } : { 
-        'Content-Type': 'application/json' 
-    };
+    if (token) {
+        headers.append('Authorization', `Bearer ${token}`);
+    }
+    return headers;
+};
+
+const getFileUploadHeaders = (): HeadersInit => {
+    const headers = new Headers();
+    const token = localStorage.getItem('token');
+    if (token) {
+        headers.append('Authorization', `Bearer ${token}`);
+    }
+    return headers;
 };
 
 export const api = {
+  // --- UPLOAD ---
+  uploadImage: async (imageFile: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append('image', imageFile);
+
+    const response = await fetch(`${API_URL}/upload`, {
+        method: 'POST',
+        headers: getFileUploadHeaders(),
+        body: formData,
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Image upload failed');
+    }
+
+    const data = await response.json();
+    return data.imageUrl;
+  },
+  
   // --- TRIPS ---
   getTrips: async (): Promise<Trip[]> => {
-    try {
-        const response = await fetch(`${API_URL}/trips`);
-        if (!response.ok) throw new Error('Network response was not ok');
-        const data = await response.json();
-        // Convert _id to id
-        return data.map((trip: any) => ({ ...trip, id: trip._id }));
-    } catch (error) {
-        console.warn("Using seed trips due to API error", error);
-        return seedTrips;
-    }
+    const response = await fetch(`${API_URL}/trips`);
+    if (!response.ok) throw new Error('Network response was not ok');
+    const data = await response.json();
+    return data.map((trip: any) => ({ ...trip, id: trip._id }));
   },
 
   getTripById: async (id: string): Promise<Trip | undefined> => {
-    try {
-        const response = await fetch(`${API_URL}/trips/${id}`);
-        if (!response.ok) throw new Error('Trip not found');
-        const data = await response.json();
-        return { ...data, id: data._id };
-    } catch (error) {
-        // Fallback: Check ID or Slug
-        return seedTrips.find(t => t.id === id || t.slug === id);
-    }
+    const response = await fetch(`${API_URL}/trips/${id}`);
+    if (!response.ok) throw new Error('Trip not found');
+    const data = await response.json();
+    return { ...data, id: data._id };
   },
 
   createTrip: async (trip: Trip): Promise<Trip> => {
@@ -72,67 +87,54 @@ export const api = {
     if (!response.ok) throw new Error('Failed to delete trip');
   },
 
+  // --- GALLERY ---
+  getGalleryImages: async (): Promise<string[]> => {
+    const response = await fetch(`${API_URL}/gallery`);
+    if (!response.ok) throw new Error('Network response was not ok');
+    return await response.json();
+  },
+
   // --- BOOKINGS ---
   
   createBooking: async (bookingData: Omit<Booking, 'id' | 'status' | 'bookedAt'>): Promise<Booking | { url: string }> => {
-      try {
-          const response = await fetch(`${API_URL}/payment/initiate`, {
-              method: 'POST',
-              headers: getAuthHeaders(),
-              body: JSON.stringify(bookingData),
-          });
+      const response = await fetch(`${API_URL}/payment/initiate`, {
+          method: 'POST',
+          headers: getAuthHeaders(),
+          body: JSON.stringify(bookingData),
+      });
 
-          if (response.ok) {
-              const data = await response.json();
-              if (data.success && data.url) {
-                  return { url: data.url }; 
-              }
-              // Return pending booking if no payment URL (fallback)
-              return { ...bookingData, id: data.bookingId, status: 'pending', bookedAt: new Date().toISOString() } as Booking;
+      if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.url) {
+              return { url: data.url }; 
           }
-          throw new Error("Booking failed");
-      } catch (e) {
-          console.error("Booking Error", e);
-          throw e;
+          return { ...bookingData, id: data.bookingId, status: 'pending', bookedAt: new Date().toISOString() } as Booking;
       }
+      throw new Error("Booking failed");
   },
 
   getBookingsByUser: async (userId: string): Promise<Booking[]> => {
-      try {
-          const response = await fetch(`${API_URL}/bookings/user/${userId}`, {
-              headers: getAuthHeaders()
-          });
-          if (!response.ok) throw new Error('Failed to fetch bookings');
-          const data = await response.json();
-          return data.map((b: any) => ({...b, id: b._id || b.transactionId })); // Normalize ID
-      } catch (error) {
-          console.warn(error);
-          return mockBookings.filter(b => b.userId === userId);
-      }
+      const response = await fetch(`${API_URL}/bookings/user/${userId}`, {
+          headers: getAuthHeaders()
+      });
+      if (!response.ok) throw new Error('Failed to fetch bookings');
+      const data = await response.json();
+      return data.map((b: any) => ({...b, id: b._id || b.transactionId }));
   },
 
   getAllBookings: async (): Promise<Booking[]> => {
-      try {
-          const response = await fetch(`${API_URL}/bookings`, {
-              headers: getAuthHeaders()
-          });
-          if (!response.ok) throw new Error('Failed to fetch bookings');
-          const data = await response.json();
-          return data.map((b: any) => ({...b, id: b._id || b.transactionId }));
-      } catch (error) {
-           return mockBookings;
-      }
+      const response = await fetch(`${API_URL}/bookings`, {
+          headers: getAuthHeaders()
+      });
+      if (!response.ok) throw new Error('Failed to fetch bookings');
+      const data = await response.json();
+      return data.map((b: any) => ({...b, id: b._id || b.transactionId }));
   },
 
   checkAvailability: async (tripId: string, date: string): Promise<{ totalBooked: number, remaining: number, isSoldOut: boolean }> => {
-      try {
-          const response = await fetch(`${API_URL}/bookings/check-availability?tripId=${tripId}&date=${encodeURIComponent(date)}`);
-          if (!response.ok) throw new Error('Failed to check availability');
-          return await response.json();
-      } catch (error) {
-          // Fallback if backend route not ready
-          return { totalBooked: 0, remaining: 12, isSoldOut: false }; 
-      }
+      const response = await fetch(`${API_URL}/bookings/check-availability?tripId=${tripId}&date=${encodeURIComponent(date)}`);
+      if (!response.ok) throw new Error('Failed to check availability');
+      return await response.json();
   },
 
   cancelBooking: async (bookingId: string): Promise<void> => {
@@ -164,88 +166,16 @@ export const api = {
 
   // --- STATS ---
   getStats: async (): Promise<BookingStats[]> => {
-    try {
-        const response = await fetch(`${API_URL}/stats`);
-        const data = await response.json();
-        if (Array.isArray(data) && data.length > 0) return data;
-        return adminStats;
-    } catch {
-        return adminStats;
-    }
-  },
-
-  // --- BLOGS ---
-
-  getBlogs: async (): Promise<BlogPost[]> => {
-    try {
-        const response = await fetch(`${API_URL}/blogs`);
-        const data = await response.json();
-        if (data.length === 0) return seedBlogs.filter(b => b.status === 'approved');
-        return data.map((b: any) => ({...b, id: b._id}));
-    } catch {
-        return seedBlogs.filter(b => b.status === 'approved');
-    }
-  },
-
-  getAllBlogs: async (): Promise<BlogPost[]> => {
-    try {
-        const response = await fetch(`${API_URL}/blogs/all`, {
-            headers: getAuthHeaders()
-        });
-        const data = await response.json();
-        if (data.length === 0) return seedBlogs;
-        return data.map((b: any) => ({...b, id: b._id}));
-    } catch {
-        return seedBlogs;
-    }
-  },
-
-  getBlogById: async (id: string): Promise<BlogPost | undefined> => {
-    try {
-        const response = await fetch(`${API_URL}/blogs/${id}`);
-        if (!response.ok) throw new Error("Blog not found");
-        const data = await response.json();
-        return { ...data, id: data._id };
-    } catch {
-        return seedBlogs.find(b => b.id === id);
-    }
-  },
-  
-  createBlog: async (blogData: Omit<BlogPost, 'id' | 'date' | 'status'>): Promise<BlogPost> => {
-    const blogPayload = {
-        ...blogData,
-        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-        status: 'pending'
-    };
-    
-    const response = await fetch(`${API_URL}/blogs`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(blogPayload),
-    });
-    if (!response.ok) throw new Error('Failed to create blog');
-    const data = await response.json();
-    return { ...data, id: data._id };
-  },
-  
-  updateBlogStatus: async (id: string, status: 'approved' | 'rejected'): Promise<void> => {
-      const response = await fetch(`${API_URL}/blogs/${id}/status`, {
-        method: 'PUT',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ status }),
-      });
-      if (!response.ok) throw new Error('Failed to update blog status');
+    const response = await fetch(`${API_URL}/stats`);
+    if (!response.ok) throw new Error('Failed to fetch stats');
+    return await response.json();
   },
 
   getTestimonials: async (): Promise<Testimonial[]> => {
-    try {
-        const response = await fetch(`${API_URL}/testimonials`);
-        const data = await response.json();
-        if (data.length === 0) return seedTestimonials;
-        return data.map((t: any) => ({...t, id: t._id}));
-    } catch {
-        return seedTestimonials;
-    }
+    const response = await fetch(`${API_URL}/testimonials`);
+    if (!response.ok) throw new Error('Failed to fetch testimonials');
+    const data = await response.json();
+    return data.map((t: any) => ({...t, id: t._id}));
   },
 
   // --- ENQUIRIES ---
@@ -259,17 +189,12 @@ export const api = {
   },
 
   getEnquiries: async (): Promise<Enquiry[]> => {
-    try {
-        const response = await fetch(`${API_URL}/enquiries`, {
-            headers: getAuthHeaders()
-        });
-        if (!response.ok) throw new Error('Failed to fetch enquiries');
-        const data = await response.json();
-        return data.map((e: any) => ({ ...e, id: e._id }));
-    } catch (error) {
-        console.error(error);
-        return mockEnquiries;
-    }
+    const response = await fetch(`${API_URL}/enquiries`, {
+        headers: getAuthHeaders()
+    });
+    if (!response.ok) throw new Error('Failed to fetch enquiries');
+    const data = await response.json();
+    return data.map((e: any) => ({ ...e, id: e._id }));
   },
 
   updateEnquiryStatus: async (id: string, status: 'contacted' | 'resolved'): Promise<void> => {

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const Booking = require('../models/Booking');
-const authMiddleware = require('../middleware/authMiddleware');
+const Booking = require('../models/Booking.cjs');
+const authMiddleware = require('../middleware/authMiddleware.cjs');
 
 // GET all bookings (Admin)
 router.get('/', authMiddleware, async (req, res) => {

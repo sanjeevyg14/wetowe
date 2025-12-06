@@ -1,7 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
-const connectDB = require('./lib/db');
+const helmet = require('helmet');
+const connectDB = require('./lib/db.cjs');
 
 // Load environment variables
 dotenv.config();
@@ -10,6 +11,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
+app.use(helmet());
 app.use(cors({
   origin: process.env.FRONTEND_URL || '*', // Restrict in production if possible
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
@@ -25,17 +27,17 @@ app.use((req, res, next) => {
 });
 
 // Import Routes
-const tripRoutes = require('./routes/trips');
-const paymentRoutes = require('./routes/payment');
-const authRoutes = require('./routes/auth');
-const bookingRoutes = require('./routes/bookings');
-const testimonialRoutes = require('./routes/testimonials');
-const statsRoutes = require('./routes/stats');
-const enquiryRoutes = require('./routes/enquiries');
+const tripRoutes = require('./routes/trips.cjs');
+const paymentRoutes = require('./routes/payment.cjs');
+const authRoutes = require('./routes/auth.cjs');
+const bookingRoutes = require('./routes/bookings.cjs');
+const testimonialRoutes = require('./routes/testimonials.cjs');
+const statsRoutes = require('./routes/stats.cjs');
+const enquiryRoutes = require('./routes/enquiries.cjs');
+const uploadRoutes = require('./routes/upload.cjs');
+const galleryRoutes = require('./routes/gallery.cjs'); // Import the new gallery route
 
 // Connect to Database (Serverless optimized)
-// We invoke this to ensure connection starts, but in serverless,
-// verify connection inside critical paths or rely on this cached promise.
 connectDB().then(() => {
     console.log('✅ MongoDB Connected (Cached)');
 }).catch(err => {
@@ -50,6 +52,8 @@ app.use('/api/bookings', bookingRoutes);
 app.use('/api/testimonials', testimonialRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/enquiries', enquiryRoutes);
+app.use('/api/upload', uploadRoutes);
+app.use('/api/gallery', galleryRoutes); // Use the new gallery route
 
 // Base Route
 app.get('/', (req, res) => {
@@ -58,6 +62,17 @@ app.get('/', (req, res) => {
 
 app.get('/api', (req, res) => {
   res.send('Wheel to Wilderness API is running...');
+});
+
+// 404 Handler
+app.use((req, res, next) => {
+  res.status(404).json({ message: 'Not Found' });
+});
+
+// Error Handling Middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ message: 'Something went wrong!', error: err.message });
 });
 
 // Export the app for Vercel serverless functions
