@@ -2,6 +2,7 @@ const crypto = require('crypto');
 const axios = require('axios');
 const { v4: uuidv4 } = require('uuid');
 const Booking = require('../models/Booking.cjs');
+const connectDB = require('../lib/db.cjs');
 
 // Environment Variables (with Sandbox Defaults)
 const MERCHANT_ID = process.env.PHONEPE_MERCHANT_ID || 'PGTESTPAYUAT';
@@ -17,6 +18,7 @@ const BASE_URL = ENV === 'production'
 
 exports.initiatePayment = async (req, res) => {
     try {
+        await connectDB();
         const { 
             userId, tripId, tripTitle, tripImage, 
             customerName, email, phone, date, travelers, totalPrice 
@@ -94,6 +96,7 @@ exports.validatePayment = async (req, res) => {
     }
 
     try {
+        await connectDB();
         // 1. Check Status with PhonePe
         const stringToHash = `/pg/v1/status/${MERCHANT_ID}/${merchantTransactionId}` + SALT_KEY;
         const sha256 = crypto.createHash('sha256').update(stringToHash).digest('hex');

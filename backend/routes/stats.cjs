@@ -1,10 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const Booking = require('../models/Booking.cjs');
+const connectDB = require('../lib/db.cjs');
 
 // GET booking stats (Monthly)
 router.get('/', async (req, res) => {
   try {
+    await connectDB();
     // Aggregate bookings by month
     // Note: This matches the format expected by Recharts in Admin.tsx: { month: 'Jun', bookings: 45, revenue: 157500 }
     

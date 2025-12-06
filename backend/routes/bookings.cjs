@@ -2,10 +2,12 @@ const express = require('express');
 const router = express.Router();
 const Booking = require('../models/Booking.cjs');
 const authMiddleware = require('../middleware/authMiddleware.cjs');
+const connectDB = require('../lib/db.cjs');
 
 // GET all bookings (Admin)
 router.get('/', authMiddleware, async (req, res) => {
   try {
+    await connectDB();
     // Basic admin check (ideally role based in middleware)
     if (req.user.role !== 'admin') {
        return res.status(403).json({ message: "Access denied" });
@@ -20,6 +22,7 @@ router.get('/', authMiddleware, async (req, res) => {
 // GET bookings by User
 router.get('/user/:userId', authMiddleware, async (req, res) => {
   try {
+    await connectDB();
     // Security check: Ensure requesting user matches param or is admin
     if (req.user.id !== req.params.userId && req.user.role !== 'admin') {
         return res.status(403).json({ message: "Unauthorized access to bookings" });
@@ -35,6 +38,7 @@ router.get('/user/:userId', authMiddleware, async (req, res) => {
 // GET Check Availability (Count travelers for a specific trip and date)
 router.get('/check-availability', async (req, res) => {
     try {
+        await connectDB();
         const { tripId, date } = req.query;
         if (!tripId || !date) {
             return res.status(400).json({ message: "TripId and Date are required" });
@@ -82,6 +86,7 @@ router.get('/check-availability', async (req, res) => {
 // PUT cancel booking
 router.put('/:id/cancel', authMiddleware, async (req, res) => {
   try {
+    await connectDB();
     const booking = await Booking.findById(req.params.id);
     if (!booking) return res.status(404).json({ message: "Booking not found" });
 
@@ -102,6 +107,7 @@ router.put('/:id/cancel', authMiddleware, async (req, res) => {
 // PUT refund booking (Admin)
 router.put('/:id/refund', authMiddleware, async (req, res) => {
     try {
+      await connectDB();
       if (req.user.role !== 'admin') {
           return res.status(403).json({ message: "Admin access required" });
       }

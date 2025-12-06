@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Trip = require('../models/Trip.cjs');
 const mongoose = require('mongoose');
+const connectDB = require('../lib/db.cjs');
 
 // Helper to slugify text
 const slugify = (text) => {
@@ -38,6 +39,7 @@ const generateUniqueSlug = async (title, model, ignoreId = null) => {
 // GET all trips
 router.get('/', async (req, res) => {
   try {
+    await connectDB();
     const trips = await Trip.find().sort({ createdAt: -1 });
     res.json(trips);
   } catch (err) {
@@ -48,6 +50,7 @@ router.get('/', async (req, res) => {
 // GET single trip by ID or SLUG
 router.get('/:id', async (req, res) => {
   try {
+    await connectDB();
     let trip;
     // Check if valid ObjectId
     if (mongoose.Types.ObjectId.isValid(req.params.id)) {
@@ -69,6 +72,7 @@ router.get('/:id', async (req, res) => {
 // POST create trip
 router.post('/', async (req, res) => {
   try {
+    await connectDB();
     const tripData = req.body;
     
     // Generate or ensure unique slug
@@ -95,6 +99,7 @@ router.post('/', async (req, res) => {
 // PUT update trip
 router.put('/:id', async (req, res) => {
   try {
+    await connectDB();
     const tripData = req.body;
     
     // Handle slug updates
@@ -119,6 +124,7 @@ router.put('/:id', async (req, res) => {
 // DELETE trip
 router.delete('/:id', async (req, res) => {
   try {
+    await connectDB();
     await Trip.findByIdAndDelete(req.params.id);
     res.json({ message: 'Trip deleted' });
   } catch (err) {

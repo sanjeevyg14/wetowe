@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User.cjs');
 const authMiddleware = require('../middleware/authMiddleware.cjs');
+const connectDB = require('../lib/db.cjs');
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -14,6 +15,7 @@ if (!JWT_SECRET) {
 // Register
 router.post('/signup', async (req, res) => {
   try {
+    await connectDB();
     const { name, email, password } = req.body;
     
     // Basic Validation
@@ -66,6 +68,7 @@ router.post('/signup', async (req, res) => {
 // Login
 router.post('/login', async (req, res) => {
   try {
+    await connectDB();
     const { email, password } = req.body;
 
     // Check user
@@ -97,6 +100,7 @@ router.post('/login', async (req, res) => {
 // Update Profile
 router.put('/profile', authMiddleware, async (req, res) => {
     try {
+        await connectDB();
         const { name, avatar } = req.body;
         const user = await User.findById(req.user.id);
 
