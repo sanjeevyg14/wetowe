@@ -1,6 +1,16 @@
-import { Trip, BookingStats, BlogPost, Testimonial, Booking, Enquiry } from '../types';
 
-export const trips: Trip[] = [
+const mongoose = require('mongoose');
+const dotenv = require('dotenv');
+const Trip = require('./models/Trip.cjs');
+const Testimonial = require('./models/Testimonial.cjs');
+const Booking = require('./models/Booking.cjs');
+const Enquiry = require('./models/Enquiry.cjs');
+
+dotenv.config();
+
+const MONGO_URI = process.env.MONGO_URI;
+
+const trips = [
   {
     id: 'hampi-ruins',
     slug: 'hampi-heritage-weekend',
@@ -162,125 +172,7 @@ export const trips: Trip[] = [
   }
 ];
 
-export const adminStats: BookingStats[] = [
-  { month: 'Jun', bookings: 45, revenue: 157500 },
-  { month: 'Jul', bookings: 52, revenue: 182000 },
-  { month: 'Aug', bookings: 38, revenue: 133000 },
-  { month: 'Sep', bookings: 65, revenue: 227500 },
-  { month: 'Oct', bookings: 89, revenue: 311500 },
-  { month: 'Nov', bookings: 120, revenue: 420000 },
-];
-
-export const blogs: BlogPost[] = [
-  {
-    id: '1',
-    title: 'Backpacking 101: Essential Gear for Weekend Trips',
-    category: 'Travel Tips',
-    imageUrl: 'https://picsum.photos/id/103/800/600',
-    date: 'Nov 12, 2024',
-    author: 'Alex Roamer',
-    authorAvatar: 'https://i.pravatar.cc/150?img=12',
-    readTime: '5 min read',
-    status: 'approved',
-    metaDescription: 'Discover the ultimate packing checklist for 2-day weekend trips. From backpacks to tech essentials, travel light and smart.',
-    tags: ['Travel Tips', 'Packing', 'Backpacking'],
-    content: `
-      <p class="mb-4">Packing for a weekend trip can be tricky. You don't want to carry too much, but you also don't want to be left without essentials. Here is our guide to the perfect backpack setup for a 2-day adventure.</p>
-      
-      <h3 class="text-2xl font-bold text-gray-900 mb-3 mt-8">1. The Right Backpack</h3>
-      <p class="mb-4">Choose a 30-40L backpack. It's big enough for 2-3 days of clothes but small enough to be carry-on friendly. Look for one with good hip support if you plan on trekking.</p>
-      
-      <h3 class="text-2xl font-bold text-gray-900 mb-3 mt-8">2. Clothing Strategy</h3>
-      <p class="mb-4">Layering is key. Even in summer, nights in places like Hampi or Kodaikanal can get chilly. Always pack:</p>
-      <ul class="list-disc pl-6 mb-4 space-y-2">
-        <li>A lightweight rain jacket (ponchos work too!)</li>
-        <li>Quick-dry t-shirts</li>
-        <li>One pair of comfortable trekking pants</li>
-        <li>Extra socks - wet feet are the enemy!</li>
-      </ul>
-
-      <h3 class="text-2xl font-bold text-gray-900 mb-3 mt-8">3. Tech & Gadgets</h3>
-      <p class="mb-4">A power bank is non-negotiable. 10,000mAh should suffice for a weekend. If you're documenting your trip, a lightweight action camera or just a good phone is plenty.</p>
-
-      <p class="mb-4">Remember, the lighter you pack, the further you can go!</p>
-    `
-  },
-  {
-    id: '2',
-    title: 'Why Hampi Should Be Your Next Solo Adventure',
-    category: 'Destinations',
-    imageUrl: 'https://picsum.photos/id/1040/800/600',
-    date: 'Nov 08, 2024',
-    author: 'Sarah Jenkins',
-    authorAvatar: 'https://i.pravatar.cc/150?img=9',
-    readTime: '4 min read',
-    status: 'approved',
-    metaDescription: 'Explore why Hampi is the perfect destination for solo travelers. Ruins, safety tips, and the best spots on Hippie Island.',
-    tags: ['Hampi', 'Solo Travel', 'India'],
-    content: `
-      <p class="mb-4">Hampi isn't just a destination; it's a time machine. The ruins of the Vijayanagara Empire are vast, beautiful, and strangely comforting for the solo traveler.</p>
-      
-      <h3 class="text-2xl font-bold text-gray-900 mb-3 mt-8">Safety First</h3>
-      <p class="mb-4">Hampi is incredibly safe for solo travelers, including women. The locals are accustomed to tourists and are generally helpful. However, standard precautions apply—don't venture into isolated ruin areas alone after dark.</p>
-
-      <h3 class="text-2xl font-bold text-gray-900 mb-3 mt-8">Meeting People</h3>
-      <p class="mb-4">The easiest way to meet people is to stay on the "Hippie Island" side (Virupapur Gaddi). The cafes here are communal hubs where travelers from all over the world gather to watch movies, jam, and share stories.</p>
-      
-      <h3 class="text-2xl font-bold text-gray-900 mb-3 mt-8">Must-Do Solo Activities</h3>
-      <ul class="list-disc pl-6 mb-4 space-y-2">
-        <li>Rent a bicycle and get lost among the boulders.</li>
-        <li>Take a coracle ride at sunset.</li>
-        <li>Climb Matanga Hill for the best sunrise view in South India.</li>
-      </ul>
-    `
-  },
-  {
-    id: '3',
-    title: 'The Ultimate Guide to Street Food in Gokarna',
-    category: 'Food & Culture',
-    imageUrl: 'https://picsum.photos/id/431/800/600',
-    date: 'Oct 25, 2024',
-    author: 'Rohan Mehta',
-    authorAvatar: 'https://i.pravatar.cc/150?img=11',
-    readTime: '6 min read',
-    status: 'approved',
-    metaDescription: 'A foodie guide to Gokarna. Best cafes, seafood spots, and local temple town treats you must try.',
-    tags: ['Food', 'Gokarna', 'Culture'],
-    content: `
-      <p class="mb-4">Gokarna is famous for its beaches, but its food scene is an underrated gem. From traditional South Indian thalis to Israeli shakshuka, the town offers a culinary mix that reflects its diverse crowd.</p>
-      
-      <h3 class="text-2xl font-bold text-gray-900 mb-3 mt-8">Temple Town Treats</h3>
-      <p class="mb-4">Around the Mahabaleshwar Temple, look for small stalls selling 'Gadbad' ice cream and fresh banana buns. The local Udupi hotels serve the crispest dosas you'll ever taste.</p>
-
-      <h3 class="text-2xl font-bold text-gray-900 mb-3 mt-8">Beachside Eats</h3>
-      <p class="mb-4">On Kudle and Om Beach, the shacks dominate. Try the seafood—freshly caught mackerel fried in Rava is a local staple. For breakfast, many shacks serve Nutella pancakes and fruit bowls.</p>
-      
-      <div class="bg-gray-100 p-4 rounded-lg border-l-4 border-brand-orange my-6">
-        <strong>Pro Tip:</strong> Don't leave without trying the homemade peanut butter sold at the flea markets near the beach!
-      </div>
-    `
-  },
-  {
-    id: '4',
-    title: 'Top 5 Monsoon Treks in Western Ghats',
-    category: 'Adventure',
-    imageUrl: 'https://picsum.photos/id/10/800/600',
-    date: 'Nov 14, 2024',
-    author: 'John Doe',
-    authorAvatar: 'https://i.pravatar.cc/150?img=68',
-    readTime: '3 min read',
-    status: 'pending',
-    metaDescription: 'Pending blog post about monsoon treks.',
-    tags: ['Trekking', 'Monsoon', 'Western Ghats'],
-    content: `
-      <p>The Western Ghats come alive in the monsoon. Here are our top picks.</p>
-      <h3>1. Kudremukh</h3>
-      <p>Known for its horse-face shape...</p>
-    `
-  }
-];
-
-export const testimonials: Testimonial[] = [
+const testimonials = [
   {
     id: '1',
     name: 'Anjali P.',
@@ -307,7 +199,7 @@ export const testimonials: Testimonial[] = [
   }
 ];
 
-export const mockBookings: Booking[] = [
+const mockBookings = [
   {
     id: 'BK-123456',
     userId: 'mock-user-id',
@@ -340,7 +232,7 @@ export const mockBookings: Booking[] = [
   }
 ];
 
-export const mockEnquiries: Enquiry[] = [
+const mockEnquiries = [
   {
     id: 'EQ-1',
     name: 'Alice Smith',
@@ -360,3 +252,28 @@ export const mockEnquiries: Enquiry[] = [
     createdAt: new Date(Date.now() - 172800000).toISOString()
   }
 ];
+
+const seedDB = async () => {
+    if (!MONGO_URI) {
+        console.error("MONGO_URI is not defined in the environment variables.");
+        process.exit(1);
+    }
+    await mongoose.connect(MONGO_URI);
+
+    await Trip.deleteMany({});
+    await Trip.insertMany(trips);
+
+    await Testimonial.deleteMany({});
+    await Testimonial.insertMany(testimonials);
+
+    await Booking.deleteMany({});
+    await Booking.insertMany(mockBookings);
+
+    await Enquiry.deleteMany({});
+    await Enquiry.insertMany(mockEnquiries);
+
+    console.log('Database seeded!');
+    mongoose.connection.close();
+};
+
+seedDB();

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const Enquiry = require('../models/Enquiry');
+const Enquiry = require('../models/Enquiry.cjs');
 
 // POST submit new enquiry (Public)
 router.post('/', async (req, res) => {

@@ -8,9 +8,6 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Profile from './pages/Profile';
 import MyBookings from './pages/MyBookings';
-import Blogs from './pages/Blogs';
-import BlogDetails from './pages/BlogDetails';
-import CreateBlog from './pages/CreateBlog';
 import { AuthProvider } from './contexts/AuthContext';
 
 const App: React.FC = () => {
@@ -26,9 +23,6 @@ const App: React.FC = () => {
           <Route path="/signup" element={<Signup />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/my-bookings" element={<MyBookings />} />
-          <Route path="/blogs" element={<Blogs />} />
-          <Route path="/blog/:id" element={<BlogDetails />} />
-          <Route path="/create-blog" element={<CreateBlog />} />
         </Routes>
       </Router>
     </AuthProvider>

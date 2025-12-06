@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 const axios = require('axios');
 const { v4: uuidv4 } = require('uuid');
-const Booking = require('../models/Booking');
+const Booking = require('../models/Booking.cjs');
 
 // Environment Variables (with Sandbox Defaults)
 const MERCHANT_ID = process.env.PHONEPE_MERCHANT_ID || 'PGTESTPAYUAT';

@@ -30,22 +30,6 @@ export interface BookingStats {
   revenue: number;
 }
 
-export interface BlogPost {
-  id: string;
-  title: string;
-  category: string;
-  imageUrl: string;
-  date: string;
-  content?: string;
-  author?: string;
-  authorId?: string; // Link to User
-  authorAvatar?: string;
-  readTime?: string;
-  status: 'pending' | 'approved' | 'rejected'; // Approval workflow
-  metaDescription?: string; // SEO
-  tags?: string[]; // SEO & filtering
-}
-
 export interface Testimonial {
   id: string;
   name: string;
