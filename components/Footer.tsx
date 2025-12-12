@@ -36,10 +36,10 @@ const Footer: React.FC = () => {
           <div>
             <h4 className="font-bold text-lg mb-4 text-brand-olive uppercase tracking-wider text-sm">Stays</h4>
             <ul className="space-y-2 text-brand-cream/70 text-sm">
-              <li><a href="#" className="hover:text-brand-olive transition">Eco Lodges</a></li>
-              <li><a href="#" className="hover:text-brand-olive transition">Forest Cabins</a></li>
-              <li><a href="#" className="hover:text-brand-olive transition">Campsites</a></li>
-              <li><a href="#" className="hover:text-brand-olive transition">Homestays</a></li>
+              <li><a href="#" className="hover:text-brand-olive transition">Sound Healing</a></li>
+              <li><a href="#" className="hover:text-brand-olive transition">Forest trail</a></li>
+              <li><a href="#" className="hover:text-brand-olive transition">French Expedition</a></li>
+              <li><a href="#" className="hover:text-brand-olive transition">Offbeat experinces</a></li>
             </ul>
           </div>
           <div>
@@ -63,7 +63,7 @@ const Footer: React.FC = () => {
         </div>
 
         <div className="border-t border-brand-cream/10 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-brand-cream/40">
-          <p>&copy; 2024 Wheel to Wilderness. Est. Bangalore.</p>
+          <p>&copy; 2024 Wheels to Wilderness. Est. Bangalore.</p>
           <div className="flex space-x-6 mt-4 md:mt-0">
             <a href="#" className="hover:text-brand-cream">Privacy</a>
             <a href="#" className="hover:text-brand-cream">Terms</a>
