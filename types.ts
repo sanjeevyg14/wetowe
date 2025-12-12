@@ -68,10 +68,11 @@ export interface Enquiry {
   _id: string;
   id: string;
   name: string;
+  email: string;
   when: number;
   where: string;
   Travellers: number;
-  traveldate: { type: Date },    // <- use Date instead of Number
+  traveldate: Date;
   phone: string;
   message: string;
   status: 'new' | 'contacted' | 'resolved';
