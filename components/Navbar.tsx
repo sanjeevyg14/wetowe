@@ -30,7 +30,7 @@ const Navbar: React.FC = () => {
                 />
                 <div className="flex flex-col">
                   <span className="font-bold text-lg md:text-xl tracking-tight text-brand-black leading-none uppercase">
-                    Wheel to <span className="text-brand-olive">Wilderness</span>
+                    Wheels to <span className="text-brand-olive">Wilderness</span>
                   </span>
                   <span className="text-[10px] font-medium text-brand-sage tracking-widest uppercase mt-0.5">
                     Lets's Get Lost Together
