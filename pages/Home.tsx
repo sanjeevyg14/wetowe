@@ -104,7 +104,7 @@ const Home: React.FC = () => {
   
   // Enquiry Form State
   const [enquiryStatus, setEnquiryStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
-  const [enquiryData, setEnquiryData] = useState({ name: '', Travellers: '', phone: '', traveldate: '',where: '', message: '' });
+  const [enquiryData, setEnquiryData] = useState({ name: '', Travellers: '', phone: '', email: '', traveldate: '',where: '', message: '' });
 
   // Gallery Lightbox State
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -182,7 +182,7 @@ const Home: React.FC = () => {
     try {
         await api.submitEnquiry(enquiryData);
         setEnquiryStatus('success');
-        setEnquiryData({ name: '', Travellers: '', phone: '', traveldate: '', where: '', message: '' });
+        setEnquiryData({ name: '', Travellers: '', phone: '', email: '', traveldate: '', where: '', message: '' });
     } catch (error) {
         console.error(error);
         setEnquiryStatus('error');

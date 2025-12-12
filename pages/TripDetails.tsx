@@ -119,22 +119,31 @@ const TripDetails: React.FC = () => {
   };
 
   const handleEnquirySubmit = async (e: React.FormEvent) => {
-      e.preventDefault();
-      setEnquiryStatus('submitting');
-      try {
-          await api.submitEnquiry({
-              name: bookingData.name || (user?.name ?? 'Guest'),
-              email: bookingData.email || (user?.email ?? ''),
-              phone: bookingData.phone || '',
-              message: `Waiting List Enquiry for ${trip?.title} on ${selectedDate}. ${enquiryMsg}`
-          });
-          setEnquiryStatus('success');
-      } catch (error) {
-          console.error(error);
-          alert('Failed to submit enquiry');
-          setEnquiryStatus('idle');
-      }
-  };
+    e.preventDefault();
+    setEnquiryStatus('submitting');
+    if (!trip || !selectedDate) {
+      alert("Cannot submit enquiry: trip data is missing.");
+      setEnquiryStatus('idle');
+      return;
+    }
+    try {
+        await api.submitEnquiry({
+            name: bookingData.name || (user?.name ?? 'Guest'),
+            email: bookingData.email || (user?.email ?? ''),
+            phone: bookingData.phone || '',
+            where: trip.location,
+            Travellers: travelers.toString(),
+            traveldate: selectedDate,
+            message: `Waiting List Enquiry for ${trip.title} on ${selectedDate}. ${enquiryMsg}`
+        });
+        setEnquiryStatus('success');
+    } catch (error) {
+        console.error(error);
+        alert('Failed to submit enquiry');
+        setEnquiryStatus('idle');
+    }
+};
+
 
   const galleryImages = trip ? (trip.gallery && trip.gallery.length > 0 ? trip.gallery : [trip.imageUrl]) : [];
 
@@ -258,7 +267,7 @@ const TripDetails: React.FC = () => {
                             <Bus size={120} />
                         </div>
                         <h3 className="text-xl font-bold font-serif mb-8 flex items-center gap-2">
-                            <MapIcon size={20} className="text-brand-olive" /> Pickup Points
+                            <MapIcon size={20} className="text-brand-olive" /> Rendezvous Points
                         </h3>
                         
                         <div className="relative border-l-2 border-brand-olive/50 ml-3 space-y-8">

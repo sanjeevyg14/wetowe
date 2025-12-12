@@ -22,6 +22,7 @@ const tripSchema = new mongoose.Schema({
   exclusions: [String],
   pickupPoints: [String],
   itinerary: [itinerarySchema],
+  email: [string],
   dates: [String], // Array of date strings for now
 }, {
   timestamps: true // Automatically adds createdAt and updatedAt
