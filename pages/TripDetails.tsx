@@ -258,7 +258,7 @@ const TripDetails: React.FC = () => {
                             <Bus size={120} />
                         </div>
                         <h3 className="text-xl font-bold font-serif mb-8 flex items-center gap-2">
-                            <MapIcon size={20} className="text-brand-olive" /> Rendezvous Points
+                            <MapIcon size={20} className="text-brand-olive" /> Pickup Points
                         </h3>
                         
                         <div className="relative border-l-2 border-brand-olive/50 ml-3 space-y-8">

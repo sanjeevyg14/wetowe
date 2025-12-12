@@ -34,7 +34,7 @@ const Footer: React.FC = () => {
             </ul>
           </div>
           <div>
-            <h4 className="font-bold text-lg mb-4 text-brand-olive uppercase tracking-wider text-sm">Stays</h4>
+            <h4 className="font-bold text-lg mb-4 text-brand-olive uppercase tracking-wider text-sm">Experiences</h4>
             <ul className="space-y-2 text-brand-cream/70 text-sm">
               <li><a href="#" className="hover:text-brand-olive transition">Sound Healing</a></li>
               <li><a href="#" className="hover:text-brand-olive transition">Forest trail</a></li>

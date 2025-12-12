@@ -469,45 +469,88 @@ const Admin: React.FC = () => {
                     </div>
                 )}
 
-                {activeTab === 'enquiries' && (
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div className="p-6 border-b border-gray-100"><h3 className="text-lg font-bold">Enquiries</h3></div>
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left">
-                                <thead className="bg-gray-50 text-gray-500 text-xs uppercase font-semibold">
-                                    <tr>
-                                        <th className="px-6 py-4">Date</th>
-                                        <th className="px-6 py-4">Customer</th>
-                                        <th className="px-6 py-4">Contact</th>
-                                        <th className="px-6 py-4">Message</th>
-                                        <th className="px-6 py-4">Status</th>
-                                        <th className="px-6 py-4 text-right">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-100">
-                                    {enquiries.map((enquiry) => (
-                                        <tr key={enquiry.id} className="hover:bg-gray-50 transition">
-                                            <td className="px-6 py-4 text-sm text-gray-500">{new Date(enquiry.createdAt).toLocaleDateString()}</td>
-                                            <td className="px-6 py-4"><div className="font-medium text-gray-900">{enquiry.name}</div></td>
-                                            <td className="px-6 py-4 text-sm text-gray-600">
-                                                <div className="flex items-center gap-1"><Mail size={12}/> {enquiry.email}</div>
-                                                <div className="flex items-center gap-1 mt-1"><Phone size={12}/> {enquiry.phone}</div>
-                                            </td>
-                                            <td className="px-6 py-4 text-sm text-gray-600 max-w-xs truncate" title={enquiry.message}>{enquiry.message}</td>
-                                            <td className="px-6 py-4">
-                                                <span className={`px-2 py-1 rounded-full text-xs font-bold uppercase ${enquiry.status === 'new' ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700'}`}>{enquiry.status}</span>
-                                            </td>
-                                            <td className="px-6 py-4 text-right">
-                                                {enquiry.status === 'new' && <button onClick={() => handleEnquiryStatus(enquiry.id, 'contacted')} className="text-brand-purple hover:bg-purple-50 px-3 py-1 rounded text-sm font-medium border border-purple-200">Mark Contacted</button>}
-                                                {enquiry.status === 'contacted' && <span className="text-green-600 text-sm flex items-center justify-end gap-1"><CheckCircle size={16}/> Done</span>}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+{activeTab === 'enquiries' && (
+  <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div className="p-6 border-b border-gray-100"><h3 className="text-lg font-bold">Enquiries</h3></div>
+    <div className="overflow-x-auto">
+      <table className="w-full text-left">
+        <thead className="bg-gray-50 text-gray-500 text-xs uppercase font-semibold">
+          <tr>
+            <th className="px-6 py-4">Date</th>
+            <th className="px-6 py-4">Customer</th>
+            <th className="px-6 py-4">Contact / Details</th>
+            <th className="px-6 py-4">Message</th>
+            <th className="px-6 py-4">Status</th>
+            <th className="px-6 py-4 text-right">Actions</th>
+          </tr>
+        </thead>
+
+        <tbody className="divide-y divide-gray-100">
+          {enquiries.map((enquiry) => (
+            <tr key={enquiry.id ?? enquiry.name} className="hover:bg-gray-50 transition">
+              <td className="px-6 py-4 text-sm text-gray-500">
+                {enquiry.createdAt ? new Date(enquiry.createdAt).toLocaleString() : '—'}
+              </td>
+              <td className="px-6 py-4">
+                <div className="font-medium text-gray-900">{enquiry.name ?? '—'}</div>
+                </td>
+
+              <td className="px-6 py-4 text-sm text-gray-600">
+                <div className="flex items-center gap-2">
+                  {enquiry.where ?? enquiry.when ?? '—'}
+                </div>
+
+                <div className="flex items-center gap-2 mt-1">
+                  <Users size={14} /> <span>{enquiry.Travellers ?? enquiry.Travellers ?? '1'} traveler{(enquiry.Travellers ?? enquiry.Travellers) > 1 ? 's' : ''}</span>
+                </div>
+
+                <div className="flex items-center gap-2 mt-1">
+                  <Phone size={14} /> <span>{enquiry.phone ?? '—'}</span>
+                </div>
+              </td>
+
+              <td className="px-6 py-4 text-sm text-gray-600 max-w-xs truncate" title={enquiry.message}>
+                {enquiry.message ?? '—'}
+              </td>
+
+              <td className="px-6 py-4">
+                <span
+                  className={`px-2 py-1 rounded-full text-xs font-bold uppercase ${
+                    enquiry.status === 'new'
+                      ? 'bg-orange-100 text-orange-700'
+                      : enquiry.status === 'contacted'
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-gray-100 text-gray-700'
+                  }`}
+                >
+                  {enquiry.status ?? 'new'}
+                </span>
+              </td>
+
+              <td className="px-6 py-4 text-right">
+                {enquiry.status === 'new' && (
+                  <button
+                    onClick={() => handleEnquiryStatus(enquiry.id ?? enquiry._id, 'contacted')}
+                    className="text-brand-purple hover:bg-purple-50 px-3 py-1 rounded text-sm font-medium border border-purple-200"
+                  >
+                    Mark Contacted
+                  </button>
                 )}
+
+                {enquiry.status === 'contacted' && (
+                  <span className="text-green-600 text-sm flex items-center justify-end gap-1">
+                    <CheckCircle size={16} /> Done
+                  </span>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+)}
+
 
                 {activeTab === 'trips' && (
                     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">

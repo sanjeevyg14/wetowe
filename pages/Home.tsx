@@ -104,7 +104,7 @@ const Home: React.FC = () => {
   
   // Enquiry Form State
   const [enquiryStatus, setEnquiryStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
-  const [enquiryData, setEnquiryData] = useState({ name: '', email: '', phone: '', message: '' });
+  const [enquiryData, setEnquiryData] = useState({ name: '', Travellers: '', phone: '', traveldate: '',where: '', message: '' });
 
   // Gallery Lightbox State
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -182,7 +182,7 @@ const Home: React.FC = () => {
     try {
         await api.submitEnquiry(enquiryData);
         setEnquiryStatus('success');
-        setEnquiryData({ name: '', email: '', phone: '', message: '' });
+        setEnquiryData({ name: '', Travellers: '', phone: '', traveldate: '', where: '', message: '' });
     } catch (error) {
         console.error(error);
         setEnquiryStatus('error');
@@ -290,12 +290,12 @@ const Home: React.FC = () => {
       {/* Hero Section - Redesigned Split Layout */}
       <section className="relative w-full overflow-hidden bg-brand-cream pt-8 lg:pt-16 pb-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col lg:flex-row gap-12 items-center">
+            <div className="flex flex-col lg:flex-row gap-12">
             
-            {/* Left: Text & Search */}
-            <div className="lg:w-1/2 z-10 animate-fade-in-up">
+            {/* Left: Text & Search - Now fills height and centers content */}
+            <div className="lg:w-1/2 z-10 animate-fade-in-up flex flex-col justify-center">
                 {/* Badge */}
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-olive/10 text-brand-olive text-xs font-bold uppercase tracking-widest mb-6 border border-brand-olive/20">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-olive/10 text-brand-olive text-xs font-bold uppercase tracking-widest mb-6 border border-brand-olive/20 self-start">
                     <Compass size={14} /> 
                     <span>Explore the Unseen</span>
                 </div>
@@ -764,62 +764,95 @@ const Home: React.FC = () => {
                 </div>
               ) : (
                 <form onSubmit={handleEnquirySubmit} className="space-y-5">
-                  <div>
-                    <label className="block text-xs font-bold text-brand-black/50 uppercase tracking-widest mb-2">Full Name</label>
-                    <input 
-                      type="text" 
-                      required
-                      className="w-full px-4 py-3 rounded-md border border-brand-black/10 focus:ring-2 focus:ring-brand-olive focus:outline-none bg-white"
-                      placeholder="Your Name"
-                      value={enquiryData.name}
-                      onChange={e => setEnquiryData({...enquiryData, name: e.target.value})}
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-5">
-                    <div>
-                      <label className="block text-xs font-bold text-brand-black/50 uppercase tracking-widest mb-2">Email</label>
-                      <input 
-                        type="email" 
-                        required
-                        className="w-full px-4 py-3 rounded-md border border-brand-black/10 focus:ring-2 focus:ring-brand-olive focus:outline-none bg-white"
-                        placeholder="you@example.com"
-                        value={enquiryData.email}
-                        onChange={e => setEnquiryData({...enquiryData, email: e.target.value})}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-brand-black/50 uppercase tracking-widest mb-2">Phone</label>
-                      <input 
-                        type="tel" 
-                        required
-                        className="w-full px-4 py-3 rounded-md border border-brand-black/10 focus:ring-2 focus:ring-brand-olive focus:outline-none bg-white"
-                        placeholder="+91..."
-                        value={enquiryData.phone}
-                        onChange={e => setEnquiryData({...enquiryData, phone: e.target.value})}
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-brand-black/50 uppercase tracking-widest mb-2">Message</label>
-                    <textarea 
-                      required
-                      className="w-full px-4 py-3 rounded-md border border-brand-black/10 focus:ring-2 focus:ring-brand-olive focus:outline-none h-32 bg-white"
-                      placeholder="Tell us about your trip plans..."
-                      value={enquiryData.message}
-                      onChange={e => setEnquiryData({...enquiryData, message: e.target.value})}
-                    ></textarea>
-                  </div>
-                  <button 
-                    type="submit" 
-                    disabled={enquiryStatus === 'submitting'}
-                    className="w-full bg-brand-olive text-brand-cream font-bold py-4 rounded-md hover:bg-brand-black transition shadow-lg flex items-center justify-center gap-2 disabled:opacity-70 uppercase tracking-wider text-sm"
-                  >
-                    {enquiryStatus === 'submitting' ? 'Sending...' : 'Send Message'} <ArrowRight size={18}/>
-                  </button>
-                  {enquiryStatus === 'error' && (
-                    <p className="text-red-500 text-sm text-center">Something went wrong. Please try again.</p>
-                  )}
-                </form>
+  <div>
+    <label className="block text-xs font-bold text-brand-black/50 uppercase tracking-widest mb-2">Full Name</label>
+    <input 
+      type="text" 
+      required
+      className="w-full px-4 py-3 rounded-md border border-brand-black/10 focus:ring-2 focus:ring-brand-olive focus:outline-none bg-white"
+      placeholder="Your Name"
+      value={enquiryData.name}
+      onChange={e => setEnquiryData({...enquiryData, name: e.target.value})}
+    />
+  </div>
+
+  <div className="grid grid-cols-2 gap-5">
+    <div>
+      <label className="block text-xs font-bold text-brand-black/50 uppercase tracking-widest mb-2">Travellers</label>
+      <input 
+        type="number" 
+        min={1}
+        required
+        className="w-full px-4 py-3 rounded-md border border-brand-black/10 focus:ring-2 focus:ring-brand-olive focus:outline-none bg-white"
+        placeholder="No. of Travellers"
+        value={enquiryData.Travellers}
+        onChange={e => setEnquiryData({...enquiryData, Travellers: e.target.value})}
+      />
+    </div>
+
+    <div className="grid grid-cols-1 gap-5">
+      <div>
+        <label className="block text-xs font-bold text-brand-black/50 uppercase tracking-widest mb-2">Where?</label>
+        <input
+          type="text"
+          required
+          className="w-full px-4 py-3 rounded-md border border-brand-black/10 focus:ring-2 focus:ring-brand-olive focus:outline-none bg-white"
+          placeholder="Destination or region (e.g. Hampi, Gokarna...)"
+          value={enquiryData.where}
+          onChange={e => setEnquiryData({...enquiryData, where: e.target.value})}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 gap-5">
+        <label className="block text-xs font-bold text-brand-black/50 uppercase tracking-widest mb-2">When?</label>
+        <input
+          type="Date"
+          required
+          className="w-full px-4 py-3 rounded-md border border-brand-black/10 focus:ring-2 focus:ring-brand-olive focus:outline-none bg-white"
+          placeholder="DD/MM/YYY"
+          value={enquiryData.traveldate}
+          onChange={e => setEnquiryData({...enquiryData, traveldate: e.target.value})}
+        />
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <label className="block text-xs font-bold text-brand-black/50 uppercase tracking-widest mb-2">Phone</label>
+    <input 
+      type="tel" 
+      required
+      className="w-full px-4 py-3 rounded-md border border-brand-black/10 focus:ring-2 focus:ring-brand-olive focus:outline-none bg-white"
+      placeholder="+91..."
+      value={enquiryData.phone}
+      onChange={e => setEnquiryData({...enquiryData, phone: e.target.value})}
+    />
+  </div>
+
+  <div>
+    <label className="block text-xs font-bold text-brand-black/50 uppercase tracking-widest mb-2">Message</label>
+    <textarea 
+      required
+      className="w-full px-4 py-3 rounded-md border border-brand-black/10 focus:ring-2 focus:ring-brand-olive focus:outline-none h-32 bg-white"
+      placeholder="Tell us about your trip plans..."
+      value={enquiryData.message}
+      onChange={e => setEnquiryData({...enquiryData, message: e.target.value})}
+    ></textarea>
+  </div>
+
+  <button 
+    type="submit" 
+    disabled={enquiryStatus === 'submitting'}
+    className="w-full bg-brand-olive text-brand-cream font-bold py-4 rounded-md hover:bg-brand-black transition shadow-lg flex items-center justify-center gap-2 disabled:opacity-70 uppercase tracking-wider text-sm"
+  >
+    {enquiryStatus === 'submitting' ? 'Sending...' : 'Send Message'} <ArrowRight size={18}/>
+  </button>
+
+  {enquiryStatus === 'error' && (
+    <p className="text-red-500 text-sm text-center">Something went wrong. Please try again.</p>
+  )}
+</form>
+
               )}
             </div>
 

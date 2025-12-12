@@ -12,6 +12,7 @@ export interface Trip {
   price: number;
   duration: string;
   rating: number;
+  email: string;
   reviewsCount: number;
   imageUrl: string;
   gallery: string[];
@@ -64,9 +65,13 @@ export interface Booking {
 }
 
 export interface Enquiry {
+  _id: string;
   id: string;
   name: string;
-  email: string;
+  when: number;
+  where: string;
+  Travellers: number;
+  traveldate: { type: Date },    // <- use Date instead of Number
   phone: string;
   message: string;
   status: 'new' | 'contacted' | 'resolved';
