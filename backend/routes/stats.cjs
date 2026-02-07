@@ -8,40 +8,56 @@ const { authMiddleware, adminMiddleware } = require('../middleware/auth.cjs');
 router.get('/', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     await connectDB();
-    // Aggregate bookings by month
-    // Note: This matches the format expected by Recharts in Admin.tsx: { month: 'Jun', bookings: 45, revenue: 157500 }
 
-    // Simple aggregation for last 6 months
+    // Calculate date range for last 6 months
+    const now = new Date();
+    const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+
+    // Aggregate bookings by year-month for the last 6 months
     const stats = await Booking.aggregate([
       {
         $match: {
-          status: { $in: ['confirmed', 'paid'] }, // Only count confirmed/paid
+          status: 'confirmed',
+          createdAt: { $gte: sixMonthsAgo }
         }
       },
       {
         $group: {
-          _id: { $month: "$createdAt" },
+          _id: {
+            year: { $year: "$createdAt" },
+            month: { $month: "$createdAt" }
+          },
           bookings: { $sum: 1 },
           revenue: { $sum: "$totalPrice" }
         }
+      },
+      {
+        $sort: { "_id.year": 1, "_id.month": 1 }
       }
     ]);
 
-    // Map month numbers to Names
-    const monthNames = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    // Generate array of last 6 months with proper labels
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const result = [];
 
-    const formattedStats = stats.map(item => ({
-      month: monthNames[item._id],
-      bookings: item.bookings,
-      revenue: item.revenue
-    }));
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const year = date.getFullYear();
+      const month = date.getMonth() + 1; // 1-indexed
 
-    // Sort logic would be needed here or ensure front-end handles it, 
-    // but for now return simple aggregation.
-    // If DB is empty, return empty array. Front-end api.ts will handle fallback if needed.
+      // Find matching data from aggregation
+      const found = stats.find(s => s._id.year === year && s._id.month === month);
 
-    res.json(formattedStats);
+      result.push({
+        month: monthNames[month - 1],
+        bookings: found ? found.bookings : 0,
+        revenue: found ? found.revenue : 0
+      });
+    }
+
+    res.json(result);
   } catch (err) {
+    console.error('Stats error:', err);
     res.status(500).json({ message: err.message });
   }
 });

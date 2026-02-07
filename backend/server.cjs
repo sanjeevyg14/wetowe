@@ -60,7 +60,8 @@ const testimonialRoutes = require('./routes/testimonials.cjs');
 const statsRoutes = require('./routes/stats.cjs');
 const enquiryRoutes = require('./routes/enquiries.cjs');
 const uploadRoutes = require('./routes/upload.cjs');
-const galleryRoutes = require('./routes/gallery.cjs'); // Import the new gallery route
+const galleryRoutes = require('./routes/gallery.cjs');
+const marqueeRoutes = require('./routes/marquee.cjs');
 const { cleanupExpiredBookings } = require('./lib/bookingUtils.cjs');
 
 // Connect to Database (Serverless optimized)
@@ -81,7 +82,8 @@ app.use('/api/testimonials', testimonialRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/enquiries', enquiryRoutes);
 app.use('/api/upload', uploadRoutes);
-app.use('/api/gallery', galleryRoutes); // Use the new gallery route
+app.use('/api/gallery', galleryRoutes);
+app.use('/api/marquee', marqueeRoutes);
 
 // Base Route
 app.get('/', (req, res) => {

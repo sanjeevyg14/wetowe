@@ -149,6 +149,57 @@ export const api = {
         if (!response.ok) throw new Error('Failed to delete image');
     },
 
+    // --- MARQUEE (Ticker Tape) ---
+    getMarqueeItems: async (): Promise<{ _id: string; text: string; icon: string }[]> => {
+        const response = await fetch(`${API_URL}/marquee`);
+        if (!response.ok) throw new Error('Network response was not ok');
+        return await response.json();
+    },
+
+    getAdminMarqueeItems: async (): Promise<{ _id: string; text: string; icon: string; isActive: boolean; order: number }[]> => {
+        const response = await fetch(`${API_URL}/marquee/admin`, {
+            headers: getAuthHeaders()
+        });
+        if (!response.ok) throw new Error('Failed to fetch marquee items');
+        return await response.json();
+    },
+
+    addMarqueeItem: async (text: string, icon?: string): Promise<{ _id: string; text: string; icon: string; isActive: boolean; order: number }> => {
+        const response = await fetch(`${API_URL}/marquee`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ text, icon: icon || 'Zap' })
+        });
+        if (!response.ok) throw new Error('Failed to add marquee item');
+        return await response.json();
+    },
+
+    updateMarqueeItem: async (id: string, data: { text?: string; icon?: string; isActive?: boolean; order?: number }): Promise<void> => {
+        const response = await fetch(`${API_URL}/marquee/${id}`, {
+            method: 'PUT',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(data)
+        });
+        if (!response.ok) throw new Error('Failed to update marquee item');
+    },
+
+    toggleMarqueeItem: async (id: string): Promise<{ isActive: boolean }> => {
+        const response = await fetch(`${API_URL}/marquee/${id}/toggle`, {
+            method: 'PATCH',
+            headers: getAuthHeaders()
+        });
+        if (!response.ok) throw new Error('Failed to toggle marquee item');
+        return await response.json();
+    },
+
+    deleteMarqueeItem: async (id: string): Promise<void> => {
+        const response = await fetch(`${API_URL}/marquee/${id}`, {
+            method: 'DELETE',
+            headers: getAuthHeaders()
+        });
+        if (!response.ok) throw new Error('Failed to delete marquee item');
+    },
+
     // --- BOOKINGS ---
 
     createBooking: async (bookingData: Omit<Booking, 'id' | 'status' | 'bookedAt'>): Promise<Booking | { url: string }> => {
@@ -259,7 +310,9 @@ export const api = {
 
     // --- STATS ---
     getStats: async (): Promise<BookingStats[]> => {
-        const response = await fetch(`${API_URL}/stats`);
+        const response = await fetch(`${API_URL}/stats`, {
+            headers: getAuthHeaders()
+        });
         if (!response.ok) throw new Error('Failed to fetch stats');
         return await response.json();
     },

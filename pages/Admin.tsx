@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { LayoutDashboard, Package, Users, DollarSign, PlusCircle, Settings, Edit, Trash2, X, Save, Search, CheckCircle, RefreshCcw, MessageSquare, Mail, Phone, Plus, Minus, ChevronDown, ChevronUp, Link as LinkIcon, Upload, Image as ImageIcon, Loader, Star, ToggleLeft, ToggleRight } from 'lucide-react';
+import { LayoutDashboard, Package, Users, DollarSign, PlusCircle, Settings, Edit, Trash2, X, Save, Search, CheckCircle, RefreshCcw, MessageSquare, Mail, Phone, Plus, Minus, ChevronDown, ChevronUp, Link as LinkIcon, Upload, Image as ImageIcon, Loader, Star, ToggleLeft, ToggleRight, Megaphone } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { api } from '../services/api';
 import { uploadToCloudinary } from '../services/uploadService';
@@ -157,8 +157,9 @@ const Admin: React.FC = () => {
     const [enquiries, setEnquiries] = useState<Enquiry[]>([]);
     const [galleryImages, setGalleryImages] = useState<{ id: string; imageUrl: string; caption: string; order: number; isActive: boolean }[]>([]);
     const [reviews, setReviews] = useState<Testimonial[]>([]);
+    const [tickerItems, setTickerItems] = useState<{ _id: string; text: string; icon: string; isActive: boolean; order: number }[]>([]);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState<'overview' | 'trips' | 'bookings' | 'enquiries' | 'gallery' | 'reviews'>('overview');
+    const [activeTab, setActiveTab] = useState<'overview' | 'trips' | 'bookings' | 'enquiries' | 'gallery' | 'reviews' | 'ticker'>('overview');
     const { user, isAdmin, loading: authLoading } = useAuth();
 
     // Modal State
@@ -183,7 +184,8 @@ const Admin: React.FC = () => {
                 api.getAllBookings(),
                 api.getEnquiries(),
                 api.getAdminGallery(),
-                api.getAdminTestimonials()
+                api.getAdminTestimonials(),
+                api.getAdminMarqueeItems()
             ]);
 
             // Handle each result individually
@@ -204,6 +206,9 @@ const Admin: React.FC = () => {
 
             if (results[5].status === 'fulfilled') setReviews(results[5].value);
             else console.error("Failed to fetch reviews:", results[5].reason);
+
+            if (results[6].status === 'fulfilled') setTickerItems(results[6].value);
+            else console.error("Failed to fetch ticker items:", results[6].reason);
 
         } catch (error) {
             console.error("Failed to fetch admin data", error);
@@ -434,6 +439,48 @@ const Admin: React.FC = () => {
         }
     };
 
+    // Ticker state for new item form
+    const [newTickerText, setNewTickerText] = useState('');
+    const [newTickerIcon, setNewTickerIcon] = useState('Zap');
+
+    const iconOptions = ['Zap', 'ArrowUpRight', 'MapPin', 'Star', 'Gift', 'Percent', 'Tag', 'Clock', 'Heart', 'Flame'];
+
+    const handleAddTicker = async () => {
+        if (!newTickerText.trim()) return;
+        try {
+            const newItem = await api.addMarqueeItem(newTickerText.trim(), newTickerIcon);
+            setTickerItems([...tickerItems, newItem]);
+            setNewTickerText('');
+            setNewTickerIcon('Zap');
+        } catch (error) {
+            console.error('Failed to add ticker item:', error);
+            alert('Failed to add ticker item');
+        }
+    };
+
+    const handleToggleTicker = async (id: string) => {
+        try {
+            const result = await api.toggleMarqueeItem(id);
+            setTickerItems(tickerItems.map(item =>
+                item._id === id ? { ...item, isActive: result.isActive } : item
+            ));
+        } catch (error) {
+            console.error('Failed to toggle ticker item:', error);
+            alert('Failed to toggle ticker item');
+        }
+    };
+
+    const handleDeleteTicker = async (id: string) => {
+        if (!confirm('Are you sure you want to delete this ticker item?')) return;
+        try {
+            await api.deleteMarqueeItem(id);
+            setTickerItems(tickerItems.filter(item => item._id !== id));
+        } catch (error) {
+            console.error('Failed to delete ticker item:', error);
+            alert('Failed to delete ticker item');
+        }
+    };
+
     if (authLoading) return <div>Loading...</div>;
     if (!isAdmin) return <Navigate to="/" />;
 
@@ -490,6 +537,12 @@ const Admin: React.FC = () => {
                             >
                                 <Star size={20} /> Reviews
                             </button>
+                            <button
+                                onClick={() => setActiveTab('ticker')}
+                                className={`flex items-center gap-3 w-full px-4 py-3 rounded-lg font-medium transition ${activeTab === 'ticker' ? 'bg-purple-50 text-brand-purple' : 'text-gray-600 hover:bg-gray-50'}`}
+                            >
+                                <Megaphone size={20} /> Ticker
+                            </button>
                         </nav>
                     </div>
                 </aside>
@@ -497,7 +550,7 @@ const Admin: React.FC = () => {
                 {/* Mobile Tab Navigation */}
                 <div className="lg:hidden w-full mb-4 overflow-x-auto">
                     <div className="flex gap-2 min-w-max px-1 pb-2">
-                        {(['overview', 'trips', 'bookings', 'enquiries', 'gallery', 'reviews'] as const).map(tab => (
+                        {(['overview', 'trips', 'bookings', 'enquiries', 'gallery', 'reviews', 'ticker'] as const).map(tab => (
                             <button
                                 key={tab}
                                 onClick={() => setActiveTab(tab)}
@@ -512,6 +565,7 @@ const Admin: React.FC = () => {
                                 {tab === 'enquiries' && <MessageSquare size={16} />}
                                 {tab === 'gallery' && <ImageIcon size={16} />}
                                 {tab === 'reviews' && <Star size={16} />}
+                                {tab === 'ticker' && <Megaphone size={16} />}
                                 {tab.charAt(0).toUpperCase() + tab.slice(1)}
                             </button>
                         ))}
@@ -541,35 +595,142 @@ const Admin: React.FC = () => {
                             {/* ... (Overview, Bookings, Enquiries Tabs remain unchanged) ... */}
                             {activeTab === 'overview' && (
                                 <>
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                                    {/* Stats Cards */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                                         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                                            <h3 className="text-gray-500 text-sm font-medium">Total Revenue</h3>
-                                            <p className="text-2xl font-bold text-gray-900">₹{stats.reduce((acc, curr) => acc + curr.revenue, 0).toLocaleString()}</p>
+                                            <div className="flex items-center justify-between mb-2">
+                                                <h3 className="text-gray-500 text-sm font-medium">Total Revenue</h3>
+                                                <DollarSign className="text-green-500" size={20} />
+                                            </div>
+                                            <p className="text-2xl font-bold text-gray-900">
+                                                ₹{allBookings
+                                                    .filter(b => b.status === 'confirmed')
+                                                    .reduce((acc, curr) => acc + (curr.totalPrice || 0), 0)
+                                                    .toLocaleString()}
+                                            </p>
+                                            <p className="text-xs text-gray-400 mt-1">From confirmed bookings</p>
                                         </div>
                                         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                                            <h3 className="text-gray-500 text-sm font-medium">Total Bookings</h3>
+                                            <div className="flex items-center justify-between mb-2">
+                                                <h3 className="text-gray-500 text-sm font-medium">Total Bookings</h3>
+                                                <Users className="text-blue-500" size={20} />
+                                            </div>
                                             <p className="text-2xl font-bold text-gray-900">{allBookings.length}</p>
+                                            <p className="text-xs text-gray-400 mt-1">
+                                                {allBookings.filter(b => b.status === 'confirmed').length} confirmed
+                                            </p>
                                         </div>
                                         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                                            <h3 className="text-gray-500 text-sm font-medium">Active Trips</h3>
-                                            <p className="text-2xl font-bold text-gray-900">{trips.length}</p>
+                                            <div className="flex items-center justify-between mb-2">
+                                                <h3 className="text-gray-500 text-sm font-medium">Active Trips</h3>
+                                                <Package className="text-purple-500" size={20} />
+                                            </div>
+                                            <p className="text-2xl font-bold text-gray-900">
+                                                {trips.filter(t => t.isActive !== false).length}
+                                            </p>
+                                            <p className="text-xs text-gray-400 mt-1">
+                                                {trips.filter(t => t.isActive === false).length} inactive
+                                            </p>
+                                        </div>
+                                        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <h3 className="text-gray-500 text-sm font-medium">New Enquiries</h3>
+                                                <MessageSquare className="text-orange-500" size={20} />
+                                            </div>
+                                            <p className="text-2xl font-bold text-gray-900">
+                                                {enquiries.filter(e => e.status === 'new').length}
+                                            </p>
+                                            <p className="text-xs text-gray-400 mt-1">
+                                                {enquiries.length} total enquiries
+                                            </p>
                                         </div>
                                     </div>
+
+                                    {/* Booking Analytics Chart */}
                                     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-8">
-                                        <h3 className="text-lg font-bold text-gray-800 mb-6">Booking Analytics</h3>
+                                        <h3 className="text-lg font-bold text-gray-800 mb-2">Booking Analytics</h3>
+                                        <p className="text-sm text-gray-500 mb-6">Last 6 months booking trends</p>
                                         <div className="h-80 w-full">
-                                            <ResponsiveContainer width="100%" height="100%">
-                                                <BarChart data={stats} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                                                    <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#6b7280' }} dy={10} />
-                                                    <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6b7280' }} />
-                                                    <Tooltip
-                                                        cursor={{ fill: '#f9fafb' }}
-                                                        contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                                                    />
-                                                    <Bar dataKey="bookings" fill="#6f3289" radius={[4, 4, 0, 0]} barSize={40} />
-                                                </BarChart>
-                                            </ResponsiveContainer>
+                                            {stats.length > 0 ? (
+                                                <ResponsiveContainer width="100%" height="100%">
+                                                    <BarChart data={stats} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                                                        <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#6b7280' }} dy={10} />
+                                                        <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6b7280' }} />
+                                                        <Tooltip
+                                                            cursor={{ fill: '#f9fafb' }}
+                                                            contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                                            formatter={(value: number, name: string) => [
+                                                                name === 'revenue' ? `₹${value.toLocaleString()}` : value,
+                                                                name === 'revenue' ? 'Revenue' : 'Bookings'
+                                                            ]}
+                                                        />
+                                                        <Bar dataKey="bookings" fill="#6f3289" radius={[4, 4, 0, 0]} barSize={40} name="Bookings" />
+                                                    </BarChart>
+                                                </ResponsiveContainer>
+                                            ) : (
+                                                <div className="flex flex-col items-center justify-center h-full text-gray-400">
+                                                    <LayoutDashboard size={48} className="mb-4 opacity-50" />
+                                                    <p>No booking data available yet</p>
+                                                    <p className="text-sm mt-1">Bookings will appear here once customers start booking</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Quick Stats Summary */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        {/* Recent Bookings */}
+                                        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                                            <h3 className="text-lg font-bold text-gray-800 mb-4">Recent Bookings</h3>
+                                            {allBookings.length > 0 ? (
+                                                <div className="space-y-3">
+                                                    {allBookings.slice(0, 5).map((booking) => (
+                                                        <div key={booking.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                                                            <div>
+                                                                <p className="font-medium text-gray-800 text-sm">{booking.customerName}</p>
+                                                                <p className="text-xs text-gray-500">{booking.tripTitle}</p>
+                                                            </div>
+                                                            <div className="text-right">
+                                                                <p className="font-bold text-gray-900 text-sm">₹{booking.totalPrice?.toLocaleString()}</p>
+                                                                <span className={`text-xs px-2 py-0.5 rounded-full ${booking.status === 'confirmed' ? 'bg-green-100 text-green-700' :
+                                                                    booking.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                                                                        'bg-gray-100 text-gray-600'
+                                                                    }`}>
+                                                                    {booking.status}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <p className="text-gray-400 text-center py-8">No bookings yet</p>
+                                            )}
+                                        </div>
+
+                                        {/* Recent Enquiries */}
+                                        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                                            <h3 className="text-lg font-bold text-gray-800 mb-4">Recent Enquiries</h3>
+                                            {enquiries.length > 0 ? (
+                                                <div className="space-y-3">
+                                                    {enquiries.slice(0, 5).map((enquiry) => (
+                                                        <div key={enquiry.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                                                            <div>
+                                                                <p className="font-medium text-gray-800 text-sm">{enquiry.name}</p>
+                                                                <p className="text-xs text-gray-500">{enquiry.where || 'General enquiry'}</p>
+                                                            </div>
+                                                            <span className={`text-xs px-2 py-0.5 rounded-full ${enquiry.status === 'new' ? 'bg-orange-100 text-orange-700' :
+                                                                enquiry.status === 'contacted' ? 'bg-blue-100 text-blue-700' :
+                                                                    'bg-green-100 text-green-700'
+                                                                }`}>
+                                                                {enquiry.status}
+                                                            </span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <p className="text-gray-400 text-center py-8">No enquiries yet</p>
+                                            )}
                                         </div>
                                     </div>
                                 </>
@@ -746,8 +907,8 @@ const Admin: React.FC = () => {
                                                             <button
                                                                 onClick={() => handleToggleStatus(trip.id)}
                                                                 className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition ${trip.isActive !== false
-                                                                        ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                                                                        : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                                                                    ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                                                                    : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
                                                                     }`}
                                                                 title={trip.isActive !== false ? 'Click to deactivate' : 'Click to activate'}
                                                             >
@@ -1018,6 +1179,105 @@ const Admin: React.FC = () => {
                                                         >
                                                             <Trash2 size={14} />
                                                         </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeTab === 'ticker' && (
+                                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                                    <div className="p-6 border-b border-gray-100">
+                                        <h3 className="text-lg font-bold text-gray-800">Ticker Tape Management</h3>
+                                        <p className="text-sm text-gray-500 mt-1">Manage the scrolling announcements on the homepage</p>
+                                    </div>
+
+                                    {/* Add Ticker Form */}
+                                    <div className="p-6 bg-gray-50 border-b border-gray-100">
+                                        <h4 className="font-semibold text-gray-700 mb-4">Add New Ticker Item</h4>
+                                        <div className="flex flex-col md:flex-row gap-4">
+                                            <div className="flex-1">
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Text *</label>
+                                                <input
+                                                    type="text"
+                                                    value={newTickerText}
+                                                    onChange={(e) => setNewTickerText(e.target.value)}
+                                                    placeholder="e.g. New Year Sale - 20% Off!"
+                                                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-purple focus:border-transparent"
+                                                />
+                                            </div>
+                                            <div className="w-full md:w-48">
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Icon</label>
+                                                <select
+                                                    value={newTickerIcon}
+                                                    onChange={(e) => setNewTickerIcon(e.target.value)}
+                                                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-purple focus:border-transparent"
+                                                >
+                                                    {iconOptions.map(icon => (
+                                                        <option key={icon} value={icon}>{icon}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                            <button
+                                                onClick={handleAddTicker}
+                                                className="bg-brand-purple text-white px-6 py-2 rounded-lg hover:bg-brand-darkPurple transition flex items-center gap-2 h-fit md:mt-6"
+                                            >
+                                                <PlusCircle size={18} /> Add
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Ticker Items List */}
+                                    <div className="p-6">
+                                        {tickerItems.length === 0 ? (
+                                            <div className="text-center py-12 text-gray-400">
+                                                <Megaphone size={48} className="mx-auto mb-4 opacity-50" />
+                                                <p>No ticker items yet. Add some announcements to display on the homepage.</p>
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-3">
+                                                {tickerItems.map((item) => (
+                                                    <div
+                                                        key={item._id}
+                                                        className={`flex items-center justify-between p-4 rounded-lg border transition ${item.isActive
+                                                            ? 'bg-white border-gray-200'
+                                                            : 'bg-gray-100 border-gray-200 opacity-60'
+                                                            }`}
+                                                    >
+                                                        <div className="flex items-center gap-3 flex-1">
+                                                            <span className="text-brand-purple font-mono text-sm bg-purple-50 px-2 py-1 rounded">{item.icon}</span>
+                                                            <span className={`text-gray-800 ${!item.isActive && 'line-through'}`}>{item.text}</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <button
+                                                                onClick={() => handleToggleTicker(item._id)}
+                                                                className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition ${item.isActive
+                                                                    ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                                                                    : 'bg-gray-200 text-gray-500 hover:bg-gray-300'
+                                                                    }`}
+                                                                title={item.isActive ? 'Click to deactivate' : 'Click to activate'}
+                                                            >
+                                                                {item.isActive ? (
+                                                                    <>
+                                                                        <ToggleRight size={16} className="text-green-600" />
+                                                                        Active
+                                                                    </>
+                                                                ) : (
+                                                                    <>
+                                                                        <ToggleLeft size={16} className="text-gray-400" />
+                                                                        Inactive
+                                                                    </>
+                                                                )}
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDeleteTicker(item._id)}
+                                                                className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition"
+                                                            >
+                                                                <Trash2 size={16} />
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                 ))}
                                             </div>

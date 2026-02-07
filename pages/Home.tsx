@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Calendar, MapPin, Users, Star, Filter, ArrowRight, UserPlus, Minus, Plus, ChevronLeft, ChevronRight, Quote, X, Camera, Zap, Trophy, Heart, Map, Mail, Phone, Send, Compass, ArrowUpRight, Shield, Leaf } from 'lucide-react';
+import { Search, Calendar, MapPin, Users, Star, Filter, ArrowRight, UserPlus, Minus, Plus, ChevronLeft, ChevronRight, Quote, X, Camera, Zap, Trophy, Heart, Map, Mail, Phone, Send, Compass, ArrowUpRight, Shield, Leaf, Gift, Percent, Tag, Clock, Flame } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import TripCard from '../components/TripCard';
@@ -111,6 +111,9 @@ const Home: React.FC = () => {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
+  // Marquee/Ticker State
+  const [marqueeItems, setMarqueeItems] = useState<{ _id: string; text: string; icon: string }[]>([]);
+
   // Autoplay pause states
   const [isTripHovered, setIsTripHovered] = useState(false);
   const [isTestimonialHovered, setIsTestimonialHovered] = useState(false);
@@ -121,10 +124,11 @@ const Home: React.FC = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [tripsData, testimonialsData, galleryData] = await Promise.all([
+        const [tripsData, testimonialsData, galleryData, marqueeData] = await Promise.all([
           api.getTrips(),
           api.getTestimonials(),
-          api.getGalleryImages()
+          api.getGalleryImages(),
+          api.getMarqueeItems()
         ]);
         setTrips(tripsData);
         setTestimonials(testimonialsData);
@@ -141,6 +145,10 @@ const Home: React.FC = () => {
             { imageUrl: "https://picsum.photos/id/106/800/600", caption: "" },
             { imageUrl: "https://picsum.photos/id/1036/800/600", caption: "" }
           ]);
+        }
+        // Set marquee items
+        if (marqueeData && marqueeData.length > 0) {
+          setMarqueeItems(marqueeData);
         }
       } catch (err) {
         console.error(err);
@@ -277,6 +285,34 @@ const Home: React.FC = () => {
     return () => clearInterval(interval);
   }, [isTestimonialHovered, testimonials.length]);
 
+  // Helper to render marquee icon
+  const getMarqueeIcon = (iconName: string) => {
+    const iconMap: { [key: string]: React.ReactNode } = {
+      'Zap': <Zap size={14} className="text-yellow-400" />,
+      'ArrowUpRight': <ArrowUpRight size={14} className="text-brand-cream" />,
+      'MapPin': <MapPin size={14} className="text-brand-cream" />,
+      'Star': <Star size={14} className="text-yellow-400" />,
+      'Gift': <Gift size={14} className="text-pink-300" />,
+      'Percent': <Percent size={14} className="text-green-300" />,
+      'Tag': <Tag size={14} className="text-brand-cream" />,
+      'Clock': <Clock size={14} className="text-orange-300" />,
+      'Heart': <Heart size={14} className="text-red-400" />,
+      'Flame': <Flame size={14} className="text-orange-400" />
+    };
+    return iconMap[iconName] || <Zap size={14} className="text-yellow-400" />;
+  };
+
+  // Default marquee items as fallback
+  const defaultMarqueeItems = [
+    { _id: '1', text: 'Flash Sale: 15% OFF Gokarna Trek', icon: 'Zap' },
+    { _id: '2', text: 'Hampi Batches Filling Fast', icon: 'ArrowUpRight' },
+    { _id: '3', text: 'New Destination: Wayanad', icon: 'MapPin' },
+    { _id: '4', text: 'Monsoon Treks Open', icon: 'Zap' },
+    { _id: '5', text: 'Early Bird Discounts on Pondicherry', icon: 'ArrowUpRight' }
+  ];
+
+  const displayMarqueeItems = marqueeItems.length > 0 ? marqueeItems : defaultMarqueeItems;
+
   return (
     <div className="min-h-screen flex flex-col bg-brand-cream overflow-x-hidden font-sans">
       <Navbar />
@@ -284,15 +320,18 @@ const Home: React.FC = () => {
       {/* Marquee Section - Positioned below Navbar */}
       <div className="bg-brand-olive text-brand-cream py-2.5 overflow-hidden relative z-40 border-b border-white/10 shadow-sm">
         <div className="whitespace-nowrap animate-marquee flex gap-16 items-center uppercase text-[10px] md:text-xs font-bold tracking-[0.2em]">
-          <span className="flex items-center gap-2"><Zap size={14} className="text-yellow-400" /> Flash Sale: 15% OFF Gokarna Trek</span>
-          <span className="flex items-center gap-2"><ArrowUpRight size={14} className="text-brand-cream" /> Hampi Batches Filling Fast</span>
-          <span className="flex items-center gap-2"><MapPin size={14} className="text-brand-cream" /> New Destination: Wayanad</span>
-          <span className="flex items-center gap-2"><Zap size={14} className="text-yellow-400" /> Monsoon Treks Open</span>
-          <span className="flex items-center gap-2"><ArrowUpRight size={14} className="text-brand-cream" /> Early Bird Discounts on Pondicherry</span>
+          {/* First set of items */}
+          {displayMarqueeItems.map((item) => (
+            <span key={item._id} className="flex items-center gap-2">
+              {getMarqueeIcon(item.icon)} {item.text}
+            </span>
+          ))}
           {/* Duplicate for smooth loop */}
-          <span className="flex items-center gap-2"><Zap size={14} className="text-yellow-400" /> Flash Sale: 15% OFF Gokarna Trek</span>
-          <span className="flex items-center gap-2"><ArrowUpRight size={14} className="text-brand-cream" /> Hampi Batches Filling Fast</span>
-          <span className="flex items-center gap-2"><MapPin size={14} className="text-brand-cream" /> New Destination: Wayanad</span>
+          {displayMarqueeItems.map((item) => (
+            <span key={`dup-${item._id}`} className="flex items-center gap-2">
+              {getMarqueeIcon(item.icon)} {item.text}
+            </span>
+          ))}
         </div>
       </div>
 
