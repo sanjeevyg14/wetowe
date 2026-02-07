@@ -177,7 +177,7 @@ const Admin: React.FC = () => {
 
     const fetchData = async () => {
         try {
-            const [tripsData, statsData, bookingsData, enquiriesData, galleryData, reviewsData] = await Promise.all([
+            const results = await Promise.allSettled([
                 api.getTrips(),
                 api.getStats(),
                 api.getAllBookings(),
@@ -185,12 +185,26 @@ const Admin: React.FC = () => {
                 api.getAdminGallery(),
                 api.getAdminTestimonials()
             ]);
-            setTrips(tripsData);
-            setStats(statsData);
-            setAllBookings(bookingsData);
-            setEnquiries(enquiriesData);
-            setGalleryImages(galleryData);
-            setReviews(reviewsData);
+
+            // Handle each result individually
+            if (results[0].status === 'fulfilled') setTrips(results[0].value);
+            else console.error("Failed to fetch trips:", results[0].reason);
+
+            if (results[1].status === 'fulfilled') setStats(results[1].value);
+            else console.error("Failed to fetch stats:", results[1].reason);
+
+            if (results[2].status === 'fulfilled') setAllBookings(results[2].value);
+            else console.error("Failed to fetch bookings:", results[2].reason);
+
+            if (results[3].status === 'fulfilled') setEnquiries(results[3].value);
+            else console.error("Failed to fetch enquiries:", results[3].reason);
+
+            if (results[4].status === 'fulfilled') setGalleryImages(results[4].value);
+            else console.error("Failed to fetch gallery:", results[4].reason);
+
+            if (results[5].status === 'fulfilled') setReviews(results[5].value);
+            else console.error("Failed to fetch reviews:", results[5].reason);
+
         } catch (error) {
             console.error("Failed to fetch admin data", error);
         } finally {
@@ -468,6 +482,30 @@ const Admin: React.FC = () => {
                         </nav>
                     </div>
                 </aside>
+
+                {/* Mobile Tab Navigation */}
+                <div className="lg:hidden w-full mb-4 overflow-x-auto">
+                    <div className="flex gap-2 min-w-max px-1 pb-2">
+                        {(['overview', 'trips', 'bookings', 'enquiries', 'gallery', 'reviews'] as const).map(tab => (
+                            <button
+                                key={tab}
+                                onClick={() => setActiveTab(tab)}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition ${activeTab === tab
+                                        ? 'bg-brand-purple text-white'
+                                        : 'bg-white text-gray-600 border border-gray-200'
+                                    }`}
+                            >
+                                {tab === 'overview' && <LayoutDashboard size={16} />}
+                                {tab === 'trips' && <Package size={16} />}
+                                {tab === 'bookings' && <Users size={16} />}
+                                {tab === 'enquiries' && <MessageSquare size={16} />}
+                                {tab === 'gallery' && <ImageIcon size={16} />}
+                                {tab === 'reviews' && <Star size={16} />}
+                                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                            </button>
+                        ))}
+                    </div>
+                </div>
 
                 {/* Main Content */}
                 <main className="flex-1">
