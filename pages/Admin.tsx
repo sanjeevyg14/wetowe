@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { LayoutDashboard, Package, Users, DollarSign, PlusCircle, Settings, Edit, Trash2, X, Save, Search, CheckCircle, RefreshCcw, MessageSquare, Mail, Phone, Plus, Minus, ChevronDown, ChevronUp, Link as LinkIcon, Upload, Image as ImageIcon, Loader, Star } from 'lucide-react';
+import { LayoutDashboard, Package, Users, DollarSign, PlusCircle, Settings, Edit, Trash2, X, Save, Search, CheckCircle, RefreshCcw, MessageSquare, Mail, Phone, Plus, Minus, ChevronDown, ChevronUp, Link as LinkIcon, Upload, Image as ImageIcon, Loader, Star, ToggleLeft, ToggleRight } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { api } from '../services/api';
 import { uploadToCloudinary } from '../services/uploadService';
@@ -178,7 +178,7 @@ const Admin: React.FC = () => {
     const fetchData = async () => {
         try {
             const results = await Promise.allSettled([
-                api.getTrips(),
+                api.getAllTrips(),
                 api.getStats(),
                 api.getAllBookings(),
                 api.getEnquiries(),
@@ -216,6 +216,17 @@ const Admin: React.FC = () => {
         if (confirm('Are you sure you want to delete this trip?')) {
             await api.deleteTrip(id);
             setTrips(trips.filter(t => t.id !== id));
+        }
+    };
+
+    const handleToggleStatus = async (id: string) => {
+        try {
+            const result = await api.toggleTripStatus(id);
+            // Update local state
+            setTrips(trips.map(t => t.id === id ? { ...t, isActive: result.isActive } : t));
+        } catch (error) {
+            console.error('Failed to toggle trip status:', error);
+            alert('Failed to toggle trip status');
         }
     };
 
@@ -491,8 +502,8 @@ const Admin: React.FC = () => {
                                 key={tab}
                                 onClick={() => setActiveTab(tab)}
                                 className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition ${activeTab === tab
-                                        ? 'bg-brand-purple text-white'
-                                        : 'bg-white text-gray-600 border border-gray-200'
+                                    ? 'bg-brand-purple text-white'
+                                    : 'bg-white text-gray-600 border border-gray-200'
                                     }`}
                             >
                                 {tab === 'overview' && <LayoutDashboard size={16} />}
@@ -710,12 +721,13 @@ const Admin: React.FC = () => {
                                                     <th className="px-6 py-4">Location</th>
                                                     <th className="px-6 py-4">Price</th>
                                                     <th className="px-6 py-4">Duration</th>
+                                                    <th className="px-6 py-4">Status</th>
                                                     <th className="px-6 py-4 text-right">Actions</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-gray-100">
                                                 {trips.map((trip) => (
-                                                    <tr key={trip.id} className="hover:bg-gray-50 transition">
+                                                    <tr key={trip.id} className={`hover:bg-gray-50 transition ${trip.isActive === false ? 'opacity-60' : ''}`}>
                                                         <td className="px-6 py-4">
                                                             <div className="flex items-center gap-3">
                                                                 <img src={trip.imageUrl} alt="" className="w-10 h-10 rounded-lg object-cover" />
@@ -730,6 +742,28 @@ const Admin: React.FC = () => {
                                                         <td className="px-6 py-4 text-gray-600 text-sm">{trip.location}</td>
                                                         <td className="px-6 py-4 text-gray-900 font-medium text-sm">₹{trip.price.toLocaleString()}</td>
                                                         <td className="px-6 py-4 text-gray-600 text-sm">{trip.duration}</td>
+                                                        <td className="px-6 py-4">
+                                                            <button
+                                                                onClick={() => handleToggleStatus(trip.id)}
+                                                                className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition ${trip.isActive !== false
+                                                                        ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                                                                        : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                                                                    }`}
+                                                                title={trip.isActive !== false ? 'Click to deactivate' : 'Click to activate'}
+                                                            >
+                                                                {trip.isActive !== false ? (
+                                                                    <>
+                                                                        <ToggleRight size={16} className="text-green-600" />
+                                                                        Active
+                                                                    </>
+                                                                ) : (
+                                                                    <>
+                                                                        <ToggleLeft size={16} className="text-gray-400" />
+                                                                        Inactive
+                                                                    </>
+                                                                )}
+                                                            </button>
+                                                        </td>
                                                         <td className="px-6 py-4 text-right">
                                                             <div className="flex items-center justify-end gap-2">
                                                                 <button

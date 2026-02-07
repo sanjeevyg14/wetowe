@@ -8,6 +8,11 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Profile from './pages/Profile';
 import MyBookings from './pages/MyBookings';
+import OurStory from './pages/OurStory';
+import Team from './pages/Team';
+import ContactUs from './pages/ContactUs';
+import Terms from './pages/Terms';
+import CancellationPolicy from './pages/CancellationPolicy';
 import { AuthProvider } from './contexts/AuthContext';
 
 const App: React.FC = () => {
@@ -23,6 +28,11 @@ const App: React.FC = () => {
           <Route path="/signup" element={<Signup />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/my-bookings" element={<MyBookings />} />
+          <Route path="/our-story" element={<OurStory />} />
+          <Route path="/team" element={<Team />} />
+          <Route path="/contact" element={<ContactUs />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/cancellation-policy" element={<CancellationPolicy />} />
         </Routes>
       </Router>
     </AuthProvider>

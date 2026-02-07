@@ -24,6 +24,7 @@ const tripSchema = new mongoose.Schema({
   itinerary: [itinerarySchema],
   dates: [String], // Array of date strings for now
   maxCapacity: { type: Number, default: 12 }, // Max travelers per date
+  isActive: { type: Boolean, default: true }, // Trip visibility status
 }, {
   timestamps: true // Automatically adds createdAt and updatedAt
 });

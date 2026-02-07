@@ -87,6 +87,26 @@ export const api = {
         if (!response.ok) throw new Error('Failed to delete trip');
     },
 
+    // Get all trips including inactive (admin only)
+    getAllTrips: async (): Promise<Trip[]> => {
+        const response = await fetch(`${API_URL}/trips?all=true`, {
+            headers: getAuthHeaders()
+        });
+        if (!response.ok) throw new Error('Network response was not ok');
+        const data = await response.json();
+        return data.map((trip: any) => ({ ...trip, id: trip._id }));
+    },
+
+    // Toggle trip active status (admin only)
+    toggleTripStatus: async (id: string): Promise<{ isActive: boolean }> => {
+        const response = await fetch(`${API_URL}/trips/${id}/toggle-status`, {
+            method: 'PATCH',
+            headers: getAuthHeaders()
+        });
+        if (!response.ok) throw new Error('Failed to toggle trip status');
+        return await response.json();
+    },
+
     // --- GALLERY ---
     getGalleryImages: async (): Promise<{ imageUrl: string; caption: string }[]> => {
         const response = await fetch(`${API_URL}/gallery`);

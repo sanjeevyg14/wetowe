@@ -37,11 +37,15 @@ const generateUniqueSlug = async (title, model, ignoreId = null) => {
   return uniqueSlug;
 }
 
-// GET all trips
+// GET all trips (public sees only active, admin can see all with ?all=true)
 router.get('/', async (req, res) => {
   try {
     await connectDB();
-    const trips = await Trip.find().sort({ createdAt: -1 });
+    // If ?all=true is passed (admin usage), return all trips
+    // Otherwise, only return active trips for public
+    const showAll = req.query.all === 'true';
+    const filter = showAll ? {} : { isActive: { $ne: false } };
+    const trips = await Trip.find(filter).sort({ createdAt: -1 });
     res.json(trips);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -128,6 +132,28 @@ router.delete('/:id', authMiddleware, adminMiddleware, async (req, res) => {
     await connectDB();
     await Trip.findByIdAndDelete(req.params.id);
     res.json({ message: 'Trip deleted' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// PATCH toggle trip active status (Admin only)
+router.patch('/:id/toggle-status', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    await connectDB();
+    const trip = await Trip.findById(req.params.id);
+    if (!trip) {
+      return res.status(404).json({ message: 'Trip not found' });
+    }
+
+    // Toggle the isActive status
+    trip.isActive = !trip.isActive;
+    await trip.save();
+
+    res.json({
+      message: `Trip ${trip.isActive ? 'activated' : 'deactivated'} successfully`,
+      isActive: trip.isActive
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

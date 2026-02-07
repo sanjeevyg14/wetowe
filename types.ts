@@ -24,6 +24,7 @@ export interface Trip {
   itinerary: ItineraryItem[];
   dates: string[];
   maxCapacity?: number; // Max travelers per date (default 12)
+  isActive?: boolean; // Trip visibility status (default true)
 }
 
 export interface BookingStats {

@@ -468,7 +468,7 @@ const Home: React.FC = () => {
       >
         <div className="flex items-end justify-between mb-10 border-b border-brand-olive/10 pb-6">
           <div>
-            <h2 className="text-3xl font-extrabold text-brand-black font-serif">Trending Expeditions</h2>
+            <h2 className="text-3xl font-extrabold text-brand-black font-serif uppercase tracking-wide">Trending Expeditions</h2>
             <p className="text-brand-black/60 mt-1 uppercase text-xs tracking-widest">Top-rated trips happening this month</p>
           </div>
           <div className="flex gap-2">
@@ -515,7 +515,7 @@ const Home: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-end mb-10 gap-4">
             <div>
-              <h2 className="text-3xl md:text-4xl font-extrabold text-brand-black mb-3 font-serif">Curated Journeys</h2>
+              <h2 className="text-3xl md:text-4xl font-extrabold text-brand-black mb-3 font-serif uppercase tracking-wide">Curated Journeys</h2>
               <p className="text-brand-black/60 text-lg">Handpicked trips for the rugged soul.</p>
             </div>
 
@@ -577,12 +577,17 @@ const Home: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between mb-10">
             <div>
-              <h2 className="text-3xl font-extrabold text-brand-cream font-serif">Visual Log</h2>
+              <h2 className="text-3xl font-extrabold text-brand-cream font-serif uppercase tracking-wide">Visual Log</h2>
               <p className="text-brand-cream/60 mt-2 uppercase text-xs tracking-widest">Captured by our community</p>
             </div>
-            <div className="hidden md:flex items-center gap-2 text-brand-olive font-bold">
-              <Camera size={20} /> @wheeltowilderness
-            </div>
+            <a
+              href="https://instagram.com/wheelstowilderness"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden md:flex items-center gap-2 text-brand-olive font-bold hover:text-brand-sage transition"
+            >
+              <Camera size={20} /> @wheelstowilderness
+            </a>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 gap-1 h-[600px] md:h-[500px]">
