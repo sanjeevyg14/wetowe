@@ -3,6 +3,7 @@ const router = express.Router();
 const Trip = require('../models/Trip.cjs');
 const mongoose = require('mongoose');
 const connectDB = require('../lib/db.cjs');
+const { authMiddleware, adminMiddleware } = require('../middleware/auth.cjs');
 
 // Helper to slugify text
 const slugify = (text) => {
@@ -19,14 +20,14 @@ const generateUniqueSlug = async (title, model, ignoreId = null) => {
   let baseSlug = slugify(title);
   let uniqueSlug = baseSlug;
   let counter = 1;
-  
+
   // Create query object
   const getQuery = (slug) => {
-      const query = { slug: slug };
-      if (ignoreId) {
-          query._id = { $ne: ignoreId };
-      }
-      return query;
+    const query = { slug: slug };
+    if (ignoreId) {
+      query._id = { $ne: ignoreId };
+    }
+    return query;
   };
 
   while (await model.findOne(getQuery(uniqueSlug))) {
@@ -56,7 +57,7 @@ router.get('/:id', async (req, res) => {
     if (mongoose.Types.ObjectId.isValid(req.params.id)) {
       trip = await Trip.findById(req.params.id);
     }
-    
+
     // If not found by ID (or invalid ID), try finding by slug
     if (!trip) {
       trip = await Trip.findOne({ slug: req.params.id });
@@ -69,23 +70,23 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// POST create trip
-router.post('/', async (req, res) => {
+// POST create trip (Admin only)
+router.post('/', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     await connectDB();
     const tripData = req.body;
-    
+
     // Generate or ensure unique slug
     if (!tripData.slug) {
-        // If no slug provided, generate from title
-        tripData.slug = await generateUniqueSlug(tripData.title, Trip);
+      // If no slug provided, generate from title
+      tripData.slug = await generateUniqueSlug(tripData.title, Trip);
     } else {
-        // If slug provided, ensure it is unique
-        const existing = await Trip.findOne({ slug: tripData.slug });
-        if (existing) {
-             // If manual slug collision, fallback to uniqueness logic based on manual slug
-             tripData.slug = await generateUniqueSlug(tripData.slug, Trip);
-        }
+      // If slug provided, ensure it is unique
+      const existing = await Trip.findOne({ slug: tripData.slug });
+      if (existing) {
+        // If manual slug collision, fallback to uniqueness logic based on manual slug
+        tripData.slug = await generateUniqueSlug(tripData.slug, Trip);
+      }
     }
 
     const trip = new Trip(tripData);
@@ -96,22 +97,22 @@ router.post('/', async (req, res) => {
   }
 });
 
-// PUT update trip
-router.put('/:id', async (req, res) => {
+// PUT update trip (Admin only)
+router.put('/:id', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     await connectDB();
     const tripData = req.body;
-    
+
     // Handle slug updates
     if (!tripData.slug && tripData.title) {
-        // If slug was cleared, regenerate from title
-        tripData.slug = await generateUniqueSlug(tripData.title, Trip, req.params.id);
+      // If slug was cleared, regenerate from title
+      tripData.slug = await generateUniqueSlug(tripData.title, Trip, req.params.id);
     } else if (tripData.slug) {
-        // If slug provided, ensure uniqueness excluding current doc
-        const existing = await Trip.findOne({ slug: tripData.slug, _id: { $ne: req.params.id } });
-        if (existing) {
-             tripData.slug = await generateUniqueSlug(tripData.slug, Trip, req.params.id);
-        }
+      // If slug provided, ensure uniqueness excluding current doc
+      const existing = await Trip.findOne({ slug: tripData.slug, _id: { $ne: req.params.id } });
+      if (existing) {
+        tripData.slug = await generateUniqueSlug(tripData.slug, Trip, req.params.id);
+      }
     }
 
     const updatedTrip = await Trip.findByIdAndUpdate(req.params.id, tripData, { new: true });
@@ -121,8 +122,8 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// DELETE trip
-router.delete('/:id', async (req, res) => {
+// DELETE trip (Admin only)
+router.delete('/:id', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     await connectDB();
     await Trip.findByIdAndDelete(req.params.id);

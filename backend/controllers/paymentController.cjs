@@ -12,30 +12,76 @@ const ENV = process.env.PHONEPE_ENV || 'sandbox'; // 'sandbox' or 'production'
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:5000';
 
-const BASE_URL = ENV === 'production' 
-    ? 'https://api.phonepe.com/apis/hermes' 
+const BASE_URL = ENV === 'production'
+    ? 'https://api.phonepe.com/apis/hermes'
     : 'https://api-preprod.phonepe.com/apis/pg-sandbox';
 
 exports.initiatePayment = async (req, res) => {
     try {
         await connectDB();
-        const { 
-            userId, tripId, tripTitle, tripImage, 
-            customerName, email, phone, date, travelers, totalPrice 
+        const {
+            userId, tripId, tripTitle, tripImage,
+            customerName, email, phone, date, travelers, totalPrice
         } = req.body;
+
+        // === ATOMIC SEAT VALIDATION ===
+        const Trip = require('../models/Trip.cjs');
+        const trip = await Trip.findById(tripId);
+        if (!trip) {
+            return res.status(404).json({ success: false, message: 'Trip not found' });
+        }
+
+        const maxCapacity = trip.maxCapacity || 12;
+        const now = new Date();
+
+        // Count current valid bookings (confirmed + non-expired pending)
+        const result = await Booking.aggregate([
+            {
+                $match: {
+                    tripId: tripId,
+                    date: date,
+                    $or: [
+                        { status: { $in: ['confirmed', 'paid'] } },
+                        { status: 'pending', pendingExpiresAt: { $gt: now } }
+                    ]
+                }
+            },
+            {
+                $group: {
+                    _id: null,
+                    totalTravelers: { $sum: "$travelers" }
+                }
+            }
+        ]);
+
+        const currentlyBooked = result.length > 0 ? result[0].totalTravelers : 0;
+        const availableSeats = maxCapacity - currentlyBooked;
+
+        // Check if requested seats are available
+        if (travelers > availableSeats) {
+            return res.status(400).json({
+                success: false,
+                message: availableSeats === 0
+                    ? 'Sorry, this date is fully booked.'
+                    : `Only ${availableSeats} seat(s) available. Please reduce travelers.`,
+                availableSeats
+            });
+        }
+        // === END SEAT VALIDATION ===
 
         const transactionId = "MT" + Date.now() + uuidv4().slice(0, 4);
 
-        // 1. Save Booking as Pending
+        // Save Booking as Pending with expiry time
         const newBooking = new Booking({
             userId, tripId, tripTitle, tripImage,
             customerName, email, phone, date, travelers, totalPrice,
             transactionId,
-            status: 'pending'
+            status: 'pending',
+            pendingExpiresAt: new Date(Date.now() + 15 * 60 * 1000) // 15 min expiry
         });
         await newBooking.save();
 
-        // 2. Prepare PhonePe Payload
+        // Prepare PhonePe Payload
         const payload = {
             merchantId: MERCHANT_ID,
             merchantTransactionId: transactionId,
@@ -55,7 +101,7 @@ exports.initiatePayment = async (req, res) => {
         const sha256 = crypto.createHash('sha256').update(stringToHash).digest('hex');
         const checksum = sha256 + "###" + SALT_INDEX;
 
-        // 3. Call PhonePe API
+        // Call PhonePe API
         const options = {
             method: 'POST',
             url: `${BASE_URL}/pg/v1/pay`,
@@ -70,15 +116,17 @@ exports.initiatePayment = async (req, res) => {
         };
 
         const response = await axios.request(options);
-        
+
         if (response.data.success) {
             // Return the PhonePe redirect URL to frontend
-            res.json({ 
-                success: true, 
+            res.json({
+                success: true,
                 url: response.data.data.instrumentResponse.redirectInfo.url,
                 bookingId: newBooking._id
             });
         } else {
+            // Payment initiation failed, mark booking as failed
+            await Booking.findByIdAndUpdate(newBooking._id, { status: 'failed' });
             res.status(400).json({ success: false, message: "Payment initiation failed", error: response.data });
         }
 
@@ -118,13 +166,13 @@ exports.validatePayment = async (req, res) => {
         // 2. Update Booking Status
         if (response.data.code === 'PAYMENT_SUCCESS') {
             await Booking.findOneAndUpdate(
-                { transactionId: merchantTransactionId }, 
+                { transactionId: merchantTransactionId },
                 { status: 'confirmed', paymentResponse: response.data }
             );
             return res.redirect(`${FRONTEND_URL}/my-bookings?status=success`);
         } else {
             await Booking.findOneAndUpdate(
-                { transactionId: merchantTransactionId }, 
+                { transactionId: merchantTransactionId },
                 { status: 'failed', paymentResponse: response.data }
             );
             return res.redirect(`${FRONTEND_URL}/destinations?status=failed`);

@@ -9,7 +9,7 @@ const connectDB = require('../lib/db.cjs');
 const JWT_SECRET = process.env.JWT_SECRET;
 
 if (!JWT_SECRET) {
-    console.warn("WARNING: JWT_SECRET is not defined. Authentication will be insecure.");
+  throw new Error('FATAL: JWT_SECRET environment variable is not set. Authentication routes cannot function.');
 }
 
 // Register
@@ -17,7 +17,7 @@ router.post('/signup', async (req, res) => {
   try {
     await connectDB();
     const { name, email, password } = req.body;
-    
+
     // Basic Validation
     if (!name || !email || !password) {
       return res.status(400).json({ message: 'Please enter all fields' });
@@ -27,7 +27,7 @@ router.post('/signup', async (req, res) => {
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-        return res.status(400).json({ message: 'Invalid email format' });
+      return res.status(400).json({ message: 'Invalid email format' });
     }
 
     // Check if user exists
@@ -46,9 +46,9 @@ router.post('/signup', async (req, res) => {
     });
 
     const savedUser = await user.save();
-    
+
     // Create Token
-    const token = jwt.sign({ id: savedUser._id, role: savedUser.role }, JWT_SECRET || 'fallback_unsafe_secret', { expiresIn: '1d' });
+    const token = jwt.sign({ id: savedUser._id, role: savedUser.role }, JWT_SECRET, { expiresIn: '1d' });
 
     res.status(201).json({
       token,
@@ -80,7 +80,7 @@ router.post('/login', async (req, res) => {
     if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
 
     // Create Token
-    const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET || 'fallback_unsafe_secret', { expiresIn: '1d' });
+    const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: '1d' });
 
     res.json({
       token,
@@ -99,28 +99,28 @@ router.post('/login', async (req, res) => {
 
 // Update Profile
 router.put('/profile', authMiddleware, async (req, res) => {
-    try {
-        await connectDB();
-        const { name, avatar } = req.body;
-        const user = await User.findById(req.user.id);
+  try {
+    await connectDB();
+    const { name, avatar } = req.body;
+    const user = await User.findById(req.user.id);
 
-        if (!user) return res.status(404).json({ message: 'User not found' });
+    if (!user) return res.status(404).json({ message: 'User not found' });
 
-        if (name) user.name = name;
-        if (avatar) user.avatar = avatar;
+    if (name) user.name = name;
+    if (avatar) user.avatar = avatar;
 
-        const updatedUser = await user.save();
+    const updatedUser = await user.save();
 
-        res.json({
-            id: updatedUser._id,
-            name: updatedUser.name,
-            email: updatedUser.email,
-            role: updatedUser.role,
-            avatar: updatedUser.avatar
-        });
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
+    res.json({
+      id: updatedUser._id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      role: updatedUser.role,
+      avatar: updatedUser.avatar
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 });
 
 module.exports = router;

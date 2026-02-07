@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const paymentController = require('../controllers/paymentController.cjs');
+const { authMiddleware } = require('../middleware/auth.cjs');
 
-// Route to initiate payment
-router.post('/initiate', paymentController.initiatePayment);
+// Route to initiate payment (authenticated users only)
+router.post('/initiate', authMiddleware, paymentController.initiatePayment);
 
 // Route to handle callback/redirect from PhonePe
 // Note: This endpoint is hit by PhonePe/User Browser via GET or POST depending on mode.

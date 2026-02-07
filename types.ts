@@ -23,6 +23,7 @@ export interface Trip {
   pickupPoints: string[];
   itinerary: ItineraryItem[];
   dates: string[];
+  maxCapacity?: number; // Max travelers per date (default 12)
 }
 
 export interface BookingStats {

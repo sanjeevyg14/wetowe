@@ -1,6 +1,9 @@
 const jwt = require('jsonwebtoken');
 
-const JWT_SECRET = process.env.JWT_SECRET || '5673ee4c23fbd73afa487d7ce96ddf34';
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error('FATAL: JWT_SECRET environment variable is not set. Server cannot start.');
+}
 
 const authMiddleware = (req, res, next) => {
   // Get token from header

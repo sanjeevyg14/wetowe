@@ -23,6 +23,7 @@ const tripSchema = new mongoose.Schema({
   pickupPoints: [String],
   itinerary: [itinerarySchema],
   dates: [String], // Array of date strings for now
+  maxCapacity: { type: Number, default: 12 }, // Max travelers per date
 }, {
   timestamps: true // Automatically adds createdAt and updatedAt
 });

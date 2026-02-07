@@ -22,6 +22,8 @@
     "date-fns": "^3.6.0",
     "dotenv": "^16.6.1",
     "express": "^4.19.2",
+    "express-mongo-sanitize": "^2.2.0",
+    "express-rate-limit": "^7.4.0",
     "framer-motion": "^11.0.24",
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",

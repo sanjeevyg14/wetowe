@@ -5,7 +5,8 @@ const testimonialSchema = new mongoose.Schema({
   location: { type: String, required: true },
   quote: { type: String, required: true },
   rating: { type: Number, required: true, min: 1, max: 5 },
-  avatarUrl: { type: String, required: true }
-});
+  avatarUrl: { type: String, required: true },
+  isActive: { type: Boolean, default: true }
+}, { timestamps: true });
 
 module.exports = mongoose.model('Testimonial', testimonialSchema);
