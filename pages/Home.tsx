@@ -3,6 +3,7 @@ import { Search, Calendar, MapPin, Users, Star, Filter, ArrowRight, UserPlus, Mi
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import TripCard from '../components/TripCard';
+import SEO from '../components/SEO';
 import { api } from '../services/api';
 import { Trip, Testimonial } from '../types';
 import { Link, useNavigate } from 'react-router-dom';
@@ -315,6 +316,12 @@ const Home: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-brand-cream overflow-x-hidden font-sans">
+      <SEO
+        title="Home"
+        description="Discover handpicked weekend getaways, trekking spots, and hidden gems across India. Book curated travel experiences to Gokarna, Hampi, Pondicherry, Wayanad and more."
+        keywords="travel, trips, weekend getaway, trekking, adventure, India travel, group tours, Gokarna, Hampi, Pondicherry, Wayanad"
+        url="/"
+      />
       <Navbar />
 
       {/* Marquee Section - Positioned below Navbar */}

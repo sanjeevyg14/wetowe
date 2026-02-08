@@ -12,4 +12,8 @@ router.post('/initiate', authMiddleware, paymentController.initiatePayment);
 router.get('/validate/:merchantTransactionId', paymentController.validatePayment);
 router.post('/validate/:merchantTransactionId', paymentController.validatePayment);
 
+// Webhook for Server-to-Server (S2S) callbacks from PhonePe
+// This provides a reliable backup in case the redirect fails
+router.post('/webhook', paymentController.handleWebhook);
+
 module.exports = router;

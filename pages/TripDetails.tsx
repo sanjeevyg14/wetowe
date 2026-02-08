@@ -199,6 +199,39 @@ const TripDetails: React.FC = () => {
                 title={trip.title}
                 description={trip.description.substring(0, 160)}
                 image={trip.imageUrl}
+                url={`/trip/${id}`}
+                keywords={`${trip.title}, ${trip.location}, travel, adventure trip, weekend getaway`}
+                structuredData={{
+                    '@context': 'https://schema.org',
+                    '@type': 'TouristTrip',
+                    name: trip.title,
+                    description: trip.description.substring(0, 300),
+                    image: trip.imageUrl,
+                    touristType: 'Adventure Travelers',
+                    offers: {
+                        '@type': 'Offer',
+                        price: trip.price,
+                        priceCurrency: 'INR',
+                        availability: 'https://schema.org/InStock',
+                        url: `https://wheelstowilderness.in/trip/${id}`
+                    },
+                    itinerary: {
+                        '@type': 'ItemList',
+                        numberOfItems: parseInt(trip.duration) || 2,
+                        itemListElement: [{
+                            '@type': 'ListItem',
+                            position: 1,
+                            name: trip.location
+                        }]
+                    },
+                    aggregateRating: {
+                        '@type': 'AggregateRating',
+                        ratingValue: trip.rating,
+                        reviewCount: trip.reviewsCount || 10,
+                        bestRating: 5,
+                        worstRating: 1
+                    }
+                }}
             />
             <Navbar />
 

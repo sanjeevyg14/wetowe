@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Mail, Phone, MapPin, Send, Clock, ArrowRight, Instagram, Facebook, Twitter, MessageCircle } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import SEO from '../components/SEO';
 import { api } from '../services/api';
 
 const ContactUs: React.FC = () => {
@@ -31,6 +32,12 @@ const ContactUs: React.FC = () => {
 
     return (
         <div className="min-h-screen flex flex-col bg-brand-cream">
+            <SEO
+                title="Contact Us"
+                description="Get in touch with Wheels to Wilderness. Plan your next adventure, ask questions, or send an enquiry. We're here to help you explore!"
+                keywords="contact wheels to wilderness, travel enquiry, book trip, adventure travel contact"
+                url="/contact"
+            />
             <Navbar />
 
             {/* Hero Section */}

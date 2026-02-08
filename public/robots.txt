@@ -1,0 +1,39 @@
+# Robots.txt for Wheels to Wilderness
+# https://wheelstowilderness.in
+
+User-agent: *
+Allow: /
+
+# Disallow admin and private pages
+Disallow: /admin
+Disallow: /admin/*
+Disallow: /api/*
+Disallow: /login
+Disallow: /signup
+Disallow: /profile
+Disallow: /my-bookings
+
+# Allow crawlers to find important pages
+Allow: /destinations
+Allow: /trip/*
+Allow: /our-story
+Allow: /team
+Allow: /contact
+Allow: /terms
+Allow: /cancellation-policy
+
+# Sitemap location
+Sitemap: https://wheelstowilderness.in/sitemap.xml
+
+# Crawl-delay for polite crawling
+Crawl-delay: 1
+
+# Google specific
+User-agent: Googlebot
+Allow: /
+Disallow: /admin
+
+# Bing specific
+User-agent: Bingbot
+Allow: /
+Disallow: /admin

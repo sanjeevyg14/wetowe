@@ -62,16 +62,32 @@ const enquiryRoutes = require('./routes/enquiries.cjs');
 const uploadRoutes = require('./routes/upload.cjs');
 const galleryRoutes = require('./routes/gallery.cjs');
 const marqueeRoutes = require('./routes/marquee.cjs');
+const seoRoutes = require('./routes/seo.cjs');
 const { cleanupExpiredBookings } = require('./lib/bookingUtils.cjs');
 
 // Connect to Database (Serverless optimized)
 connectDB().then(async () => {
   console.log('✅ MongoDB Connected (Cached)');
   // Clean up any expired pending bookings on startup
-  await cleanupExpiredBookings();
+  const expiredCount = await cleanupExpiredBookings();
+  console.log(`🧹 Initial cleanup: ${expiredCount} expired booking(s) cleared`);
 }).catch(err => {
   console.error('❌ MongoDB Connection Error:', err.message);
 });
+
+// Periodic cleanup of expired pending bookings (every 5 minutes)
+// This ensures seats are released even if no one checks availability
+const CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
+setInterval(async () => {
+  try {
+    const expiredCount = await cleanupExpiredBookings();
+    if (expiredCount > 0) {
+      console.log(`🧹 Periodic cleanup: ${expiredCount} expired booking(s) cleared`);
+    }
+  } catch (error) {
+    console.error('❌ Periodic cleanup error:', error.message);
+  }
+}, CLEANUP_INTERVAL);
 
 // Use Routes
 app.use('/api/trips', tripRoutes);
@@ -84,6 +100,7 @@ app.use('/api/enquiries', enquiryRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/gallery', galleryRoutes);
 app.use('/api/marquee', marqueeRoutes);
+app.use('/api/seo', seoRoutes);
 
 // Base Route
 app.get('/', (req, res) => {

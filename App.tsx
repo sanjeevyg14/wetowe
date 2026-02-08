@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
 import Home from './pages/Home';
 import TripDetails from './pages/TripDetails';
 import Admin from './pages/Admin';
@@ -17,25 +18,27 @@ import { AuthProvider } from './contexts/AuthContext';
 
 const App: React.FC = () => {
   return (
-    <AuthProvider>
-      <Router>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/trip/:id" element={<TripDetails />} />
-          <Route path="/admin" element={<Admin />} />
-          <Route path="/destinations" element={<Destinations />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/my-bookings" element={<MyBookings />} />
-          <Route path="/our-story" element={<OurStory />} />
-          <Route path="/team" element={<Team />} />
-          <Route path="/contact" element={<ContactUs />} />
-          <Route path="/terms" element={<Terms />} />
-          <Route path="/cancellation-policy" element={<CancellationPolicy />} />
-        </Routes>
-      </Router>
-    </AuthProvider>
+    <HelmetProvider>
+      <AuthProvider>
+        <Router>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/trip/:id" element={<TripDetails />} />
+            <Route path="/admin" element={<Admin />} />
+            <Route path="/destinations" element={<Destinations />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/my-bookings" element={<MyBookings />} />
+            <Route path="/our-story" element={<OurStory />} />
+            <Route path="/team" element={<Team />} />
+            <Route path="/contact" element={<ContactUs />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/cancellation-policy" element={<CancellationPolicy />} />
+          </Routes>
+        </Router>
+      </AuthProvider>
+    </HelmetProvider>
   );
 };
 

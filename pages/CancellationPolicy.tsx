@@ -2,11 +2,18 @@ import React from 'react';
 import { FileText, ArrowLeft, AlertCircle, CheckCircle, XCircle, Clock } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import SEO from '../components/SEO';
 import { Link } from 'react-router-dom';
 
 const CancellationPolicy: React.FC = () => {
     return (
         <div className="min-h-screen flex flex-col bg-brand-cream">
+            <SEO
+                title="Cancellation Policy"
+                description="Understand our cancellation and refund policy. Get up to 90% refund for cancellations made 30+ days before your trip."
+                keywords="cancellation policy, refund policy, travel cancellation, trip refund"
+                url="/cancellation-policy"
+            />
             <Navbar />
 
             {/* Hero Section */}

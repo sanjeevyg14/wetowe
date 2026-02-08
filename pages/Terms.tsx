@@ -2,11 +2,18 @@ import React from 'react';
 import { FileText, ArrowLeft } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import SEO from '../components/SEO';
 import { Link } from 'react-router-dom';
 
 const Terms: React.FC = () => {
     return (
         <div className="min-h-screen flex flex-col bg-brand-cream">
+            <SEO
+                title="Terms & Conditions"
+                description="Read the terms and conditions for using Wheels to Wilderness services. Learn about booking policies, traveler responsibilities, and more."
+                keywords="terms and conditions, travel policy, booking terms, wheels to wilderness legal"
+                url="/terms"
+            />
             <Navbar />
 
             {/* Hero Section */}

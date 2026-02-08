@@ -3,6 +3,7 @@ const axios = require('axios');
 const { v4: uuidv4 } = require('uuid');
 const Booking = require('../models/Booking.cjs');
 const connectDB = require('../lib/db.cjs');
+const { reserveSeatsAtomically, cleanupExpiredBookings } = require('../lib/bookingUtils.cjs');
 
 // Environment Variables (with Sandbox Defaults)
 const MERCHANT_ID = process.env.PHONEPE_MERCHANT_ID || 'PGTESTPAYUAT';
@@ -19,67 +20,54 @@ const BASE_URL = ENV === 'production'
 exports.initiatePayment = async (req, res) => {
     try {
         await connectDB();
+
         const {
             userId, tripId, tripTitle, tripImage,
             customerName, email, phone, date, travelers, totalPrice
         } = req.body;
 
-        // === ATOMIC SEAT VALIDATION ===
-        const Trip = require('../models/Trip.cjs');
-        const trip = await Trip.findById(tripId);
-        if (!trip) {
-            return res.status(404).json({ success: false, message: 'Trip not found' });
-        }
-
-        const maxCapacity = trip.maxCapacity || 12;
-        const now = new Date();
-
-        // Count current valid bookings (confirmed + non-expired pending)
-        const result = await Booking.aggregate([
-            {
-                $match: {
-                    tripId: tripId,
-                    date: date,
-                    $or: [
-                        { status: { $in: ['confirmed', 'paid'] } },
-                        { status: 'pending', pendingExpiresAt: { $gt: now } }
-                    ]
-                }
-            },
-            {
-                $group: {
-                    _id: null,
-                    totalTravelers: { $sum: "$travelers" }
-                }
-            }
-        ]);
-
-        const currentlyBooked = result.length > 0 ? result[0].totalTravelers : 0;
-        const availableSeats = maxCapacity - currentlyBooked;
-
-        // Check if requested seats are available
-        if (travelers > availableSeats) {
+        // Validate required fields
+        if (!userId || !tripId || !date || !travelers || !totalPrice) {
             return res.status(400).json({
                 success: false,
-                message: availableSeats === 0
-                    ? 'Sorry, this date is fully booked.'
-                    : `Only ${availableSeats} seat(s) available. Please reduce travelers.`,
-                availableSeats
+                message: 'Missing required fields'
             });
         }
-        // === END SEAT VALIDATION ===
 
+        // Validate travelers count
+        if (travelers < 1 || travelers > 20) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid number of travelers (1-20 allowed)'
+            });
+        }
+
+        // Generate unique transaction ID
         const transactionId = "MT" + Date.now() + uuidv4().slice(0, 4);
 
-        // Save Booking as Pending with expiry time
-        const newBooking = new Booking({
-            userId, tripId, tripTitle, tripImage,
-            customerName, email, phone, date, travelers, totalPrice,
-            transactionId,
-            status: 'pending',
-            pendingExpiresAt: new Date(Date.now() + 15 * 60 * 1000) // 15 min expiry
+        // === ATOMIC SEAT RESERVATION ===
+        // This function handles race conditions and prevents overbooking
+        const reservationResult = await reserveSeatsAtomically(tripId, date, travelers, {
+            userId,
+            tripTitle,
+            tripImage,
+            customerName,
+            email,
+            phone,
+            totalPrice,
+            transactionId
         });
-        await newBooking.save();
+
+        if (!reservationResult.success) {
+            return res.status(400).json({
+                success: false,
+                message: reservationResult.error,
+                availableSeats: reservationResult.availableSeats
+            });
+        }
+
+        const newBooking = reservationResult.booking;
+        // === END ATOMIC SEAT RESERVATION ===
 
         // Prepare PhonePe Payload
         const payload = {
@@ -122,12 +110,20 @@ exports.initiatePayment = async (req, res) => {
             res.json({
                 success: true,
                 url: response.data.data.instrumentResponse.redirectInfo.url,
-                bookingId: newBooking._id
+                bookingId: newBooking._id,
+                remainingSeats: reservationResult.remainingSeats
             });
         } else {
-            // Payment initiation failed, mark booking as failed
-            await Booking.findByIdAndUpdate(newBooking._id, { status: 'failed' });
-            res.status(400).json({ success: false, message: "Payment initiation failed", error: response.data });
+            // Payment initiation failed, mark booking as failed to release seats
+            await Booking.findByIdAndUpdate(newBooking._id, {
+                status: 'failed',
+                failureReason: 'payment_initiation_failed'
+            });
+            res.status(400).json({
+                success: false,
+                message: "Payment initiation failed",
+                error: response.data
+            });
         }
 
     } catch (error) {
@@ -145,6 +141,20 @@ exports.validatePayment = async (req, res) => {
 
     try {
         await connectDB();
+
+        // Find the booking first
+        const booking = await Booking.findOne({ transactionId: merchantTransactionId });
+        if (!booking) {
+            console.error(`Booking not found for transaction: ${merchantTransactionId}`);
+            return res.redirect(`${FRONTEND_URL}/destinations?error=BookingNotFound`);
+        }
+
+        // Check if booking has expired while user was paying
+        if (booking.status === 'expired') {
+            console.warn(`Booking ${booking._id} expired during payment`);
+            return res.redirect(`${FRONTEND_URL}/destinations?error=BookingExpired&message=Your+booking+expired+during+payment`);
+        }
+
         // 1. Check Status with PhonePe
         const stringToHash = `/pg/v1/status/${MERCHANT_ID}/${merchantTransactionId}` + SALT_KEY;
         const sha256 = crypto.createHash('sha256').update(stringToHash).digest('hex');
@@ -165,21 +175,92 @@ exports.validatePayment = async (req, res) => {
 
         // 2. Update Booking Status
         if (response.data.code === 'PAYMENT_SUCCESS') {
-            await Booking.findOneAndUpdate(
-                { transactionId: merchantTransactionId },
-                { status: 'confirmed', paymentResponse: response.data }
-            );
+            // Double-check the booking wasn't expired in the meantime
+            const currentBooking = await Booking.findById(booking._id);
+            if (currentBooking.status === 'expired' || currentBooking.status === 'cancelled') {
+                // Payment succeeded but booking was expired/cancelled
+                // This is a refund situation - log for manual handling
+                console.error(`CRITICAL: Payment succeeded but booking ${booking._id} was ${currentBooking.status}`);
+                await Booking.findByIdAndUpdate(booking._id, {
+                    status: 'confirmed',
+                    paymentResponse: response.data,
+                    autoRecovered: true,
+                    previousStatus: currentBooking.status
+                });
+                // Still redirect to success - we'll honor the payment
+            } else {
+                await Booking.findByIdAndUpdate(booking._id, {
+                    status: 'confirmed',
+                    paymentResponse: response.data
+                });
+            }
+
             return res.redirect(`${FRONTEND_URL}/my-bookings?status=success`);
         } else {
-            await Booking.findOneAndUpdate(
-                { transactionId: merchantTransactionId },
-                { status: 'failed', paymentResponse: response.data }
-            );
+            // Payment failed - mark booking as failed to release seats
+            await Booking.findByIdAndUpdate(booking._id, {
+                status: 'failed',
+                paymentResponse: response.data,
+                failureReason: response.data.code || 'payment_failed'
+            });
             return res.redirect(`${FRONTEND_URL}/destinations?status=failed`);
         }
 
     } catch (error) {
         console.error("Payment Validation Error:", error.message);
         return res.redirect(`${FRONTEND_URL}/destinations?status=error`);
+    }
+};
+
+// Webhook handler for PhonePe callbacks (S2S - Server to Server)
+exports.handleWebhook = async (req, res) => {
+    try {
+        await connectDB();
+
+        // PhonePe sends base64 encoded response
+        const { response } = req.body;
+
+        if (!response) {
+            return res.status(400).json({ success: false });
+        }
+
+        const decodedResponse = JSON.parse(Buffer.from(response, 'base64').toString());
+        const merchantTransactionId = decodedResponse.data?.merchantTransactionId;
+
+        if (!merchantTransactionId) {
+            return res.status(400).json({ success: false });
+        }
+
+        // Verify webhook authenticity
+        const xVerify = req.headers['x-verify'];
+        const expectedHash = crypto
+            .createHash('sha256')
+            .update(response + SALT_KEY)
+            .digest('hex') + '###' + SALT_INDEX;
+
+        if (xVerify !== expectedHash) {
+            console.error('Webhook verification failed');
+            return res.status(401).json({ success: false });
+        }
+
+        // Update booking based on webhook data
+        if (decodedResponse.code === 'PAYMENT_SUCCESS') {
+            await Booking.findOneAndUpdate(
+                { transactionId: merchantTransactionId },
+                { status: 'confirmed', paymentResponse: decodedResponse }
+            );
+        } else {
+            await Booking.findOneAndUpdate(
+                { transactionId: merchantTransactionId },
+                { status: 'failed', paymentResponse: decodedResponse }
+            );
+        }
+
+        // Always respond with 200 to acknowledge webhook
+        res.status(200).json({ success: true });
+
+    } catch (error) {
+        console.error('Webhook Error:', error.message);
+        res.status(200).json({ success: true }); // Still respond 200 to prevent retries
     }
 };

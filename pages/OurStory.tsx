@@ -2,11 +2,18 @@ import React from 'react';
 import { Compass, Heart, Users, Mountain, Leaf, Star, ArrowRight } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import SEO from '../components/SEO';
 import { Link } from 'react-router-dom';
 
 const OurStory: React.FC = () => {
     return (
         <div className="min-h-screen flex flex-col bg-brand-cream">
+            <SEO
+                title="Our Story"
+                description="Learn about Wheels to Wilderness - born from a passion for the wild and authentic adventures. 150+ trips, 5000+ travelers, and memories that last a lifetime."
+                keywords="about wheels to wilderness, travel company, adventure travel, India tours, sustainable travel"
+                url="/our-story"
+            />
             <Navbar />
 
             {/* Hero Section */}

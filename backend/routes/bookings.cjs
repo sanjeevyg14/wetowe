@@ -56,52 +56,25 @@ router.get('/check-availability', async (req, res) => {
       return res.status(400).json({ message: "TripId and Date are required" });
     }
 
-    // Sanitize inputs to ensure they are strings to prevent NoSQL injection
-    const safeTripId = String(tripId);
-    const safeDate = String(date);
-    const now = new Date();
+    // Use the improved utility function that handles cleanup and race conditions
+    const { getAvailability } = require('../lib/bookingUtils.cjs');
+    const availability = await getAvailability(tripId, date);
 
-    // Get trip capacity (default 12 if not set)
-    const Trip = require('../models/Trip.cjs');
-    const trip = await Trip.findById(safeTripId);
-    const maxCapacity = trip?.maxCapacity || 12;
-
-    // Aggregate travelers for confirmed bookings OR pending bookings that haven't expired
-    const result = await Booking.aggregate([
-      {
-        $match: {
-          tripId: safeTripId,
-          date: safeDate,
-          $or: [
-            { status: { $in: ['confirmed', 'paid'] } },
-            {
-              status: 'pending',
-              pendingExpiresAt: { $gt: now } // Only count non-expired pending
-            }
-          ]
-        }
-      },
-      {
-        $group: {
-          _id: null,
-          totalTravelers: { $sum: "$travelers" }
-        }
-      }
-    ]);
-
-    const totalBooked = result.length > 0 ? result[0].totalTravelers : 0;
-    const remaining = Math.max(0, maxCapacity - totalBooked);
+    if (!availability.success) {
+      return res.status(404).json({ message: availability.error });
+    }
 
     res.json({
-      tripId: safeTripId,
-      date: safeDate,
-      totalBooked,
-      remaining,
-      maxCapacity,
-      isSoldOut: totalBooked >= maxCapacity
+      tripId: availability.tripId,
+      date: availability.date,
+      totalBooked: availability.totalBooked,
+      remaining: availability.remaining,
+      maxCapacity: availability.maxCapacity,
+      isSoldOut: availability.isSoldOut
     });
 
   } catch (err) {
+    console.error('[Availability Check Error]', err.message);
     res.status(500).json({ message: err.message });
   }
 });
