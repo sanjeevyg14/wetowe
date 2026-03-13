@@ -10,13 +10,16 @@ interface TripCardProps {
 const TripCard: React.FC<TripCardProps> = ({ trip }) => {
   // Use slug if available, otherwise fallback to ID
   const linkTarget = trip.slug ? `/trip/${trip.slug}` : `/trip/${trip.id}`;
+  
+  // Use cardImageUrl if available, otherwise fallback to imageUrl
+  const displayImage = trip.cardImageUrl || trip.imageUrl;
 
   return (
     <Link to={linkTarget} className="group block h-full">
       <div className="bg-brand-cream rounded-lg overflow-hidden border border-brand-olive/20 hover:border-brand-olive transition-all duration-300 flex flex-col h-full hover:-translate-y-1">
         <div className="relative h-56 overflow-hidden">
           <img 
-            src={trip.imageUrl} 
+            src={displayImage} 
             alt={trip.title} 
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 grayscale-[20%] group-hover:grayscale-0"
           />

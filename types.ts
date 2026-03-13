@@ -14,7 +14,8 @@ export interface Trip {
   rating: number;
   email: string;
   reviewsCount: number;
-  imageUrl: string;
+  imageUrl: string; // Cover/Hero image (recommended: 1920x1080px, 16:9 ratio)
+  cardImageUrl?: string; // Card/Thumbnail image (recommended: 800x600px, 4:3 ratio)
   gallery: string[];
   description: string;
   highlights: string[];

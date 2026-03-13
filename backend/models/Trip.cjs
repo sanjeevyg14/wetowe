@@ -14,7 +14,8 @@ const tripSchema = new mongoose.Schema({
   duration: { type: String, required: true },
   rating: { type: Number, default: 0 },
   reviewsCount: { type: Number, default: 0 },
-  imageUrl: { type: String, required: true },
+  imageUrl: { type: String, required: true }, // Cover/Hero image (recommended: 1920x1080px, 16:9 ratio)
+  cardImageUrl: { type: String }, // Card/Thumbnail image (recommended: 800x600px, 4:3 ratio)
   gallery: [String],
   description: { type: String, required: true },
   highlights: [String],
