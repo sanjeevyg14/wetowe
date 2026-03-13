@@ -170,6 +170,7 @@ const Admin: React.FC = () => {
 
     // Refs for file inputs
     const mainImageInputRef = useRef<HTMLInputElement>(null);
+    const cardImageInputRef = useRef<HTMLInputElement>(null);
     const galleryImageInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
@@ -347,6 +348,7 @@ const Admin: React.FC = () => {
             rating: 5.0,
             reviewsCount: 0,
             imageUrl: '',
+            cardImageUrl: '',
             description: '',
             gallery: [],
             highlights: [],
@@ -415,7 +417,7 @@ const Admin: React.FC = () => {
         setCurrentTrip(prev => ({ ...prev, [field]: newItems }));
     };
 
-    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, target: 'main' | 'gallery') => {
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, target: 'main' | 'card' | 'gallery') => {
         if (e.target.files && e.target.files[0]) {
             setIsUploading(true);
             try {
@@ -423,6 +425,8 @@ const Admin: React.FC = () => {
 
                 if (target === 'main') {
                     setCurrentTrip(prev => ({ ...prev, imageUrl: url }));
+                } else if (target === 'card') {
+                    setCurrentTrip(prev => ({ ...prev, cardImageUrl: url }));
                 } else {
                     setCurrentTrip(prev => ({
                         ...prev,
@@ -1391,13 +1395,16 @@ const Admin: React.FC = () => {
                             <div className="space-y-4">
                                 <h4 className="font-bold text-gray-900 border-b pb-2">Media & Details</h4>
 
-                                {/* Main Image Upload */}
+                                {/* Cover/Hero Image Upload */}
                                 <div>
-                                    <label className="block text-sm font-bold text-gray-700 mb-2">Main Image</label>
+                                    <label className="block text-sm font-bold text-gray-700 mb-2">
+                                        Cover/Hero Image
+                                        <span className="text-xs font-normal text-gray-500 ml-2">(Recommended: 1920x1080px, 16:9 ratio)</span>
+                                    </label>
                                     <div className="flex gap-4 items-start">
                                         {currentTrip.imageUrl && (
                                             <div className="relative w-32 h-24 rounded-lg overflow-hidden border border-gray-200 shadow-sm shrink-0">
-                                                <img src={currentTrip.imageUrl} alt="Main" className="w-full h-full object-cover" />
+                                                <img src={currentTrip.imageUrl} alt="Cover" className="w-full h-full object-cover" />
                                             </div>
                                         )}
                                         <div className="flex-1">
@@ -1427,7 +1434,51 @@ const Admin: React.FC = () => {
                                                     placeholder="Or paste image URL"
                                                 />
                                             </div>
-                                            <p className="text-xs text-gray-500">Supported formats: JPG, PNG, WEBP. Max size: 5MB.</p>
+                                            <p className="text-xs text-gray-500">Used on trip detail page hero section. Supported formats: JPG, PNG, WEBP. Max size: 5MB.</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Card/Thumbnail Image Upload */}
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-2">
+                                        Card/Thumbnail Image
+                                        <span className="text-xs font-normal text-gray-500 ml-2">(Recommended: 800x600px, 4:3 ratio)</span>
+                                    </label>
+                                    <div className="flex gap-4 items-start">
+                                        {currentTrip.cardImageUrl && (
+                                            <div className="relative w-32 h-24 rounded-lg overflow-hidden border border-gray-200 shadow-sm shrink-0">
+                                                <img src={currentTrip.cardImageUrl} alt="Card" className="w-full h-full object-cover" />
+                                            </div>
+                                        )}
+                                        <div className="flex-1">
+                                            <input
+                                                type="file"
+                                                ref={cardImageInputRef}
+                                                className="hidden"
+                                                accept="image/*"
+                                                onChange={(e) => handleImageUpload(e, 'card')}
+                                            />
+                                            <div className="flex gap-2 mb-2">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => cardImageInputRef.current?.click()}
+                                                    disabled={isUploading}
+                                                    className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition disabled:opacity-50"
+                                                >
+                                                    {isUploading ? <Loader className="animate-spin" size={16} /> : <Upload size={16} />}
+                                                    Upload Image
+                                                </button>
+                                                <input
+                                                    type="text"
+                                                    name="cardImageUrl"
+                                                    value={currentTrip.cardImageUrl || ''}
+                                                    onChange={handleInputChange}
+                                                    className="flex-1 px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-brand-purple focus:outline-none text-sm"
+                                                    placeholder="Or paste image URL (optional)"
+                                                />
+                                            </div>
+                                            <p className="text-xs text-gray-500">Used in trip listing cards. If not provided, cover image will be used. Supported formats: JPG, PNG, WEBP. Max size: 5MB.</p>
                                         </div>
                                     </div>
                                 </div>
