@@ -357,7 +357,8 @@ const Admin: React.FC = () => {
             pickupPoints: [],
             itinerary: [],
             dates: [],
-            maxCapacity: 12
+            maxCapacity: 12,
+            gstPercentage: 5
         });
         setIsEditing(false);
         setIsModalOpen(true);
@@ -402,7 +403,7 @@ const Admin: React.FC = () => {
         setCurrentTrip(prev => {
             const newData = {
                 ...prev,
-                [name]: name === 'price' || name === 'rating' || name === 'reviewsCount' ? Number(value) : value
+                [name]: name === 'price' || name === 'rating' || name === 'reviewsCount' || name === 'gstPercentage' ? Number(value) : value
             };
 
             if (name === 'title' && !isEditing) {
@@ -885,6 +886,7 @@ const Admin: React.FC = () => {
                                                     <th className="px-6 py-4">Trip Name</th>
                                                     <th className="px-6 py-4">Location</th>
                                                     <th className="px-6 py-4">Price</th>
+                                                    <th className="px-6 py-4">GST %</th>
                                                     <th className="px-6 py-4">Duration</th>
                                                     <th className="px-6 py-4">Status</th>
                                                     <th className="px-6 py-4 text-right">Actions</th>
@@ -906,6 +908,7 @@ const Admin: React.FC = () => {
                                                         </td>
                                                         <td className="px-6 py-4 text-gray-600 text-sm">{trip.location}</td>
                                                         <td className="px-6 py-4 text-gray-900 font-medium text-sm">₹{trip.price.toLocaleString()}</td>
+                                                        <td className="px-6 py-4 text-gray-600 text-sm">{trip.gstPercentage ?? 5}%</td>
                                                         <td className="px-6 py-4 text-gray-600 text-sm">{trip.duration}</td>
                                                         <td className="px-6 py-4">
                                                             <button
@@ -1386,6 +1389,20 @@ const Admin: React.FC = () => {
                                             placeholder="12"
                                             min="1"
                                             max="100"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-bold text-gray-700 mb-2">GST (%)</label>
+                                        <input
+                                            type="number"
+                                            name="gstPercentage"
+                                            value={currentTrip.gstPercentage ?? 5}
+                                            onChange={handleInputChange}
+                                            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-brand-purple focus:outline-none"
+                                            placeholder="5"
+                                            min="0"
+                                            max="100"
+                                            step="0.01"
                                         />
                                     </div>
                                 </div>

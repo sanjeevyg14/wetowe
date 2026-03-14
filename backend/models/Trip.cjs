@@ -26,6 +26,7 @@ const tripSchema = new mongoose.Schema({
   dates: [String], // Array of date strings for now
   maxCapacity: { type: Number, default: 12 }, // Max travelers per date
   isActive: { type: Boolean, default: true }, // Trip visibility status
+  gstPercentage: { type: Number, default: 5 }, // GST tax percentage applied at checkout
 }, {
   timestamps: true // Automatically adds createdAt and updatedAt
 });
