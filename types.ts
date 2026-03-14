@@ -26,6 +26,7 @@ export interface Trip {
   dates: string[];
   maxCapacity?: number; // Max travelers per date (default 12)
   isActive?: boolean; // Trip visibility status (default true)
+  gstPercentage?: number; // GST tax percentage applied at checkout (default 5)
 }
 
 export interface BookingStats {

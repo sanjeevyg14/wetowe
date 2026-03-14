@@ -101,7 +101,7 @@ const TripDetails: React.FC = () => {
                 phone: bookingData.phone,
                 date: selectedDate,
                 travelers: travelers,
-                totalPrice: trip.price * travelers
+                totalPrice: totalPrice
             });
 
             if (result && 'url' in result && typeof result.url === 'string') {
@@ -191,7 +191,10 @@ const TripDetails: React.FC = () => {
         );
     }
 
-    const totalPrice = trip.price * travelers;
+    const basePrice = trip.price * travelers;
+    const gstRate = trip.gstPercentage ?? 5;
+    const gstAmount = Math.round(basePrice * gstRate / 100);
+    const totalPrice = basePrice + gstAmount;
 
     return (
         <div className="min-h-screen bg-brand-cream font-sans relative text-brand-black">
@@ -404,8 +407,14 @@ const TripDetails: React.FC = () => {
 
                                     <div className="flex justify-between items-end mb-6">
                                         <div>
-                                            <p className="text-xs text-brand-cream/60 uppercase">Price per person</p>
-                                            <p className="text-3xl font-bold font-mono text-brand-cream">₹{totalPrice.toLocaleString()}</p>
+                                            <p className="text-xs text-brand-cream/60 uppercase">Base price ({travelers} × ₹{trip.price.toLocaleString()})</p>
+                                            <p className="text-3xl font-bold font-mono text-brand-cream">₹{basePrice.toLocaleString()}</p>
+                                            {gstRate > 0 && (
+                                                <p className="text-xs text-brand-cream/60 mt-1">
+                                                    + GST ({gstRate}%) <span className="font-mono">₹{gstAmount.toLocaleString()}</span>
+                                                    &nbsp;= <span className="font-mono font-bold text-brand-olive">₹{totalPrice.toLocaleString()}</span>
+                                                </p>
+                                            )}
                                         </div>
                                         <div className={`px-2 py-1 border ${availability.isSoldOut ? 'border-red-500 text-red-500' : 'border-brand-olive text-brand-olive'} text-xs font-bold uppercase`}>
                                             {availability.isSoldOut ? 'Sold Out' : `${availability.remaining} Seats Left`}
@@ -581,9 +590,21 @@ const TripDetails: React.FC = () => {
                                     </div>
 
                                     {/* Summary */}
-                                    <div className="bg-brand-olive/5 p-4 rounded-lg flex justify-between items-center border border-brand-olive/10">
-                                        <span className="text-sm font-bold text-brand-olive">Total Amount</span>
-                                        <span className="text-xl font-bold font-mono text-brand-black">₹{totalPrice.toLocaleString()}</span>
+                                    <div className="bg-brand-olive/5 p-4 rounded-lg border border-brand-olive/10 space-y-1">
+                                        <div className="flex justify-between items-center text-sm text-brand-black/70">
+                                            <span>Base price ({travelers} × ₹{trip.price.toLocaleString()})</span>
+                                            <span className="font-mono">₹{basePrice.toLocaleString()}</span>
+                                        </div>
+                                        {gstRate > 0 && (
+                                            <div className="flex justify-between items-center text-sm text-brand-black/70">
+                                                <span>GST ({gstRate}%)</span>
+                                                <span className="font-mono">₹{gstAmount.toLocaleString()}</span>
+                                            </div>
+                                        )}
+                                        <div className="flex justify-between items-center pt-2 border-t border-brand-olive/20">
+                                            <span className="font-bold text-brand-olive">Total Amount</span>
+                                            <span className="text-xl font-bold font-mono text-brand-black">₹{totalPrice.toLocaleString()}</span>
+                                        </div>
                                     </div>
 
                                     <button type="submit" className="w-full bg-brand-olive text-brand-cream font-bold py-4 hover:bg-brand-black transition mt-4 flex items-center justify-center gap-2 uppercase tracking-wide text-sm rounded-lg shadow-lg">
