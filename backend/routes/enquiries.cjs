@@ -23,14 +23,14 @@ router.post('/', async (req, res) => {
     
     // Validate phone (10 digits)
     const phoneRegex = /^[0-9]{10}$/;
-    if (!phoneRegex.test(phone.toString())) {
+    if (!phoneRegex.test(String(phone))) {
       return res.status(400).json({ message: 'Phone number must be 10 digits' });
     }
     
     // Validate date is in future
     const bookingDate = new Date(traveldate);
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0); // Reset to start of day for fair comparison
     if (bookingDate < today) {
       return res.status(400).json({ message: 'Travel date must be today or in the future' });
     }
