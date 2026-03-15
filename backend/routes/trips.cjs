@@ -80,6 +80,31 @@ router.post('/', authMiddleware, adminMiddleware, async (req, res) => {
     await connectDB();
     const tripData = req.body;
 
+    // Validate required fields
+    if (!tripData.title || !tripData.location || !tripData.price || !tripData.duration || !tripData.imageUrl || !tripData.description) {
+      return res.status(400).json({ message: 'Missing required fields: title, location, price, duration, imageUrl, description' });
+    }
+
+    // Validate price (must be positive number)
+    if (typeof tripData.price !== 'number' || tripData.price <= 0) {
+      return res.status(400).json({ message: 'Price must be a positive number' });
+    }
+
+    // Validate maxCapacity (must be positive number, default to 12)
+    if (tripData.maxCapacity !== undefined && (typeof tripData.maxCapacity !== 'number' || tripData.maxCapacity <= 0)) {
+      return res.status(400).json({ message: 'Max capacity must be a positive number' });
+    }
+
+    // Validate description length
+    if (tripData.description.length < 50 || tripData.description.length > 5000) {
+      return res.status(400).json({ message: 'Description must be between 50 and 5000 characters' });
+    }
+
+    // Validate gallery is an array if provided
+    if (tripData.gallery && !Array.isArray(tripData.gallery)) {
+      return res.status(400).json({ message: 'Gallery must be an array of image URLs' });
+    }
+
     // Generate or ensure unique slug
     if (!tripData.slug) {
       // If no slug provided, generate from title
@@ -97,7 +122,8 @@ router.post('/', authMiddleware, adminMiddleware, async (req, res) => {
     const newTrip = await trip.save();
     res.status(201).json(newTrip);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    console.error('Trip creation error:', err);
+    res.status(400).json({ message: 'Failed to create trip. Please check your input.' });
   }
 });
 
