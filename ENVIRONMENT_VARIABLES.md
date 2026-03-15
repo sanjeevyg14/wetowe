@@ -21,14 +21,15 @@ This document describes all environment variables required for the Wetowe platfo
 
 #### `JWT_SECRET` (Required - CRITICAL)
 - **Description:** Secret key for signing and verifying JWT tokens
-- **Type:** Cryptographically secure random string (minimum 256 bits recommended)
+- **Type:** Cryptographically secure random string (minimum 512 bits / 128 hex characters recommended)
 - **Example:** `fdda185000c16a245111e4c8b37e5098...` (128 characters)
 - **How to generate:**
   ```bash
   node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
   ```
+  This generates 64 bytes (512 bits) as 128 hexadecimal characters
 - **Security Requirements:**
-  - Must be at least 64 characters long (512 bits)
+  - Must be at least 128 characters long (64 bytes = 512 bits in hex format)
   - Must be cryptographically random
   - Must be unique per environment (dev/staging/prod)
   - Must be rotated if compromised or every 90 days
@@ -139,8 +140,8 @@ gcloud secrets create jwt-secret --data-file=- <<< "your_secret"
 
 ### JWT_SECRET Security
 
-1. **Length:** Minimum 64 characters (512 bits)
-2. **Randomness:** Use cryptographic random number generator
+1. **Length:** Minimum 128 characters (64 bytes = 512 bits in hex format)
+2. **Randomness:** Use cryptographic random number generator (crypto.randomBytes)
 3. **Rotation:** Rotate every 90 days or immediately if compromised
 4. **Separation:** Use different secrets for each environment
 5. **Storage:** Never hardcode or commit to version control
@@ -190,7 +191,7 @@ When rotating JWT_SECRET:
 
 Before deploying to production:
 
-- [ ] JWT_SECRET is set and is at least 64 characters
+- [ ] JWT_SECRET is set and is at least 128 characters (64 bytes in hex = 512 bits)
 - [ ] JWT_SECRET is unique (not the example value)
 - [ ] All required environment variables are configured
 - [ ] .env file is NOT committed to git

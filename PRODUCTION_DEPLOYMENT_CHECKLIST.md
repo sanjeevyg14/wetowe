@@ -42,8 +42,8 @@ This checklist must be completed before deploying to production.
 - [ ] All secrets are unique to production environment
 - [ ] Secrets are stored in secure secrets manager (AWS Secrets Manager, Azure Key Vault, etc.)
 - [ ] Access to secrets is restricted to authorized personnel only
-- [ ] JWT_SECRET is at least 128 characters long (512 bits)
-- [ ] JWT_SECRET was generated cryptographically randomly
+- [ ] JWT_SECRET is at least 128 characters long (64 bytes = 512 bits in hex format)
+- [ ] JWT_SECRET was generated using crypto.randomBytes(64) or equivalent
 
 ### 🧪 Testing
 
