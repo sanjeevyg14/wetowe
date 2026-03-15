@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Gallery = require('../models/Gallery.cjs');
 const Trip = require('../models/Trip.cjs');
-const authMiddleware = require('../middleware/authMiddleware.cjs');
+const { authMiddleware, adminMiddleware } = require('../middleware/auth.cjs');
 const connectDB = require('../lib/db.cjs');
 
 // @route   GET /api/gallery
@@ -41,12 +41,9 @@ router.get('/', async (req, res) => {
 // @route   GET /api/gallery/admin
 // @desc    Get all gallery images for admin management
 // @access  Admin
-router.get('/admin', authMiddleware, async (req, res) => {
+router.get('/admin', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     await connectDB();
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'Admin access required' });
-    }
 
     const gallery = await Gallery.find().sort({ order: 1 });
     const mappedGallery = gallery.map(g => ({
@@ -67,16 +64,25 @@ router.get('/admin', authMiddleware, async (req, res) => {
 // @route   POST /api/gallery
 // @desc    Add image to gallery
 // @access  Admin
-router.post('/', authMiddleware, async (req, res) => {
+router.post('/', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     await connectDB();
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'Admin access required' });
-    }
 
     const { imageUrl, caption } = req.body;
     if (!imageUrl) {
       return res.status(400).json({ message: 'Image URL is required' });
+    }
+
+    // Validate URL format
+    const urlRegex = /^https?:\/\/.+/;
+    if (!urlRegex.test(imageUrl)) {
+      return res.status(400).json({ message: 'Invalid image URL format' });
+    }
+
+    // Sanitize caption (limit length and remove potentially harmful characters)
+    let sanitizedCaption = caption || '';
+    if (sanitizedCaption.length > 200) {
+      return res.status(400).json({ message: 'Caption must be less than 200 characters' });
     }
 
     // Get max order
@@ -85,7 +91,7 @@ router.post('/', authMiddleware, async (req, res) => {
 
     const newImage = new Gallery({
       imageUrl,
-      caption: caption || '',
+      caption: sanitizedCaption,
       order: newOrder,
       isActive: true
     });
@@ -107,12 +113,9 @@ router.post('/', authMiddleware, async (req, res) => {
 // @route   PUT /api/gallery/:id
 // @desc    Update gallery image
 // @access  Admin
-router.put('/:id', authMiddleware, async (req, res) => {
+router.put('/:id', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     await connectDB();
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'Admin access required' });
-    }
 
     const { caption, order, isActive } = req.body;
     const image = await Gallery.findById(req.params.id);
@@ -121,7 +124,13 @@ router.put('/:id', authMiddleware, async (req, res) => {
       return res.status(404).json({ message: 'Image not found' });
     }
 
-    if (caption !== undefined) image.caption = caption;
+    // Validate caption length
+    if (caption !== undefined) {
+      if (caption.length > 200) {
+        return res.status(400).json({ message: 'Caption must be less than 200 characters' });
+      }
+      image.caption = caption;
+    }
     if (order !== undefined) image.order = order;
     if (isActive !== undefined) image.isActive = isActive;
 
@@ -142,12 +151,9 @@ router.put('/:id', authMiddleware, async (req, res) => {
 // @route   DELETE /api/gallery/:id
 // @desc    Delete gallery image
 // @access  Admin
-router.delete('/:id', authMiddleware, async (req, res) => {
+router.delete('/:id', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     await connectDB();
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'Admin access required' });
-    }
 
     const image = await Gallery.findByIdAndDelete(req.params.id);
     if (!image) {
@@ -164,12 +170,9 @@ router.delete('/:id', authMiddleware, async (req, res) => {
 // @route   PUT /api/gallery/reorder
 // @desc    Reorder gallery images
 // @access  Admin
-router.put('/reorder/batch', authMiddleware, async (req, res) => {
+router.put('/reorder/batch', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     await connectDB();
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'Admin access required' });
-    }
 
     const { images } = req.body; // Array of { id, order }
 

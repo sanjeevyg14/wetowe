@@ -49,11 +49,43 @@ router.post('/', authMiddleware, adminMiddleware, async (req, res) => {
     await connectDB();
     const { name, location, quote, rating, avatarUrl } = req.body;
 
+    // Validate required fields
+    if (!name || !location || !quote || !rating || !avatarUrl) {
+      return res.status(400).json({ message: 'All fields are required' });
+    }
+
+    // Validate name length
+    if (name.length < 2 || name.length > 50) {
+      return res.status(400).json({ message: 'Name must be between 2 and 50 characters' });
+    }
+
+    // Validate location length
+    if (location.length < 2 || location.length > 50) {
+      return res.status(400).json({ message: 'Location must be between 2 and 50 characters' });
+    }
+
+    // Validate quote length
+    if (quote.length < 10 || quote.length > 500) {
+      return res.status(400).json({ message: 'Quote must be between 10 and 500 characters' });
+    }
+
+    // Validate rating (1-5)
+    const ratingNum = Number(rating);
+    if (isNaN(ratingNum) || ratingNum < 1 || ratingNum > 5) {
+      return res.status(400).json({ message: 'Rating must be between 1 and 5' });
+    }
+
+    // Validate avatarUrl format
+    const urlRegex = /^https?:\/\/.+/;
+    if (!urlRegex.test(avatarUrl)) {
+      return res.status(400).json({ message: 'Invalid avatar URL format' });
+    }
+
     const testimonial = new Testimonial({
       name,
       location,
       quote,
-      rating: Number(rating),
+      rating: ratingNum,
       avatarUrl,
       isActive: true
     });
