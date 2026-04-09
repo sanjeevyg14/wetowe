@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { LayoutDashboard, Package, Users, DollarSign, PlusCircle, Settings, Edit, Trash2, X, Save, Search, CheckCircle, RefreshCcw, MessageSquare, Mail, Phone, Plus, Minus, ChevronDown, ChevronUp, Link as LinkIcon, Upload, Image as ImageIcon, Loader, Star, ToggleLeft, ToggleRight, Megaphone } from 'lucide-react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { LayoutDashboard, Package, Users, DollarSign, PlusCircle, Settings, Edit, Trash2, X, Save, Search, CheckCircle, RefreshCcw, MessageSquare, Mail, Phone, Plus, Minus, ChevronDown, ChevronUp, Link as LinkIcon, Upload, Image as ImageIcon, Loader, Star, ToggleLeft, ToggleRight, Megaphone, FileDown, FileText } from 'lucide-react';
+import { downloadTicketPDF, downloadManifestPDF } from '../utils/pdfUtils';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { api } from '../services/api';
 import { uploadToCloudinary } from '../services/uploadService';
@@ -242,6 +243,39 @@ const Admin: React.FC = () => {
             // Update local state
             setAllBookings(allBookings.map(b => b.id === bookingId ? { ...b, status: 'refunded' } : b));
         }
+    };
+
+    // Bookings grouped by trip → date for the admin bookings tab
+    const [expandedTrips, setExpandedTrips] = useState<Set<string>>(new Set());
+    const [expandedDates, setExpandedDates] = useState<Set<string>>(new Set());
+
+    const bookingsByTrip = useMemo(() => {
+        const grouped: Record<string, { tripTitle: string; byDate: Record<string, Booking[]> }> = {};
+        allBookings.forEach(b => {
+            if (!grouped[b.tripId]) grouped[b.tripId] = { tripTitle: b.tripTitle || b.tripId, byDate: {} };
+            const dateKey = b.date || 'No Date';
+            if (!grouped[b.tripId].byDate[dateKey]) grouped[b.tripId].byDate[dateKey] = [];
+            grouped[b.tripId].byDate[dateKey].push(b);
+        });
+        return grouped;
+    }, [allBookings]);
+
+    const toggleTrip = (tripId: string) => {
+        setExpandedTrips(prev => {
+            const next = new Set(prev);
+            if (next.has(tripId)) next.delete(tripId);
+            else next.add(tripId);
+            return next;
+        });
+    };
+
+    const toggleDate = (key: string) => {
+        setExpandedDates(prev => {
+            const next = new Set(prev);
+            if (next.has(key)) next.delete(key);
+            else next.add(key);
+            return next;
+        });
     };
 
     const handleEnquiryStatus = async (id: string, status: 'contacted') => {
@@ -742,53 +776,162 @@ const Admin: React.FC = () => {
                             )}
 
                             {activeTab === 'bookings' && (
-                                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                                    <div className="p-6 border-b border-gray-100">
-                                        <h3 className="text-lg font-bold">Bookings</h3>
+                                <div className="space-y-4">
+                                    {/* Header */}
+                                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex items-center justify-between">
+                                        <div>
+                                            <h3 className="text-lg font-bold text-gray-900">Bookings by Trip</h3>
+                                            <p className="text-sm text-gray-500 mt-0.5">{allBookings.length} booking{allBookings.length !== 1 ? 's' : ''} across {Object.keys(bookingsByTrip).length} trip{Object.keys(bookingsByTrip).length !== 1 ? 's' : ''}</p>
+                                        </div>
                                     </div>
-                                    <div className="overflow-x-auto">
-                                        <table className="w-full text-left">
-                                            <thead className="bg-gray-50 text-gray-500 text-xs uppercase font-semibold">
-                                                <tr>
-                                                    <th className="px-6 py-4">Booking ID</th>
-                                                    <th className="px-6 py-4">Customer</th>
-                                                    <th className="px-6 py-4">Trip</th>
-                                                    <th className="px-6 py-4">Amount</th>
-                                                    <th className="px-6 py-4">Status</th>
-                                                    <th className="px-6 py-4 text-right">Actions</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-gray-100">
-                                                {allBookings.map((booking) => (
-                                                    <tr key={booking.id} className="hover:bg-gray-50 transition">
-                                                        <td className="px-6 py-4 font-mono text-sm text-gray-600">{booking.id}</td>
-                                                        <td className="px-6 py-4">
-                                                            <div className="font-medium text-gray-900">{booking.customerName}</div>
-                                                            <div className="text-xs text-gray-500">{booking.email}</div>
-                                                        </td>
-                                                        <td className="px-6 py-4 text-gray-600 text-sm">{booking.tripTitle}</td>
-                                                        <td className="px-6 py-4 text-gray-900 font-medium">₹{booking.totalPrice.toLocaleString()}</td>
-                                                        <td className="px-6 py-4">
-                                                            <span className={`px-2 py-1 rounded-full text-xs font-bold uppercase
-                                                    ${booking.status === 'confirmed' ? 'bg-green-100 text-green-700' : ''}
-                                                    ${booking.status === 'cancelled' ? 'bg-red-100 text-red-700' : ''}
-                                                    ${booking.status === 'refunded' ? 'bg-gray-100 text-gray-600' : ''}
-                                                `}>
-                                                                {booking.status}
-                                                            </span>
-                                                        </td>
-                                                        <td className="px-6 py-4 text-right">
-                                                            {booking.status === 'cancelled' && (
-                                                                <button onClick={() => handleRefund(booking.id)} className="text-brand-orange hover:bg-orange-50 px-3 py-1 rounded text-sm font-medium border border-orange-200">Refund</button>
-                                                            )}
-                                                            {booking.status === 'confirmed' && <span className="text-green-600 text-sm flex items-center justify-end gap-1"><CheckCircle size={16} /> Paid</span>}
-                                                            {booking.status === 'refunded' && <span className="text-gray-400 text-sm flex items-center justify-end gap-1"><RefreshCcw size={16} /> Refunded</span>}
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
+
+                                    {allBookings.length === 0 && (
+                                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center text-gray-400">
+                                            No bookings yet.
+                                        </div>
+                                    )}
+
+                                    {/* Trip accordion */}
+                                    {Object.entries(bookingsByTrip).map(([tripId, { tripTitle, byDate }]) => {
+                                        const tripBookings = Object.values(byDate).flat();
+                                        const confirmedCount = tripBookings.filter(b => b.status === 'confirmed').length;
+                                        const totalTravelers = tripBookings.reduce((s, b) => s + b.travelers, 0);
+                                        const totalRevenue = tripBookings.filter(b => b.status === 'confirmed').reduce((s, b) => s + (b.totalPrice || 0), 0);
+                                        const isOpen = expandedTrips.has(tripId);
+
+                                        return (
+                                            <div key={tripId} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                                                {/* Trip header (clickable) */}
+                                                <button
+                                                    className="w-full flex items-center justify-between px-6 py-4 hover:bg-gray-50 transition text-left"
+                                                    onClick={() => toggleTrip(tripId)}
+                                                >
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="bg-brand-purple/10 text-brand-purple rounded-lg p-2">
+                                                            <Package size={20} />
+                                                        </div>
+                                                        <div>
+                                                            <div className="font-bold text-gray-900 text-base">{tripTitle}</div>
+                                                            <div className="text-xs text-gray-500 mt-0.5 flex items-center gap-3">
+                                                                <span>{tripBookings.length} booking{tripBookings.length !== 1 ? 's' : ''}</span>
+                                                                <span className="text-green-700 font-medium">{confirmedCount} confirmed</span>
+                                                                <span>{totalTravelers} traveler{totalTravelers !== 1 ? 's' : ''}</span>
+                                                                <span className="font-semibold text-gray-700">₹{totalRevenue.toLocaleString('en-IN')}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 text-gray-400">
+                                                        <span className="text-xs">{Object.keys(byDate).length} date{Object.keys(byDate).length !== 1 ? 's' : ''}</span>
+                                                        {isOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                                                    </div>
+                                                </button>
+
+                                                {/* Date groups inside trip */}
+                                                {isOpen && (
+                                                    <div className="border-t border-gray-100">
+                                                        {Object.entries(byDate)
+                                                            .sort(([a], [b]) => a.localeCompare(b))
+                                                            .map(([date, dateBookings]) => {
+                                                                const dateKey = `${tripId}__${date}`;
+                                                                const isDateOpen = expandedDates.has(dateKey);
+                                                                const dateConfirmed = dateBookings.filter(b => b.status === 'confirmed').length;
+                                                                const dateTravelers = dateBookings.reduce((s, b) => s + b.travelers, 0);
+
+                                                                return (
+                                                                    <div key={date} className="border-b border-gray-50 last:border-b-0">
+                                                                        {/* Date sub-header */}
+                                                                        <div className="flex items-center justify-between px-6 py-3 bg-gray-50/60">
+                                                                            <button
+                                                                                className="flex items-center gap-3 text-left flex-1 hover:opacity-80 transition"
+                                                                                onClick={() => toggleDate(dateKey)}
+                                                                            >
+                                                                                <div className="text-sm font-semibold text-gray-700">{date}</div>
+                                                                                <div className="flex items-center gap-2 text-xs text-gray-500">
+                                                                                    <span>{dateBookings.length} booking{dateBookings.length !== 1 ? 's' : ''}</span>
+                                                                                    <span className="text-green-700">{dateConfirmed} confirmed</span>
+                                                                                    <span>{dateTravelers} traveler{dateTravelers !== 1 ? 's' : ''}</span>
+                                                                                </div>
+                                                                                {isDateOpen ? <ChevronUp size={14} className="text-gray-400 ml-1" /> : <ChevronDown size={14} className="text-gray-400 ml-1" />}
+                                                                            </button>
+                                                                            {/* Manifest download button */}
+                                                                            <button
+                                                                                onClick={() => downloadManifestPDF(tripTitle, date, dateBookings)}
+                                                                                title="Download boarding manifest PDF for this date"
+                                                                                className="flex items-center gap-1.5 text-xs font-medium text-brand-purple border border-brand-purple/40 hover:bg-brand-purple/5 px-3 py-1.5 rounded-lg transition ml-3 flex-shrink-0"
+                                                                            >
+                                                                                <FileText size={14} />
+                                                                                Manifest PDF
+                                                                            </button>
+                                                                        </div>
+
+                                                                        {/* Bookings table for this date */}
+                                                                        {isDateOpen && (
+                                                                            <div className="overflow-x-auto">
+                                                                                <table className="w-full text-left text-sm">
+                                                                                    <thead className="bg-gray-50 text-gray-400 text-xs uppercase font-semibold">
+                                                                                        <tr>
+                                                                                            <th className="px-6 py-3">Booking ID</th>
+                                                                                            <th className="px-6 py-3">Customer</th>
+                                                                                            <th className="px-6 py-3">Travelers</th>
+                                                                                            <th className="px-6 py-3">Amount</th>
+                                                                                            <th className="px-6 py-3">Status</th>
+                                                                                            <th className="px-6 py-3 text-right">Actions</th>
+                                                                                        </tr>
+                                                                                    </thead>
+                                                                                    <tbody className="divide-y divide-gray-50">
+                                                                                        {dateBookings.map(booking => (
+                                                                                            <tr key={booking.id} className="hover:bg-gray-50/50 transition">
+                                                                                                <td className="px-6 py-3 font-mono text-xs text-gray-500">{booking.id}</td>
+                                                                                                <td className="px-6 py-3">
+                                                                                                    <div className="font-medium text-gray-900">{booking.customerName}</div>
+                                                                                                    <div className="text-xs text-gray-400">{booking.email}</div>
+                                                                                                    {booking.phone && <div className="text-xs text-gray-400">{booking.phone}</div>}
+                                                                                                </td>
+                                                                                                <td className="px-6 py-3 text-gray-700">{booking.travelers}</td>
+                                                                                                <td className="px-6 py-3 font-medium text-gray-900">₹{booking.totalPrice?.toLocaleString('en-IN')}</td>
+                                                                                                <td className="px-6 py-3">
+                                                                                                    <span className={`px-2 py-1 rounded-full text-xs font-bold uppercase ${
+                                                                                                        booking.status === 'confirmed' ? 'bg-green-100 text-green-700' :
+                                                                                                        booking.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                                                                                                        booking.status === 'refunded' ? 'bg-gray-100 text-gray-600' :
+                                                                                                        'bg-yellow-100 text-yellow-700'
+                                                                                                    }`}>
+                                                                                                        {booking.status}
+                                                                                                    </span>
+                                                                                                </td>
+                                                                                                <td className="px-6 py-3 text-right">
+                                                                                                    <div className="flex items-center justify-end gap-2">
+                                                                                                        {/* Ticket PDF download */}
+                                                                                                        <button
+                                                                                                            onClick={() => downloadTicketPDF(booking)}
+                                                                                                            title="Download ticket PDF"
+                                                                                                            className="flex items-center gap-1 text-xs text-gray-500 hover:text-brand-purple border border-gray-200 hover:border-brand-purple/40 px-2 py-1.5 rounded-lg transition"
+                                                                                                        >
+                                                                                                            <FileDown size={13} />
+                                                                                                            Ticket
+                                                                                                        </button>
+                                                                                                        {/* Status actions */}
+                                                                                                        {booking.status === 'cancelled' && (
+                                                                                                            <button onClick={() => handleRefund(booking.id)} className="text-brand-orange hover:bg-orange-50 px-3 py-1.5 rounded-lg text-xs font-medium border border-orange-200 transition">Refund</button>
+                                                                                                        )}
+                                                                                                        {booking.status === 'confirmed' && <span className="text-green-600 text-xs flex items-center gap-1"><CheckCircle size={13} /> Paid</span>}
+                                                                                                        {booking.status === 'refunded' && <span className="text-gray-400 text-xs flex items-center gap-1"><RefreshCcw size={13} /> Refunded</span>}
+                                                                                                    </div>
+                                                                                                </td>
+                                                                                            </tr>
+                                                                                        ))}
+                                                                                    </tbody>
+                                                                                </table>
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             )}
 
