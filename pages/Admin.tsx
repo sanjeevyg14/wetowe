@@ -250,14 +250,14 @@ const Admin: React.FC = () => {
     const [expandedDates, setExpandedDates] = useState<Set<string>>(new Set());
 
     const bookingsByTrip = useMemo(() => {
-        const map: Record<string, { tripTitle: string; byDate: Record<string, Booking[]> }> = {};
+        const grouped: Record<string, { tripTitle: string; byDate: Record<string, Booking[]> }> = {};
         allBookings.forEach(b => {
-            if (!map[b.tripId]) map[b.tripId] = { tripTitle: b.tripTitle || b.tripId, byDate: {} };
+            if (!grouped[b.tripId]) grouped[b.tripId] = { tripTitle: b.tripTitle || b.tripId, byDate: {} };
             const dateKey = b.date || 'No Date';
-            if (!map[b.tripId].byDate[dateKey]) map[b.tripId].byDate[dateKey] = [];
-            map[b.tripId].byDate[dateKey].push(b);
+            if (!grouped[b.tripId].byDate[dateKey]) grouped[b.tripId].byDate[dateKey] = [];
+            grouped[b.tripId].byDate[dateKey].push(b);
         });
-        return map;
+        return grouped;
     }, [allBookings]);
 
     const toggleTrip = (tripId: string) => {

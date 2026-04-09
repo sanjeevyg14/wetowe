@@ -3,10 +3,12 @@ import { Booking } from '../types';
 const BRAND_COLOR = '#3A4D39';
 const BRAND_LIGHT = '#f0f7f0';
 
+const PRINT_DELAY_MS = 500; // allow the pop-up window's DOM and styles to fully load before printing
+
 function openPrintWindow(html: string): void {
   const win = window.open('', '_blank');
   if (!win) {
-    alert('Please allow pop-ups in your browser to download PDFs.');
+    alert('Pop-up blocked. Please allow pop-ups to generate the PDF.');
     return;
   }
   win.document.write(html);
@@ -14,7 +16,7 @@ function openPrintWindow(html: string): void {
   win.focus();
   setTimeout(() => {
     win.print();
-  }, 500);
+  }, PRINT_DELAY_MS);
 }
 
 export function downloadTicketPDF(booking: Booking): void {
