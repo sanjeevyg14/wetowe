@@ -159,8 +159,9 @@ const Admin: React.FC = () => {
     const [galleryImages, setGalleryImages] = useState<{ id: string; imageUrl: string; caption: string; order: number; isActive: boolean }[]>([]);
     const [reviews, setReviews] = useState<Testimonial[]>([]);
     const [tickerItems, setTickerItems] = useState<{ _id: string; text: string; icon: string; isActive: boolean; order: number }[]>([]);
+    const [heroImages, setHeroImages] = useState<{ id: string; imageUrl: string; caption: string; order: number; isActive: boolean }[]>([]);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState<'overview' | 'trips' | 'bookings' | 'enquiries' | 'gallery' | 'reviews' | 'ticker'>('overview');
+    const [activeTab, setActiveTab] = useState<'overview' | 'trips' | 'bookings' | 'enquiries' | 'gallery' | 'reviews' | 'ticker' | 'hero'>('overview');
     const { user, isAdmin, loading: authLoading } = useAuth();
 
     // Modal State
@@ -187,10 +188,10 @@ const Admin: React.FC = () => {
                 api.getEnquiries(),
                 api.getAdminGallery(),
                 api.getAdminTestimonials(),
-                api.getAdminMarqueeItems()
+                api.getAdminMarqueeItems(),
+                api.getAdminHeroImages()
             ]);
 
-            // Handle each result individually
             if (results[0].status === 'fulfilled') setTrips(results[0].value);
             else console.error("Failed to fetch trips:", results[0].reason);
 
@@ -211,6 +212,9 @@ const Admin: React.FC = () => {
 
             if (results[6].status === 'fulfilled') setTickerItems(results[6].value);
             else console.error("Failed to fetch ticker items:", results[6].reason);
+
+            if (results[7].status === 'fulfilled') setHeroImages(results[7].value);
+            else console.error("Failed to fetch hero images:", results[7].reason);
 
         } catch (error) {
             console.error("Failed to fetch admin data", error);
@@ -316,6 +320,52 @@ const Admin: React.FC = () => {
                 console.error('Delete gallery image failed:', error);
                 alert('Failed to delete gallery image');
             }
+        }
+    };
+
+    // Hero Carousel Management Handlers
+    const [heroUploading, setHeroUploading] = useState(false);
+    const [newHeroCaption, setNewHeroCaption] = useState('');
+    const heroInputRef = useRef<HTMLInputElement>(null);
+
+    const handleHeroUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0) {
+            setHeroUploading(true);
+            try {
+                const file = e.target.files[0];
+                const imageUrl = await uploadToCloudinary(file);
+                const newImage = await api.addHeroImage(imageUrl, newHeroCaption);
+                setHeroImages([...heroImages, newImage]);
+                setNewHeroCaption('');
+                if (heroInputRef.current) heroInputRef.current.value = '';
+            } catch (error) {
+                console.error('Hero image upload failed:', error);
+                alert('Failed to upload hero image');
+            } finally {
+                setHeroUploading(false);
+            }
+        }
+    };
+
+    const handleDeleteHeroImage = async (id: string) => {
+        if (confirm('Are you sure you want to delete this hero image?')) {
+            try {
+                await api.deleteHeroImage(id);
+                setHeroImages(heroImages.filter(img => img.id !== id));
+            } catch (error) {
+                console.error('Delete hero image failed:', error);
+                alert('Failed to delete hero image');
+            }
+        }
+    };
+
+    const handleToggleHeroImage = async (id: string, isActive: boolean) => {
+        try {
+            await api.updateHeroImage(id, { isActive });
+            setHeroImages(heroImages.map(img => img.id === id ? { ...img, isActive } : img));
+        } catch (error) {
+            console.error('Failed to toggle hero image:', error);
+            alert('Failed to update hero image');
         }
     };
 
@@ -582,6 +632,12 @@ const Admin: React.FC = () => {
                             >
                                 <Megaphone size={20} /> Ticker
                             </button>
+                            <button
+                                onClick={() => setActiveTab('hero')}
+                                className={`flex items-center gap-3 w-full px-4 py-3 rounded-lg font-medium transition ${activeTab === 'hero' ? 'bg-purple-50 text-brand-purple' : 'text-gray-600 hover:bg-gray-50'}`}
+                            >
+                                <ImageIcon size={20} /> Hero Carousel
+                            </button>
                         </nav>
                     </div>
                 </aside>
@@ -589,7 +645,7 @@ const Admin: React.FC = () => {
                 {/* Mobile Tab Navigation */}
                 <div className="lg:hidden w-full mb-4 overflow-x-auto">
                     <div className="flex gap-2 min-w-max px-1 pb-2">
-                        {(['overview', 'trips', 'bookings', 'enquiries', 'gallery', 'reviews', 'ticker'] as const).map(tab => (
+                        {(['overview', 'trips', 'bookings', 'enquiries', 'gallery', 'reviews', 'ticker', 'hero'] as const).map(tab => (
                             <button
                                 key={tab}
                                 onClick={() => setActiveTab(tab)}
@@ -605,7 +661,8 @@ const Admin: React.FC = () => {
                                 {tab === 'gallery' && <ImageIcon size={16} />}
                                 {tab === 'reviews' && <Star size={16} />}
                                 {tab === 'ticker' && <Megaphone size={16} />}
-                                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                                {tab === 'hero' && <ImageIcon size={16} />}
+                                {tab === 'hero' ? 'Hero Carousel' : tab.charAt(0).toUpperCase() + tab.slice(1)}
                             </button>
                         ))}
                     </div>
@@ -1427,6 +1484,110 @@ const Admin: React.FC = () => {
                                                             >
                                                                 <Trash2 size={16} />
                                                             </button>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeTab === 'hero' && (
+                                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                                    <div className="p-6 border-b border-gray-100">
+                                        <h3 className="text-lg font-bold text-gray-800">Hero Carousel Management</h3>
+                                        <p className="text-sm text-gray-500 mt-1">
+                                            Manage the hero carousel images on the homepage.{' '}
+                                            <span className="font-semibold text-gray-600">Recommended image size: 1200×800 px (3:2 ratio)</span>{' '}
+                                            for best quality without width compression.
+                                        </p>
+                                    </div>
+
+                                    {/* Upload Section */}
+                                    <div className="p-6 bg-gray-50 border-b border-gray-100">
+                                        <div className="flex flex-col md:flex-row gap-4 items-end">
+                                            <div className="flex-1">
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Image Caption (optional)</label>
+                                                <input
+                                                    type="text"
+                                                    value={newHeroCaption}
+                                                    onChange={(e) => setNewHeroCaption(e.target.value)}
+                                                    placeholder="e.g. Hampi Ruins"
+                                                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-purple focus:border-transparent"
+                                                />
+                                            </div>
+                                            <div>
+                                                <input
+                                                    type="file"
+                                                    ref={heroInputRef}
+                                                    onChange={handleHeroUpload}
+                                                    accept="image/*"
+                                                    className="hidden"
+                                                    id="hero-upload"
+                                                />
+                                                <label
+                                                    htmlFor="hero-upload"
+                                                    className={`flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer transition ${heroUploading ? 'bg-gray-300 cursor-not-allowed' : 'bg-brand-purple text-white hover:bg-brand-darkPurple'}`}
+                                                >
+                                                    {heroUploading ? (
+                                                        <>
+                                                            <Loader size={18} className="animate-spin" />
+                                                            Uploading...
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Upload size={18} />
+                                                            Upload Hero Image
+                                                        </>
+                                                    )}
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <p className="text-xs text-gray-400 mt-3">
+                                            💡 Upload images in <strong>1200×800 px</strong> (landscape, 3:2 ratio) for optimal quality. Supports JPG, PNG, WebP.
+                                        </p>
+                                    </div>
+
+                                    {/* Hero Images Grid */}
+                                    <div className="p-6">
+                                        {heroImages.length === 0 ? (
+                                            <div className="text-center py-12 text-gray-400">
+                                                <ImageIcon size={48} className="mx-auto mb-4 opacity-50" />
+                                                <p>No hero images yet. Upload images to display in the homepage carousel.</p>
+                                                <p className="text-xs mt-2">Minimum 1 image required; up to 10 can be added.</p>
+                                            </div>
+                                        ) : (
+                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                                {heroImages.map((img, idx) => (
+                                                    <div key={img.id} className={`relative group rounded-lg overflow-hidden shadow-sm border ${img.isActive ? 'border-green-300' : 'border-gray-200 opacity-60'}`}>
+                                                        <img
+                                                            src={img.imageUrl}
+                                                            alt={img.caption || `Hero ${idx + 1}`}
+                                                            className="w-full h-40 object-cover"
+                                                        />
+                                                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                                                            <button
+                                                                onClick={() => handleToggleHeroImage(img.id, !img.isActive)}
+                                                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition ${img.isActive ? 'bg-yellow-500 text-white' : 'bg-green-500 text-white'}`}
+                                                            >
+                                                                {img.isActive ? <><ToggleLeft size={14} /> Hide</> : <><ToggleRight size={14} /> Show</>}
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDeleteHeroImage(img.id)}
+                                                                className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition"
+                                                            >
+                                                                <Trash2 size={16} />
+                                                            </button>
+                                                        </div>
+                                                        <div className="p-2 bg-white">
+                                                            <div className="flex items-center justify-between">
+                                                                <span className="text-xs text-gray-600 truncate">{img.caption || <span className="italic text-gray-400">No caption</span>}</span>
+                                                                <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${img.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                                                                    {img.isActive ? 'Visible' : 'Hidden'}
+                                                                </span>
+                                                            </div>
+                                                            <p className="text-[10px] text-gray-400 mt-0.5">Slide {idx + 1}</p>
                                                         </div>
                                                     </div>
                                                 ))}

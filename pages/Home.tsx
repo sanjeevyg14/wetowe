@@ -751,10 +751,10 @@ const Home: React.FC = () => {
 
               {/* Controls */}
               <div className="flex justify-between w-full absolute top-1/2 left-0 px-4 -translate-y-1/2 pointer-events-none">
-                <button onClick={prevTestimonial} className="pointer-events-auto p-2 rounded-full bg-brand-cream border border-brand-olive/20 hover:bg-brand-olive hover:text-brand-cream transition text-brand-black">
+                <button onClick={prevTestimonial} className="pointer-events-auto p-2 rounded-full bg-brand-beige border border-brand-olive/20 hover:bg-brand-olive hover:text-brand-black transition text-brand-black">
                   <ChevronLeft size={24} />
                 </button>
-                <button onClick={nextTestimonial} className="pointer-events-auto p-2 rounded-full bg-brand-cream border border-brand-olive/20 hover:bg-brand-olive hover:text-brand-cream transition text-brand-black">
+                <button onClick={nextTestimonial} className="pointer-events-auto p-2 rounded-full bg-brand-beige border border-brand-olive/20 hover:bg-brand-olive hover:text-brand-black transition text-brand-black">
                   <ChevronRight size={24} />
                 </button>
               </div>
@@ -768,8 +768,8 @@ const Home: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal>
             <div className="text-center mb-16 max-w-3xl mx-auto">
-              <h2 className="text-3xl md:text-5xl font-extrabold text-brand-black mb-6 font-serif">Why Wheel to Wilderness?</h2>
-              <p className="text-xl text-brand-black/60 leading-relaxed font-light">More than just a booking platform. We are a community driven by adventure, safety, and the wild.</p>
+              <h2 className="text-3xl md:text-5xl font-extrabold text-brand-olive mb-6 font-serif">Why Wheel to Wilderness?</h2>
+              <p className="text-xl text-brand-olive/60 leading-relaxed font-light">More than just a booking platform. We are a community driven by adventure, safety, and the wild.</p>
             </div>
           </ScrollReveal>
 
@@ -793,34 +793,34 @@ const Home: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-20">
             <ScrollReveal delay={100}>
               <div className="flex gap-4 items-start group">
-                <div className="p-3 bg-brand-olive text-brand-cream rounded-lg group-hover:scale-110 transition-transform duration-300 shadow-md">
+                <div className="p-3 bg-brand-olive text-brand-black rounded-lg group-hover:scale-110 transition-transform duration-300 shadow-md">
                   <Shield size={24} />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-brand-black mb-2 font-serif">Verified Safety</h3>
-                  <p className="text-brand-black/60 text-sm leading-relaxed">Every route is vetted. Every guide is certified. Your safety is our non-negotiable priority.</p>
+                  <h3 className="text-xl font-bold text-brand-olive mb-2 font-serif">Verified Safety</h3>
+                  <p className="text-brand-olive/60 text-sm leading-relaxed">Every route is vetted. Every guide is certified. Your safety is our non-negotiable priority.</p>
                 </div>
               </div>
             </ScrollReveal>
             <ScrollReveal delay={200}>
               <div className="flex gap-4 items-start group">
-                <div className="p-3 bg-brand-olive text-brand-cream rounded-lg group-hover:scale-110 transition-transform duration-300 shadow-md">
+                <div className="p-3 bg-brand-olive text-brand-black rounded-lg group-hover:scale-110 transition-transform duration-300 shadow-md">
                   <Leaf size={24} />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-brand-black mb-2 font-serif">Eco-Conscious</h3>
-                  <p className="text-brand-black/60 text-sm leading-relaxed">We leave no trace. Our trips support local communities and minimize environmental impact.</p>
+                  <h3 className="text-xl font-bold text-brand-olive mb-2 font-serif">Eco-Conscious</h3>
+                  <p className="text-brand-olive/60 text-sm leading-relaxed">We leave no trace. Our trips support local communities and minimize environmental impact.</p>
                 </div>
               </div>
             </ScrollReveal>
             <ScrollReveal delay={300}>
               <div className="flex gap-4 items-start group">
-                <div className="p-3 bg-brand-olive text-brand-cream rounded-lg group-hover:scale-110 transition-transform duration-300 shadow-md">
+                <div className="p-3 bg-brand-olive text-brand-black rounded-lg group-hover:scale-110 transition-transform duration-300 shadow-md">
                   <Users size={24} />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-brand-black mb-2 font-serif">Small Batches</h3>
-                  <p className="text-brand-black/60 text-sm leading-relaxed">Maximum 12 travelers per trip. Intimate, engaging, and perfect for making real connections.</p>
+                  <h3 className="text-xl font-bold text-brand-olive mb-2 font-serif">Small Batches</h3>
+                  <p className="text-brand-olive/60 text-sm leading-relaxed">Maximum 12 travelers per trip. Intimate, engaging, and perfect for making real connections.</p>
                 </div>
               </div>
             </ScrollReveal>
@@ -862,7 +862,7 @@ const Home: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-brand-cream p-10 rounded-lg shadow-2xl border-l-4 border-brand-olive">
+            <div className="bg-brand-beige p-10 rounded-lg shadow-2xl border-l-4 border-brand-olive">
               <h3 className="text-2xl font-bold text-brand-black mb-8 font-serif">Send an Enquiry</h3>
               {enquiryStatus === 'success' ? (
                 <div className="bg-brand-olive/10 text-brand-olive p-8 rounded-lg text-center border border-brand-olive/20">
@@ -993,7 +993,7 @@ const Home: React.FC = () => {
             <ChevronRight size={40} />
           </button>
 
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-brand-black text-xs font-bold bg-brand-cream px-4 py-1 uppercase tracking-widest rounded-full">
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-brand-black text-xs font-bold bg-brand-beige px-4 py-1 uppercase tracking-widest rounded-full">
             {currentImageIndex + 1} / {galleryImages.length}
           </div>
         </div>
