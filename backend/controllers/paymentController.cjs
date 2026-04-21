@@ -26,13 +26,16 @@ exports.initiatePayment = async (req, res) => {
             customerName, email, phone, date, travelers, totalPrice
         } = req.body;
 
-        // Validate required fields
-        if (!userId || !tripId || !date || !travelers || !totalPrice) {
+        // Validate required fields - userId is optional (guest booking allowed)
+        if (!tripId || !date || !travelers || !totalPrice) {
             return res.status(400).json({
                 success: false,
                 message: 'Missing required fields'
             });
         }
+
+        // Use 'guest' as userId for non-authenticated bookings
+        const effectiveUserId = userId || 'guest';
 
         // Validate travelers count
         if (travelers < 1 || travelers > 20) {
@@ -48,7 +51,7 @@ exports.initiatePayment = async (req, res) => {
         // === ATOMIC SEAT RESERVATION ===
         // This function handles race conditions and prevents overbooking
         const reservationResult = await reserveSeatsAtomically(tripId, date, travelers, {
-            userId,
+            userId: effectiveUserId,
             tripTitle,
             tripImage,
             customerName,
@@ -73,7 +76,7 @@ exports.initiatePayment = async (req, res) => {
         const payload = {
             merchantId: MERCHANT_ID,
             merchantTransactionId: transactionId,
-            merchantUserId: userId,
+            merchantUserId: effectiveUserId,
             amount: totalPrice * 100, // Amount in paise
             redirectUrl: `${BACKEND_URL}/api/payment/validate/${transactionId}`,
             redirectMode: "REDIRECT",

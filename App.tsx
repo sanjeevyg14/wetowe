@@ -6,8 +6,6 @@ import TripDetails from './pages/TripDetails';
 import Admin from './pages/Admin';
 import Destinations from './pages/Destinations';
 import Login from './pages/Login';
-import Signup from './pages/Signup';
-import Profile from './pages/Profile';
 import MyBookings from './pages/MyBookings';
 import OurStory from './pages/OurStory';
 import Team from './pages/Team';
@@ -26,9 +24,7 @@ const App: React.FC = () => {
             <Route path="/trip/:id" element={<TripDetails />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/destinations" element={<Destinations />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/profile" element={<Profile />} />
+            <Route path="/admin-login" element={<Login />} />
             <Route path="/my-bookings" element={<MyBookings />} />
             <Route path="/our-story" element={<OurStory />} />
             <Route path="/team" element={<Team />} />

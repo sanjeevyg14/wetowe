@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { MapPin, Clock, Star, Check, X, Shield, Minus, Plus, ChevronLeft, ChevronRight, ExternalLink, ArrowRight, Bus, Map as MapIcon, Info, Camera, Calendar, User as UserIcon, CheckCircle } from 'lucide-react';
+import { MapPin, Clock, Star, Check, X, Shield, Minus, Plus, ChevronLeft, ChevronRight, ArrowRight, Bus, Map as MapIcon, Info, Camera, Calendar, User as UserIcon, CheckCircle } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { api } from '../services/api';
@@ -76,23 +76,19 @@ const TripDetails: React.FC = () => {
     };
 
     const initiateBooking = () => {
-        if (!isAuthenticated) {
-            navigate('/login');
-            return;
-        }
         setBookingStep('form');
         setIsBookingModalOpen(true);
     };
 
     const handleBookingSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!trip || !selectedDate || !user) return;
+        if (!trip || !selectedDate) return;
 
         setBookingStep('processing');
 
         try {
             const result = await api.createBooking({
-                userId: user.id,
+                userId: user?.id || 'guest',
                 tripId: trip.id,
                 tripTitle: trip.title,
                 tripImage: trip.imageUrl,
@@ -481,17 +477,12 @@ const TripDetails: React.FC = () => {
                                         </form>
                                     ) : (
                                         <>
-                                            {!isAuthenticated && (
-                                                <div className="mb-3 text-xs text-yellow-500 flex items-center gap-1">
-                                                    <ExternalLink size={12} /> Login required to book
-                                                </div>
-                                            )}
                                             <button
                                                 onClick={initiateBooking}
                                                 disabled={!selectedDate || checkingAvailability}
                                                 className="w-full bg-brand-olive text-brand-cream font-bold py-4 uppercase tracking-widest text-sm hover:bg-brand-cream hover:text-brand-black transition border border-transparent hover:border-brand-olive disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                             >
-                                                {checkingAvailability ? "Checking..." : (isAuthenticated ? "Secure Spot" : "Log in to Book")}
+                                                {checkingAvailability ? "Checking..." : "Secure Spot"}
                                                 <ArrowRight size={16} />
                                             </button>
                                         </>
