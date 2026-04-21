@@ -50,7 +50,7 @@ const Profile: React.FC = () => {
       <Navbar />
       
       <div className="max-w-4xl mx-auto w-full px-4 py-12 flex-grow">
-        <h1 className="text-3xl font-extrabold text-gray-900 mb-8 font-serif">My Profile</h1>
+        <h1 className="text-3xl font-extrabold text-gray-900 mb-8">My Profile</h1>
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
            <div className="bg-brand-olive h-32 relative">
