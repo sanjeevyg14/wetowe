@@ -52,40 +52,12 @@ const Footer: React.FC = () => {
           </div>
           <div>
             <h4 className="font-bold text-lg mb-4 text-brand-olive uppercase tracking-wider text-sm">Follow</h4>
-            <div className="flex space-x-4 mb-6">
+            <div className="flex space-x-4">
               <a href="#" className="bg-brand-cream/10 p-2 rounded-full hover:bg-brand-olive hover:text-brand-cream transition"><Facebook size={20} /></a>
               <a href="#" className="bg-brand-cream/10 p-2 rounded-full hover:bg-brand-olive hover:text-brand-cream transition"><Twitter size={20} /></a>
               <a href="https://instagram.com/wheelstowilderness" target="_blank" rel="noopener noreferrer" className="bg-brand-cream/10 p-2 rounded-full hover:bg-brand-olive hover:text-brand-cream transition"><Instagram size={20} /></a>
               <a href="#" className="bg-brand-cream/10 p-2 rounded-full hover:bg-brand-olive hover:text-brand-cream transition"><Youtube size={20} /></a>
             </div>
-
-            {/* Supporting Channels */}
-            <h4 className="font-bold text-lg mb-3 text-brand-olive uppercase tracking-wider text-sm">Book On</h4>
-            <a
-              href="https://in.bookmyshow.com/explore/experiences-wheelstowilderness"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-3 bg-brand-cream/5 hover:bg-brand-cream/10 px-4 py-3 rounded-lg border border-brand-cream/10 hover:border-brand-olive/30 transition group"
-            >
-              {/* BookMyShow Logo */}
-              <svg
-                width="28"
-                height="28"
-                viewBox="0 0 50 50"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                className="text-[#EC1C24]"
-              >
-                <circle cx="25" cy="25" r="23" fill="currentColor" />
-                <path d="M15 18h20v14H15z" fill="white" />
-                <path d="M18 21h5v2h-5zM18 25h5v2h-5zM27 21h5v2h-5zM27 25h5v2h-5z" fill="currentColor" />
-                <text x="25" y="40" fontSize="8" fill="white" textAnchor="middle" fontWeight="bold">BMS</text>
-              </svg>
-              <div className="text-left">
-                <span className="text-brand-cream/90 text-sm font-medium group-hover:text-brand-olive transition block">BookMyShow</span>
-                <span className="text-brand-cream/40 text-xs">Official Partner</span>
-              </div>
-            </a>
           </div>
         </div>
 

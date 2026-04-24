@@ -386,5 +386,47 @@ export const api = {
             body: JSON.stringify({ status }),
         });
         if (!response.ok) throw new Error('Failed to update enquiry status');
+    },
+
+    // --- HERO CAROUSEL ---
+    getHeroImages: async (): Promise<{ id: string; imageUrl: string; caption: string; order: number }[]> => {
+        const response = await fetch(`${API_URL}/hero`);
+        if (!response.ok) throw new Error('Failed to fetch hero images');
+        return await response.json();
+    },
+
+    getAdminHeroImages: async (): Promise<{ id: string; imageUrl: string; caption: string; order: number; isActive: boolean }[]> => {
+        const response = await fetch(`${API_URL}/hero/admin`, {
+            headers: getAuthHeaders()
+        });
+        if (!response.ok) throw new Error('Failed to fetch hero images');
+        return await response.json();
+    },
+
+    addHeroImage: async (imageUrl: string, caption?: string): Promise<{ id: string; imageUrl: string; caption: string; order: number; isActive: boolean }> => {
+        const response = await fetch(`${API_URL}/hero`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ imageUrl, caption: caption || '' })
+        });
+        if (!response.ok) throw new Error('Failed to add hero image');
+        return await response.json();
+    },
+
+    updateHeroImage: async (id: string, data: { caption?: string; order?: number; isActive?: boolean }): Promise<void> => {
+        const response = await fetch(`${API_URL}/hero/${id}`, {
+            method: 'PUT',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(data)
+        });
+        if (!response.ok) throw new Error('Failed to update hero image');
+    },
+
+    deleteHeroImage: async (id: string): Promise<void> => {
+        const response = await fetch(`${API_URL}/hero/${id}`, {
+            method: 'DELETE',
+            headers: getAuthHeaders()
+        });
+        if (!response.ok) throw new Error('Failed to delete hero image');
     }
 };

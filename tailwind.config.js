@@ -12,19 +12,19 @@ module.exports = {
     extend: {
       colors: {
         brand: {
-          olive: '#3A4D39',
+          olive: '#F9F5EB',   // swapped: was cream (#F9F5EB), now used for cream/light elements
           sage: '#739072',
-          cream: '#F9F5EB',
+          cream: '#3A4D39',   // swapped: was olive (#3A4D39), now main dark background
           beige: '#ECE3CE',
           black: '#1A1A1A',
-          purple: '#3A4D39', 
+          purple: '#3A4D39',
           darkPurple: '#1A1A1A',
           orange: '#D4A373',
           light: '#F9F5EB'
         }
       },
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
+        sans: ['Montserrat', 'sans-serif'],
         serif: ['The Seasons', 'Playfair Display', 'serif'],
       },
       animation: {

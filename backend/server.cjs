@@ -89,6 +89,7 @@ const uploadRoutes = require('./routes/upload.cjs');
 const galleryRoutes = require('./routes/gallery.cjs');
 const marqueeRoutes = require('./routes/marquee.cjs');
 const seoRoutes = require('./routes/seo.cjs');
+const heroRoutes = require('./routes/hero.cjs');
 const { cleanupExpiredBookings } = require('./lib/bookingUtils.cjs');
 
 // Connect to Database (Serverless optimized)
@@ -127,6 +128,7 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/gallery', galleryRoutes);
 app.use('/api/marquee', marqueeRoutes);
 app.use('/api/seo', seoRoutes);
+app.use('/api/hero', heroRoutes);
 
 // Base Route
 app.get('/', (req, res) => {

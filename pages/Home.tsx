@@ -76,16 +76,16 @@ const StatCounter: React.FC<{ end: number; duration?: number; label: string; suf
   return (
     <div ref={ref} className="flex flex-col items-center p-8 bg-brand-cream rounded-xl border border-brand-olive/10 hover:border-brand-olive transition-all h-full justify-center text-center group hover:shadow-xl hover:-translate-y-2 duration-500 relative overflow-hidden">
       {/* Background Blob */}
-      <div className="absolute top-0 left-0 w-full h-full bg-brand-olive/5 scale-0 group-hover:scale-100 rounded-xl transition-transform duration-500 origin-bottom"></div>
+      <div className="absolute top-0 left-0 w-full h-full bg-brand-olive/10 scale-0 group-hover:scale-100 rounded-xl transition-transform duration-500 origin-bottom"></div>
 
       <div className={`relative z-10 mb-4 text-brand-olive bg-brand-olive/10 p-5 rounded-full transform transition-all duration-1000 cubic-bezier(0.34, 1.56, 0.64, 1) ${hasAnimated ? 'scale-100 rotate-0 opacity-100' : 'scale-50 -rotate-45 opacity-0'} group-hover:bg-brand-olive group-hover:text-brand-cream group-hover:scale-110`}>
         {icon}
       </div>
       <div className={`relative z-10 transition-all duration-700 delay-300 ease-out ${hasAnimated ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-        <div className="text-4xl font-extrabold text-brand-black mb-1 font-serif">
+        <div className="text-4xl font-extrabold text-brand-olive mb-1 font-serif">
           {count}{suffix}
         </div>
-        <div className="text-brand-black/60 font-bold text-xs uppercase tracking-widest">{label}</div>
+        <div className="text-brand-olive/60 font-bold text-xs uppercase tracking-widest">{label}</div>
       </div>
     </div>
   );
@@ -115,6 +115,10 @@ const Home: React.FC = () => {
   // Marquee/Ticker State
   const [marqueeItems, setMarqueeItems] = useState<{ _id: string; text: string; icon: string }[]>([]);
 
+  // Hero Carousel State
+  const [heroImages, setHeroImages] = useState<{ id: string; imageUrl: string; caption: string }[]>([]);
+  const [heroIndex, setHeroIndex] = useState(0);
+
   // Autoplay pause states
   const [isTripHovered, setIsTripHovered] = useState(false);
   const [isTestimonialHovered, setIsTestimonialHovered] = useState(false);
@@ -125,11 +129,12 @@ const Home: React.FC = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [tripsData, testimonialsData, galleryData, marqueeData] = await Promise.all([
+        const [tripsData, testimonialsData, galleryData, marqueeData, heroData] = await Promise.all([
           api.getTrips(),
           api.getTestimonials(),
           api.getGalleryImages(),
-          api.getMarqueeItems()
+          api.getMarqueeItems(),
+          api.getHeroImages()
         ]);
         setTrips(tripsData);
         setTestimonials(testimonialsData);
@@ -150,6 +155,16 @@ const Home: React.FC = () => {
         // Set marquee items
         if (marqueeData && marqueeData.length > 0) {
           setMarqueeItems(marqueeData);
+        }
+        // Set hero images with fallback
+        if (heroData && heroData.length > 0) {
+          setHeroImages(heroData);
+        } else {
+          setHeroImages([
+            { id: '1', imageUrl: "https://picsum.photos/id/1039/1200/800", caption: "Hampi Ruins" },
+            { id: '2', imageUrl: "https://picsum.photos/id/1015/1200/800", caption: "Gokarna Beach" },
+            { id: '3', imageUrl: "https://picsum.photos/id/1040/1200/800", caption: "Wayanad Forest" }
+          ]);
         }
       } catch (err) {
         console.error(err);
@@ -286,6 +301,18 @@ const Home: React.FC = () => {
     return () => clearInterval(interval);
   }, [isTestimonialHovered, testimonials.length]);
 
+  // Hero Carousel Autoplay
+  useEffect(() => {
+    if (heroImages.length <= 1) return;
+    const interval = setInterval(() => {
+      setHeroIndex(prev => (prev + 1) % heroImages.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [heroImages.length]);
+
+  const prevHero = () => setHeroIndex(prev => (prev - 1 + heroImages.length) % heroImages.length);
+  const nextHero = () => setHeroIndex(prev => (prev + 1) % heroImages.length);
+
   // Helper to render marquee icon
   const getMarqueeIcon = (iconName: string) => {
     const iconMap: { [key: string]: React.ReactNode } = {
@@ -350,31 +377,31 @@ const Home: React.FC = () => {
             {/* Left: Text & Search - Now fills height and centers content */}
             <div className="lg:w-1/2 z-10 animate-fade-in-up flex flex-col justify-center">
               {/* Badge */}
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-olive/10 text-brand-olive text-xs font-bold uppercase tracking-widest mb-6 border border-brand-olive/20 self-start">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-olive/20 text-brand-olive text-xs font-bold uppercase tracking-widest mb-6 border border-brand-olive/30 self-start">
                 <Compass size={14} />
                 <span>Explore the Unseen</span>
               </div>
 
               {/* Headline */}
-              <h1 className="text-5xl md:text-7xl font-black font-serif text-brand-black leading-tight mb-6">
+              <h1 className="text-5xl md:text-7xl font-black font-serif text-brand-olive leading-tight mb-6">
                 Let's Get <br />
-                <span className="text-brand-olive italic">Lost</span> Together.
+                <span className="text-brand-beige italic">Lost</span> Together.
               </h1>
 
-              <p className="text-lg text-brand-black/60 mb-8 max-w-md leading-relaxed">
+              <p className="text-lg text-brand-olive/70 mb-8 max-w-md leading-relaxed">
                 Discover handpicked weekend gateways, trekking spots, and hidden gems across India.
               </p>
 
               {/* Search Bar - Redesigned */}
-              <div className="bg-white p-2 rounded-2xl shadow-xl border border-brand-black/5 max-w-2xl relative z-30">
+              <div className="bg-white p-2 rounded-2xl shadow-xl border border-brand-olive/10 max-w-2xl relative z-30">
                 <div className="flex flex-col md:flex-row gap-2">
                   {/* Location */}
                   <div className="flex-[1.5] relative group">
-                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-olive" size={20} />
+                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-cream" size={20} />
                     <input
                       type="text"
                       placeholder="Where to?"
-                      className="w-full h-full bg-brand-cream/30 hover:bg-brand-cream/50 transition rounded-xl py-3 pl-12 pr-4 outline-none text-brand-black font-medium placeholder:text-brand-black/40"
+                      className="w-full h-full bg-gray-50 hover:bg-gray-100 transition rounded-xl py-3 pl-12 pr-4 outline-none text-brand-black font-medium placeholder:text-gray-400"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -382,10 +409,10 @@ const Home: React.FC = () => {
 
                   {/* Date */}
                   <div className="flex-1 relative group">
-                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-olive" size={20} />
+                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-cream" size={20} />
                     <input
                       type="date"
-                      className="w-full h-full bg-brand-cream/30 hover:bg-brand-cream/50 transition rounded-xl py-3 pl-12 pr-4 outline-none text-brand-black font-medium text-sm text-gray-500 uppercase"
+                      className="w-full h-full bg-gray-50 hover:bg-gray-100 transition rounded-xl py-3 pl-12 pr-4 outline-none text-brand-black font-medium text-sm uppercase"
                       value={selectedDate}
                       onChange={(e) => setSelectedDate(e.target.value)}
                     />
@@ -395,13 +422,13 @@ const Home: React.FC = () => {
                   <div className="flex-1 relative group">
                     <div
                       onClick={() => setIsTravellerPickerOpen(!isTravellerPickerOpen)}
-                      className="w-full h-full bg-brand-cream/30 hover:bg-brand-cream/50 transition rounded-xl py-3 pl-12 pr-4 outline-none text-brand-black font-medium cursor-pointer flex items-center select-none"
+                      className="w-full h-full bg-gray-50 hover:bg-gray-100 transition rounded-xl py-3 pl-12 pr-4 outline-none text-brand-black font-medium cursor-pointer flex items-center select-none"
                     >
                       <span className="text-sm truncate">
                         {travellers} Traveler{travellers !== 1 ? 's' : ''}
                       </span>
                     </div>
-                    <Users className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-olive" size={20} />
+                    <Users className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-cream" size={20} />
 
                     {/* Dropdown */}
                     {isTravellerPickerOpen && (
@@ -413,7 +440,7 @@ const Home: React.FC = () => {
                             <div className="flex items-center gap-3">
                               <button
                                 onClick={(e) => { e.stopPropagation(); handleTravellerChange('dec'); }}
-                                className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-brand-black hover:bg-brand-olive hover:text-white transition disabled:opacity-50"
+                                className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-brand-black hover:bg-brand-cream hover:text-brand-olive transition disabled:opacity-50"
                                 disabled={travellers <= 1}
                               >
                                 <Minus size={14} />
@@ -421,7 +448,7 @@ const Home: React.FC = () => {
                               <span className="font-bold w-4 text-center">{travellers}</span>
                               <button
                                 onClick={(e) => { e.stopPropagation(); handleTravellerChange('inc'); }}
-                                className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-brand-black hover:bg-brand-olive hover:text-white transition"
+                                className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-brand-black hover:bg-brand-cream hover:text-brand-olive transition"
                               >
                                 <Plus size={14} />
                               </button>
@@ -434,7 +461,7 @@ const Home: React.FC = () => {
 
                   <button
                     onClick={handleSearch}
-                    className="bg-brand-olive text-brand-cream p-4 rounded-xl hover:bg-brand-black transition shadow-lg flex items-center justify-center"
+                    className="bg-brand-cream text-brand-olive p-4 rounded-xl hover:bg-brand-black hover:text-brand-olive transition shadow-lg flex items-center justify-center"
                   >
                     <Search size={24} />
                   </button>
@@ -451,32 +478,56 @@ const Home: React.FC = () => {
               </div>
             </div>
 
-            {/* Right: Dynamic Visual */}
-            <div className="lg:w-1/2 relative">
-              {/* Main Arch Image */}
-              <div className="relative z-10 w-full h-[500px] md:h-[600px] bg-brand-olive rounded-t-[200px] rounded-b-[20px] overflow-hidden shadow-2xl group cursor-pointer animate-fade-in-up animate-delay-200">
-                <img
-                  src="https://picsum.photos/id/1039/800/1200"
-                  alt="Hero"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000"
-                />
+            {/* Right: Hero Carousel - Square Images */}
+            <div className="lg:w-1/2 relative animate-fade-in-up animate-delay-200">
+              {/* Image dimensions guide: 1200×800px (3:2 ratio) recommended for best quality */}
+              <div className="relative w-full aspect-[3/2] overflow-hidden shadow-2xl rounded-sm group">
+                {heroImages.map((img, idx) => (
+                  <div
+                    key={img.id}
+                    className={`absolute inset-0 transition-opacity duration-700 ${idx === heroIndex ? 'opacity-100' : 'opacity-0'}`}
+                  >
+                    <img
+                      src={img.imageUrl}
+                      alt={img.caption || `Hero ${idx + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                ))}
 
-                {/* Overlay Content inside image */}
-                <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 to-transparent p-8 text-white">
+                {/* Overlay Content */}
+                <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 to-transparent p-6 text-white">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-bold text-xl font-serif">Hampi Ruins</p>
-                      <p className="text-xs uppercase tracking-widest opacity-80 mt-1">Next Expedition: Dec 12</p>
+                      {heroImages[heroIndex]?.caption && (
+                        <p className="font-bold text-lg font-serif">{heroImages[heroIndex].caption}</p>
+                      )}
+                      <p className="text-xs uppercase tracking-widest opacity-70 mt-1">Next Expedition</p>
                     </div>
-                    <div className="bg-white/20 backdrop-blur-md p-3 rounded-full border border-white/30 group-hover:bg-brand-olive group-hover:border-brand-olive transition">
-                      <ArrowRight className="text-white" />
+                    <div className="flex items-center gap-2">
+                      <button onClick={prevHero} className="bg-white/20 backdrop-blur-md p-2 rounded-full border border-white/30 hover:bg-brand-cream hover:text-brand-black transition">
+                        <ChevronLeft size={18} className="text-white" />
+                      </button>
+                      <button onClick={nextHero} className="bg-white/20 backdrop-blur-md p-2 rounded-full border border-white/30 hover:bg-brand-cream hover:text-brand-black transition">
+                        <ChevronRight size={18} className="text-white" />
+                      </button>
                     </div>
+                  </div>
+                  {/* Dot indicators */}
+                  <div className="flex gap-1.5 mt-3">
+                    {heroImages.map((_, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setHeroIndex(idx)}
+                        className={`h-1.5 rounded-full transition-all duration-300 ${idx === heroIndex ? 'bg-white w-6' : 'bg-white/40 w-1.5'}`}
+                      />
+                    ))}
                   </div>
                 </div>
               </div>
 
-              {/* Floating Elements around the Arch */}
-              <div className="absolute top-20 -left-12 bg-white p-4 rounded-xl shadow-xl z-20 animate-float hidden md:block border border-brand-olive/10">
+              {/* Floating Elements */}
+              <div className="absolute top-4 -left-12 bg-white p-4 rounded-xl shadow-xl z-20 animate-float hidden md:block border border-brand-beige/30">
                 <div className="flex items-center gap-3">
                   <div className="bg-green-100 p-2 rounded-full text-green-600">
                     <Shield size={20} />
@@ -488,18 +539,18 @@ const Home: React.FC = () => {
                 </div>
               </div>
 
-              <div className="absolute bottom-40 -right-8 bg-white p-4 rounded-xl shadow-xl z-20 animate-float animate-delay-200 hidden md:block border border-brand-olive/10">
+              <div className="absolute bottom-20 -right-8 bg-white p-4 rounded-xl shadow-xl z-20 animate-float animate-delay-200 hidden md:block border border-brand-beige/30">
                 <div className="flex -space-x-3 mb-2">
                   {[1, 2, 3].map(i => (
                     <img key={i} className="w-8 h-8 rounded-full border-2 border-white object-cover" src={`https://i.pravatar.cc/100?img=${i + 10}`} alt="User" />
                   ))}
-                  <div className="w-8 h-8 rounded-full border-2 border-white bg-brand-olive text-brand-cream flex items-center justify-center text-[10px] font-bold">+2k</div>
+                  <div className="w-8 h-8 rounded-full border-2 border-white bg-brand-cream text-brand-olive flex items-center justify-center text-[10px] font-bold">+2k</div>
                 </div>
                 <p className="text-xs font-bold text-center text-brand-black/60 uppercase tracking-wider">Happy Travelers</p>
               </div>
 
-              {/* Decorative Pattern behind */}
-              <div className="absolute -z-10 top-6 right-6 w-full h-full border-2 border-dashed border-brand-olive/20 rounded-t-[200px] rounded-b-[20px] transform translate-x-4 translate-y-4"></div>
+              {/* Decorative border */}
+              <div className="absolute -z-10 top-3 right-3 w-full h-full border-2 border-dashed border-brand-olive/20 rounded-sm"></div>
             </div>
 
           </div>
@@ -514,8 +565,8 @@ const Home: React.FC = () => {
       >
         <div className="flex items-end justify-between mb-10 border-b border-brand-olive/10 pb-6">
           <div>
-            <h2 className="text-3xl font-extrabold text-brand-black font-serif uppercase tracking-wide">Trending Expeditions</h2>
-            <p className="text-brand-black/60 mt-1 uppercase text-xs tracking-widest">Top-rated trips happening this month</p>
+            <h2 className="text-3xl font-extrabold text-brand-olive font-serif uppercase tracking-wide">Trending Expeditions</h2>
+            <p className="text-brand-olive/60 mt-1 uppercase text-xs tracking-widest">Top-rated trips happening this month</p>
           </div>
           <div className="flex gap-2">
             <button
@@ -566,7 +617,7 @@ const Home: React.FC = () => {
             </div>
 
             {/* Duration Filter */}
-            <div className="flex items-center bg-brand-cream p-1.5 rounded-lg overflow-x-auto max-w-full border border-brand-olive/10 shadow-sm">
+            <div className="flex items-center bg-brand-cream p-1.5 rounded-lg overflow-x-auto max-w-full border border-brand-olive/20 shadow-sm">
               <span className="px-3 text-brand-olive font-bold text-xs uppercase flex items-center gap-1 tracking-wider">
                 <Filter size={12} /> Filter:
               </span>
@@ -578,7 +629,7 @@ const Home: React.FC = () => {
                     px-4 py-2 rounded-md text-sm font-bold transition-all whitespace-nowrap
                     ${selectedDuration === duration
                       ? 'bg-brand-olive text-brand-cream shadow-sm'
-                      : 'text-brand-black/50 hover:text-brand-black'}
+                      : 'text-brand-olive/50 hover:text-brand-olive'}
                     `}
                 >
                   {duration}
@@ -604,9 +655,9 @@ const Home: React.FC = () => {
           ) : (
             <div className="text-center py-24 bg-brand-cream rounded-xl border border-dashed border-brand-olive/30">
               <div className="bg-brand-beige w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Search className="text-brand-olive" size={32} />
+                <Search className="text-brand-black" size={32} />
               </div>
-              <p className="text-xl text-brand-black font-medium">No adventures found matching your criteria.</p>
+              <p className="text-xl text-brand-olive font-medium">No adventures found matching your criteria.</p>
               <button
                 onClick={() => { setSearchTerm(''); setSelectedDuration('All'); }}
                 className="mt-6 text-brand-olive font-bold hover:underline flex items-center justify-center gap-2 mx-auto uppercase tracking-wide text-sm"
@@ -664,7 +715,7 @@ const Home: React.FC = () => {
       <section className="bg-brand-cream py-24 border-b border-brand-olive/10">
         <div className="max-w-5xl mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-extrabold text-brand-black font-serif">Traveler Tales</h2>
+            <h2 className="text-4xl font-extrabold text-brand-olive font-serif">Traveler Tales</h2>
           </div>
 
           {testimonials.length > 0 && (
@@ -700,10 +751,10 @@ const Home: React.FC = () => {
 
               {/* Controls */}
               <div className="flex justify-between w-full absolute top-1/2 left-0 px-4 -translate-y-1/2 pointer-events-none">
-                <button onClick={prevTestimonial} className="pointer-events-auto p-2 rounded-full bg-brand-cream border border-brand-olive/20 hover:bg-brand-olive hover:text-brand-cream transition text-brand-black">
+                <button onClick={prevTestimonial} className="pointer-events-auto p-2 rounded-full bg-brand-beige border border-brand-olive/20 hover:bg-brand-olive hover:text-brand-black transition text-brand-black">
                   <ChevronLeft size={24} />
                 </button>
-                <button onClick={nextTestimonial} className="pointer-events-auto p-2 rounded-full bg-brand-cream border border-brand-olive/20 hover:bg-brand-olive hover:text-brand-cream transition text-brand-black">
+                <button onClick={nextTestimonial} className="pointer-events-auto p-2 rounded-full bg-brand-beige border border-brand-olive/20 hover:bg-brand-olive hover:text-brand-black transition text-brand-black">
                   <ChevronRight size={24} />
                 </button>
               </div>
@@ -717,8 +768,8 @@ const Home: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal>
             <div className="text-center mb-16 max-w-3xl mx-auto">
-              <h2 className="text-3xl md:text-5xl font-extrabold text-brand-black mb-6 font-serif">Why Wheel to Wilderness?</h2>
-              <p className="text-xl text-brand-black/60 leading-relaxed font-light">More than just a booking platform. We are a community driven by adventure, safety, and the wild.</p>
+              <h2 className="text-3xl md:text-5xl font-extrabold text-brand-olive mb-6 font-serif">Why Wheel to Wilderness?</h2>
+              <p className="text-xl text-brand-olive/60 leading-relaxed font-light">More than just a booking platform. We are a community driven by adventure, safety, and the wild.</p>
             </div>
           </ScrollReveal>
 
@@ -742,34 +793,34 @@ const Home: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-20">
             <ScrollReveal delay={100}>
               <div className="flex gap-4 items-start group">
-                <div className="p-3 bg-brand-olive text-brand-cream rounded-lg group-hover:scale-110 transition-transform duration-300 shadow-md">
+                <div className="p-3 bg-brand-olive text-brand-black rounded-lg group-hover:scale-110 transition-transform duration-300 shadow-md">
                   <Shield size={24} />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-brand-black mb-2 font-serif">Verified Safety</h3>
-                  <p className="text-brand-black/60 text-sm leading-relaxed">Every route is vetted. Every guide is certified. Your safety is our non-negotiable priority.</p>
+                  <h3 className="text-xl font-bold text-brand-olive mb-2 font-serif">Verified Safety</h3>
+                  <p className="text-brand-olive/60 text-sm leading-relaxed">Every route is vetted. Every guide is certified. Your safety is our non-negotiable priority.</p>
                 </div>
               </div>
             </ScrollReveal>
             <ScrollReveal delay={200}>
               <div className="flex gap-4 items-start group">
-                <div className="p-3 bg-brand-olive text-brand-cream rounded-lg group-hover:scale-110 transition-transform duration-300 shadow-md">
+                <div className="p-3 bg-brand-olive text-brand-black rounded-lg group-hover:scale-110 transition-transform duration-300 shadow-md">
                   <Leaf size={24} />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-brand-black mb-2 font-serif">Eco-Conscious</h3>
-                  <p className="text-brand-black/60 text-sm leading-relaxed">We leave no trace. Our trips support local communities and minimize environmental impact.</p>
+                  <h3 className="text-xl font-bold text-brand-olive mb-2 font-serif">Eco-Conscious</h3>
+                  <p className="text-brand-olive/60 text-sm leading-relaxed">We leave no trace. Our trips support local communities and minimize environmental impact.</p>
                 </div>
               </div>
             </ScrollReveal>
             <ScrollReveal delay={300}>
               <div className="flex gap-4 items-start group">
-                <div className="p-3 bg-brand-olive text-brand-cream rounded-lg group-hover:scale-110 transition-transform duration-300 shadow-md">
+                <div className="p-3 bg-brand-olive text-brand-black rounded-lg group-hover:scale-110 transition-transform duration-300 shadow-md">
                   <Users size={24} />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-brand-black mb-2 font-serif">Small Batches</h3>
-                  <p className="text-brand-black/60 text-sm leading-relaxed">Maximum 12 travelers per trip. Intimate, engaging, and perfect for making real connections.</p>
+                  <h3 className="text-xl font-bold text-brand-olive mb-2 font-serif">Small Batches</h3>
+                  <p className="text-brand-olive/60 text-sm leading-relaxed">Maximum 12 travelers per trip. Intimate, engaging, and perfect for making real connections.</p>
                 </div>
               </div>
             </ScrollReveal>
@@ -811,7 +862,7 @@ const Home: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-brand-cream p-10 rounded-lg shadow-2xl border-l-4 border-brand-olive">
+            <div className="bg-brand-beige p-10 rounded-lg shadow-2xl border-l-4 border-brand-olive">
               <h3 className="text-2xl font-bold text-brand-black mb-8 font-serif">Send an Enquiry</h3>
               {enquiryStatus === 'success' ? (
                 <div className="bg-brand-olive/10 text-brand-olive p-8 rounded-lg text-center border border-brand-olive/20">
@@ -942,7 +993,7 @@ const Home: React.FC = () => {
             <ChevronRight size={40} />
           </button>
 
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-brand-black text-xs font-bold bg-brand-cream px-4 py-1 uppercase tracking-widest rounded-full">
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-brand-black text-xs font-bold bg-brand-beige px-4 py-1 uppercase tracking-widest rounded-full">
             {currentImageIndex + 1} / {galleryImages.length}
           </div>
         </div>
