@@ -166,7 +166,7 @@ const TripDetails: React.FC = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-brand-cream flex items-center justify-center">
+            <div className="min-h-screen bg-brand-beige flex items-center justify-center">
                 <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-brand-olive"></div>
             </div>
         );
@@ -174,7 +174,7 @@ const TripDetails: React.FC = () => {
 
     if (!trip) {
         return (
-            <div className="min-h-screen bg-brand-cream flex flex-col">
+            <div className="min-h-screen bg-brand-beige flex flex-col">
                 <Navbar />
                 <div className="flex-grow flex items-center justify-center">
                     <div className="text-center">
@@ -193,7 +193,7 @@ const TripDetails: React.FC = () => {
     const totalPrice = basePrice + gstAmount;
 
     return (
-        <div className="min-h-screen bg-brand-cream font-sans relative text-brand-black">
+        <div className="min-h-screen bg-brand-beige font-sans relative text-brand-black">
             <SEO
                 title={trip.title}
                 description={trip.description.substring(0, 160)}
@@ -391,22 +391,22 @@ const TripDetails: React.FC = () => {
                     <div className="lg:w-1/3 relative">
                         <div className="sticky top-24">
                             {/* The Ticket Card */}
-                            <div className="bg-brand-black text-brand-cream rounded-sm shadow-2xl overflow-hidden relative border-4 border-double border-brand-olive/30">
+                            <div className="bg-brand-black text-brand-olive rounded-sm shadow-2xl overflow-hidden relative border-4 border-double border-brand-olive/30">
                                 {/* Decorative 'Hole Punch' Circles */}
-                                <div className="absolute -left-3 top-1/2 w-6 h-6 bg-brand-cream rounded-full"></div>
-                                <div className="absolute -right-3 top-1/2 w-6 h-6 bg-brand-cream rounded-full"></div>
-                                <div className="absolute left-0 top-1/2 w-full border-t-2 border-dashed border-brand-cream/10"></div>
+                                <div className="absolute -left-3 top-1/2 w-6 h-6 bg-brand-beige rounded-full"></div>
+                                <div className="absolute -right-3 top-1/2 w-6 h-6 bg-brand-beige rounded-full"></div>
+                                <div className="absolute left-0 top-1/2 w-full border-t-2 border-dashed border-brand-olive/10"></div>
 
                                 <div className="p-6 pb-8">
                                     <h3 className="text-center font-serif text-2xl font-bold mb-1 tracking-wider text-brand-olive">ADMIT ONE</h3>
-                                    <p className="text-center text-xs text-brand-cream/50 uppercase tracking-widest mb-6">Wheel to Wilderness Expedition</p>
+                                    <p className="text-center text-xs text-brand-olive/50 uppercase tracking-widest mb-6">Wheel to Wilderness Expedition</p>
 
                                     <div className="flex justify-between items-end mb-6">
                                         <div>
-                                            <p className="text-xs text-brand-cream/60 uppercase">Base price ({travelers} × ₹{trip.price.toLocaleString()})</p>
-                                            <p className="text-3xl font-bold font-mono text-brand-cream">₹{basePrice.toLocaleString()}</p>
+                                            <p className="text-xs text-brand-olive/60 uppercase">Base price ({travelers} × ₹{trip.price.toLocaleString()})</p>
+                                            <p className="text-3xl font-bold font-mono text-brand-olive">₹{basePrice.toLocaleString()}</p>
                                             {gstRate > 0 && (
-                                                <p className="text-xs text-brand-cream/60 mt-1">
+                                                <p className="text-xs text-brand-olive/60 mt-1">
                                                     + GST ({gstRate}%) <span className="font-mono">₹{gstAmount.toLocaleString()}</span>
                                                     &nbsp;= <span className="font-mono font-bold text-brand-olive">₹{totalPrice.toLocaleString()}</span>
                                                 </p>
@@ -419,7 +419,7 @@ const TripDetails: React.FC = () => {
 
                                     <div className="space-y-4 mb-6">
                                         <div>
-                                            <label className="block text-xs font-bold uppercase tracking-widest text-brand-cream/60 mb-2">Select Date</label>
+                                            <label className="block text-xs font-bold uppercase tracking-widest text-brand-olive/60 mb-2">Select Date</label>
                                             <div className="space-y-2 max-h-40 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-brand-olive scrollbar-track-brand-black">
                                                 {trip.dates && trip.dates.map((date, idx) => (
                                                     <div
@@ -427,8 +427,8 @@ const TripDetails: React.FC = () => {
                                                         onClick={() => setSelectedDate(date)}
                                                         className={`p-3 border cursor-pointer transition flex items-center justify-between
                                                     ${selectedDate === date
-                                                                ? 'border-brand-olive bg-brand-olive/20 text-brand-cream'
-                                                                : 'border-brand-cream/20 text-brand-cream/60 hover:border-brand-cream/40'}
+                                                                ? 'border-brand-olive bg-brand-olive/20 text-brand-olive'
+                                                                : 'border-brand-olive/20 text-brand-olive/60 hover:border-brand-olive/40'}
                                                 `}
                                                     >
                                                         <span className="text-sm font-mono font-bold">{date}</span>
@@ -440,8 +440,8 @@ const TripDetails: React.FC = () => {
 
                                         {!availability.isSoldOut && (
                                             <div>
-                                                <label className="block text-xs font-bold uppercase tracking-widest text-brand-cream/60 mb-2">Travellers</label>
-                                                <div className="flex items-center justify-between border border-brand-cream/20 p-2">
+                                                <label className="block text-xs font-bold uppercase tracking-widest text-brand-olive/60 mb-2">Travellers</label>
+                                                <div className="flex items-center justify-between border border-brand-olive/20 p-2">
                                                     <button onClick={() => handleTravelerChange('dec')} className="p-1 hover:text-brand-olive disabled:opacity-30" disabled={travelers <= 1}>
                                                         <Minus size={16} />
                                                     </button>
@@ -458,11 +458,11 @@ const TripDetails: React.FC = () => {
                                 <div className="p-6 bg-brand-black/50 relative z-10">
                                     {availability.isSoldOut ? (
                                         <form onSubmit={handleEnquirySubmit} className="space-y-3">
-                                            <p className="text-xs text-brand-cream/70 text-center mb-2">Join the waitlist for this batch.</p>
+                                            <p className="text-xs text-brand-olive/70 text-center mb-2">Join the waitlist for this batch.</p>
                                             <input
                                                 type="text"
                                                 placeholder="Email Address"
-                                                className="w-full bg-transparent border border-brand-cream/30 p-2 text-sm text-brand-cream focus:border-brand-olive focus:outline-none"
+                                                className="w-full bg-transparent border border-brand-olive/30 p-2 text-sm text-brand-olive focus:border-brand-olive focus:outline-none placeholder-brand-olive/40"
                                                 value={bookingData.email}
                                                 onChange={e => setBookingData({ ...bookingData, email: e.target.value })}
                                                 required
@@ -470,7 +470,7 @@ const TripDetails: React.FC = () => {
                                             <button
                                                 type="submit"
                                                 disabled={enquiryStatus === 'submitting'}
-                                                className="w-full bg-brand-cream text-brand-black font-bold py-3 uppercase tracking-widest text-xs hover:bg-brand-olive hover:text-brand-cream transition"
+                                                className="w-full bg-brand-olive text-brand-black font-bold py-3 uppercase tracking-widest text-xs hover:bg-brand-beige hover:text-brand-black transition"
                                             >
                                                 {enquiryStatus === 'submitting' ? 'Processing...' : 'Notify Me'}
                                             </button>
@@ -480,7 +480,7 @@ const TripDetails: React.FC = () => {
                                             <button
                                                 onClick={initiateBooking}
                                                 disabled={!selectedDate || checkingAvailability}
-                                                className="w-full bg-brand-olive text-brand-cream font-bold py-4 uppercase tracking-widest text-sm hover:bg-brand-cream hover:text-brand-black transition border border-transparent hover:border-brand-olive disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                                className="w-full bg-brand-olive text-brand-black font-bold py-4 uppercase tracking-widest text-sm hover:bg-brand-beige hover:text-brand-black transition border border-transparent hover:border-brand-olive disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                             >
                                                 {checkingAvailability ? "Checking..." : "Secure Spot"}
                                                 <ArrowRight size={16} />
@@ -488,7 +488,7 @@ const TripDetails: React.FC = () => {
                                         </>
                                     )}
                                     <div className="mt-4 text-center">
-                                        <span className="text-[10px] text-brand-cream/40 flex items-center justify-center gap-1">
+                                        <span className="text-[10px] text-brand-olive/40 flex items-center justify-center gap-1">
                                             <Shield size={10} /> Secure SSL Payment
                                         </span>
                                     </div>
@@ -512,7 +512,7 @@ const TripDetails: React.FC = () => {
             {/* Enhanced Booking Modal */}
             {isBookingModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-brand-black/95 backdrop-blur-md animate-fade-in">
-                    <div className="w-full max-w-lg bg-brand-cream rounded-xl shadow-2xl overflow-hidden relative border border-brand-olive/30">
+                    <div className="w-full max-w-lg bg-brand-beige rounded-xl shadow-2xl overflow-hidden relative border border-brand-olive/30">
 
                         <button
                             onClick={() => setIsBookingModalOpen(false)}
@@ -616,7 +616,7 @@ const TripDetails: React.FC = () => {
 
                         {/* Step 3: Success - Boarding Pass Style */}
                         {bookingStep === 'success' && confirmedBooking && (
-                            <div className="flex flex-col h-full bg-brand-cream">
+                            <div className="flex flex-col h-full bg-brand-beige">
                                 {/* Ticket Header */}
                                 <div className="bg-brand-olive p-8 text-center text-brand-cream relative overflow-hidden">
                                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-400 via-red-500 to-pink-500"></div>
