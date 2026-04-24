@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Globe, ArrowRight, AlertCircle, Loader } from 'lucide-react';
+import { ArrowRight, AlertCircle, Loader } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 const Login: React.FC = () => {
@@ -59,7 +59,7 @@ const Login: React.FC = () => {
                     <input 
                         type="email" 
                         required
-                        className="w-full px-4 py-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-olive focus:border-transparent transition bg-brand-cream/30"
+                        className="w-full px-4 py-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-olive focus:border-transparent transition bg-brand-cream/30 text-gray-900"
                         placeholder="user@test.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
@@ -72,7 +72,7 @@ const Login: React.FC = () => {
                     </div>
                     <input 
                         type="password" 
-                        className="w-full px-4 py-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-olive focus:border-transparent transition bg-brand-cream/30"
+                        className="w-full px-4 py-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-olive focus:border-transparent transition bg-brand-cream/30 text-gray-900"
                         placeholder="••••••••"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
@@ -88,34 +88,6 @@ const Login: React.FC = () => {
                     )}
                 </button>
             </form>
-
-            <div className="mt-6">
-                <p className="text-xs text-center text-gray-400 mb-4 uppercase tracking-wider">Demo Credentials</p>
-                <div className="flex gap-2">
-                   <button onClick={() => {setEmail('user@test.com'); setPassword('password123');}} className="flex-1 text-xs bg-gray-50 hover:bg-gray-100 py-2 rounded text-gray-600 border border-gray-200 font-mono">user@test.com</button>
-                   <button onClick={() => {setEmail('admin@test.com'); setPassword('password123');}} className="flex-1 text-xs bg-gray-50 hover:bg-gray-100 py-2 rounded text-gray-600 border border-gray-200 font-mono">admin@test.com</button>
-                </div>
-            </div>
-
-            <div className="mt-8">
-                <div className="relative">
-                    <div className="absolute inset-0 flex items-center">
-                        <div className="w-full border-t border-gray-200"></div>
-                    </div>
-                    <div className="relative flex justify-center text-sm">
-                        <span className="px-2 bg-white text-gray-500 text-xs">Or continue with</span>
-                    </div>
-                </div>
-
-                <div className="mt-6 grid grid-cols-2 gap-4">
-                    <button type="button" className="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
-                        Google
-                    </button>
-                    <button type="button" className="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
-                        Facebook
-                    </button>
-                </div>
-            </div>
         </div>
 
         <p className="text-center mt-8 text-brand-black/60 text-sm">

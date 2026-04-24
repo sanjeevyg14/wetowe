@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Menu, X, LogOut, Briefcase, Lock } from 'lucide-react';
+import { Menu, X, LogOut, Briefcase } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -68,13 +68,7 @@ const Navbar: React.FC = () => {
                 </div>
               </div>
             )}
-            
-            {!isAuthenticated && (
-              <Link to="/admin-login" className="flex items-center gap-2 text-brand-olive/50 hover:text-brand-olive transition text-xs uppercase tracking-widest font-medium">
-                <Lock size={14} />
-                Admin Login
-              </Link>
-            )}
+
           </div>
 
           {/* Mobile Menu Button */}
@@ -113,11 +107,7 @@ const Navbar: React.FC = () => {
             )}
             
             <div className="mt-6 px-3">
-               {!isAuthenticated ? (
-                 <Link to="/admin-login" className="flex items-center justify-center gap-2 w-full border border-brand-olive/30 text-brand-olive text-center font-bold py-3 rounded-lg text-sm uppercase tracking-wide hover:bg-brand-cream/20">
-                   <Lock size={14} /> Admin Login
-                 </Link>
-               ) : isAdmin ? (
+               {isAdmin && isAuthenticated ? (
                  <button onClick={handleLogout} className="block w-full border border-red-400/50 text-red-300 text-center font-bold py-3 rounded-lg hover:bg-red-900/20">Log Out</button>
                ) : null}
             </div>
