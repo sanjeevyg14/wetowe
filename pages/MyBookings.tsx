@@ -6,6 +6,7 @@ import { api } from '../services/api';
 import { Booking } from '../types';
 import { Navigate, Link } from 'react-router-dom';
 import { Calendar, Users, Clock, ArrowRight, Ban, Download, Ticket, Plane, History, AlertCircle, CheckCircle2, MapPin } from 'lucide-react';
+import { downloadTicketPDF } from '../utils/pdfUtils';
 
 const MyBookings: React.FC = () => {
     const { user, isAuthenticated, loading } = useAuth();
@@ -31,87 +32,7 @@ const MyBookings: React.FC = () => {
     };
 
     const handleDownloadTicket = (booking: Booking) => {
-        const ticketWindow = window.open('', '_blank');
-        if (ticketWindow) {
-            ticketWindow.document.write(`
-            <html>
-              <head>
-                <title>Ticket - ${booking.id}</title>
-                <style>
-                  body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 40px; background: #f9fafb; }
-                  .ticket { max-width: 600px; margin: 0 auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); border: 1px solid #e5e7eb; }
-                  .header { background: #3A4D39; color: white; padding: 30px; text-align: center; }
-                  .header h1 { margin: 0; font-size: 24px; text-transform: uppercase; letter-spacing: 2px; }
-                  .header p { margin: 5px 0 0; opacity: 0.8; font-size: 14px; }
-                  .content { padding: 30px; }
-                  .row { display: flex; justify-content: space-between; margin-bottom: 15px; border-bottom: 1px solid #f3f4f6; padding-bottom: 15px; }
-                  .row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-                  .label { font-weight: bold; color: #6b7280; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
-                  .value { font-weight: bold; color: #111827; font-size: 16px; }
-                  .footer { background: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: 12px; }
-                  .status { display: inline-block; padding: 4px 12px; border-radius: 99px; font-size: 12px; font-weight: bold; background: #dcfce7; color: #166534; }
-                  @media print {
-                      body { background: white; padding: 0; }
-                      .ticket { box-shadow: none; border: 2px solid #000; }
-                  }
-                </style>
-              </head>
-              <body>
-                <div class="ticket">
-                  <div class="header">
-                    <h1>Wheel to Wilderness</h1>
-                    <p>Expedition Pass</p>
-                  </div>
-                  <div class="content">
-                    <div class="row">
-                        <div>
-                            <div class="label">Booking Ref</div>
-                            <div class="value">#${booking.id.slice(-6).toUpperCase()}</div>
-                        </div>
-                        <div>
-                             <span class="status">CONFIRMED</span>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div style="width: 100%">
-                            <div class="label">Expedition</div>
-                            <div class="value">${booking.tripTitle}</div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div>
-                            <div class="label">Explorer</div>
-                            <div class="value">${booking.customerName}</div>
-                        </div>
-                        <div style="text-align: right">
-                            <div class="label">Date</div>
-                            <div class="value">${booking.date}</div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div>
-                            <div class="label">Crew Size</div>
-                            <div class="value">${booking.travelers} Person(s)</div>
-                        </div>
-                        <div style="text-align: right">
-                            <div class="label">Total Paid</div>
-                            <div class="value" style="color: #3A4D39">₹${booking.totalPrice.toLocaleString()}</div>
-                        </div>
-                    </div>
-                  </div>
-                  <div class="footer">
-                    <p>Present this pass at the rendezvous point.</p>
-                    <p>Emergency Contact: +91 98765 43210</p>
-                  </div>
-                </div>
-                <script>
-                    window.onload = function() { window.print(); }
-                </script>
-              </body>
-            </html>
-          `);
-            ticketWindow.document.close();
-        }
+        downloadTicketPDF(booking);
     };
 
     if (loading) return (
