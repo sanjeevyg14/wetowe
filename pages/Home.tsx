@@ -880,7 +880,7 @@ const Home: React.FC = () => {
                     <input
                       type="text"
                       required
-                      className="w-full px-4 py-3 rounded-md border border-brand-black/10 focus:ring-2 focus:ring-brand-olive focus:outline-none bg-white"
+                      className="w-full px-4 py-3 rounded-md border border-brand-black/10 focus:ring-2 focus:ring-brand-olive focus:outline-none bg-white text-brand-black"
                       placeholder="Your Name"
                       value={enquiryData.name}
                       onChange={e => setEnquiryData({ ...enquiryData, name: e.target.value })}
@@ -894,7 +894,7 @@ const Home: React.FC = () => {
                         type="number"
                         min={1}
                         required
-                        className="w-full px-4 py-3 rounded-md border border-brand-black/10 focus:ring-2 focus:ring-brand-olive focus:outline-none bg-white"
+                        className="w-full px-4 py-3 rounded-md border border-brand-black/10 focus:ring-2 focus:ring-brand-olive focus:outline-none bg-white text-brand-black"
                         placeholder="No. of Travellers"
                         value={enquiryData.Travellers}
                         onChange={e => setEnquiryData({ ...enquiryData, Travellers: e.target.value })}
@@ -907,7 +907,7 @@ const Home: React.FC = () => {
                         <input
                           type="text"
                           required
-                          className="w-full px-4 py-3 rounded-md border border-brand-black/10 focus:ring-2 focus:ring-brand-olive focus:outline-none bg-white"
+                          className="w-full px-4 py-3 rounded-md border border-brand-black/10 focus:ring-2 focus:ring-brand-olive focus:outline-none bg-white text-brand-black"
                           placeholder="Destination or region (e.g. Hampi, Gokarna...)"
                           value={enquiryData.where}
                           onChange={e => setEnquiryData({ ...enquiryData, where: e.target.value })}
@@ -919,7 +919,7 @@ const Home: React.FC = () => {
                         <input
                           type="Date"
                           required
-                          className="w-full px-4 py-3 rounded-md border border-brand-black/10 focus:ring-2 focus:ring-brand-olive focus:outline-none bg-white"
+                          className="w-full px-4 py-3 rounded-md border border-brand-black/10 focus:ring-2 focus:ring-brand-olive focus:outline-none bg-white text-brand-black"
                           placeholder="DD/MM/YYY"
                           value={enquiryData.traveldate}
                           onChange={e => setEnquiryData({ ...enquiryData, traveldate: e.target.value })}
@@ -933,7 +933,7 @@ const Home: React.FC = () => {
                     <input
                       type="tel"
                       required
-                      className="w-full px-4 py-3 rounded-md border border-brand-black/10 focus:ring-2 focus:ring-brand-olive focus:outline-none bg-white"
+                      className="w-full px-4 py-3 rounded-md border border-brand-black/10 focus:ring-2 focus:ring-brand-olive focus:outline-none bg-white text-brand-black"
                       placeholder="+91..."
                       value={enquiryData.phone}
                       onChange={e => setEnquiryData({ ...enquiryData, phone: e.target.value })}
@@ -944,7 +944,7 @@ const Home: React.FC = () => {
                     <label className="block text-xs font-bold text-brand-black/50 uppercase tracking-widest mb-2">Message</label>
                     <textarea
                       required
-                      className="w-full px-4 py-3 rounded-md border border-brand-black/10 focus:ring-2 focus:ring-brand-olive focus:outline-none h-32 bg-white"
+                      className="w-full px-4 py-3 rounded-md border border-brand-black/10 focus:ring-2 focus:ring-brand-olive focus:outline-none h-32 bg-white text-brand-black"
                       placeholder="Tell us about your trip plans..."
                       value={enquiryData.message}
                       onChange={e => setEnquiryData({ ...enquiryData, message: e.target.value })}
