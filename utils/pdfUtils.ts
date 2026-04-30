@@ -1,11 +1,38 @@
 import { Booking } from '../types';
 
-const BRAND_DARK = '#3A4D39';   // forest green – used for ticket main panel
-const BRAND_SAGE = '#739072';   // medium green – accents
+const BRAND_DARK  = '#3A4D39';  // forest green – used for ticket main panel
+const BRAND_SAGE  = '#739072';  // medium green – accents (reserved for future use)
 const BRAND_CREAM = '#F9F5EB';  // off-white / light text on dark bg
 const BRAND_BEIGE = '#ECE3CE';  // warm beige – stub background
 
-const PRINT_DELAY_MS = 600; // allow the pop-up window's DOM and styles to fully load before printing
+/** Delay (ms) before calling window.print() – increased to 600ms to allow complex styles to render */
+const PRINT_DELAY_MS = 600;
+
+/** Known booking status values used for CSS class names and colour maps */
+const BOOKING_STATUSES = ['confirmed', 'pending', 'cancelled', 'refunded'] as const;
+type BookingStatus = typeof BOOKING_STATUSES[number];
+
+/** CSS inline style per booking status for badge colouring */
+const STATUS_BADGE_STYLES: Record<BookingStatus, string> = {
+  confirmed: 'background:#d1fae5;color:#065f46',
+  pending:   'background:#fef3c7;color:#92400e',
+  cancelled: 'background:#fee2e2;color:#991b1b',
+  refunded:  'background:#f3f4f6;color:#6b7280',
+};
+
+/**
+ * Escape a user-supplied string for safe embedding inside HTML.
+ * Returns '&#8212;' (em dash) when the value is absent.
+ */
+function escHtml(s: string | undefined | null): string {
+  if (s === undefined || s === null || s === '') return '&#8212;';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
+}
 
 /** Returns a branded booking reference: WTW-YYMM-XXXXXX */
 function brandedBookingId(booking: Booking): string {
@@ -26,7 +53,7 @@ function brandedBookingId(booking: Booking): string {
  * alternating between black and transparent to produce a realistic-looking barcode.
  */
 function cssBarcode(text: string, height = 56): string {
-  // Sanitize: only allow alphanumeric chars and safe separators to prevent XSS
+  // Only allow alphanumeric chars and safe separators (prevents XSS; matches WTW-* format)
   const safe = text.replace(/[^A-Z0-9a-z\-_]/g, '').slice(0, 40);
 
   // Build a binary string from the character codes, framed with start/stop guards
@@ -36,10 +63,13 @@ function cssBarcode(text: string, height = 56): string {
   }
   bits += '10101';  // stop guard
 
+  // Every 3rd bar is doubled in width to create the classic barcode texture
+  const WIDE_BAR_PERIOD = 3;
+
   const bars = bits
     .split('')
     .map((bit, idx) => {
-      const width = idx % 3 === 0 ? 2 : 1;  // vary width for texture
+      const width = idx % WIDE_BAR_PERIOD === 0 ? 2 : 1;
       const bg = bit === '1' ? '#1a1a1a' : 'transparent';
       return `<div style="display:inline-block;vertical-align:top;width:${width}px;height:${height}px;background:${bg};flex-shrink:0;"></div>`;
     })
@@ -68,34 +98,18 @@ export function downloadTicketPDF(booking: Booking): void {
   const bookedDate = booking.bookedAt
     ? new Date(booking.bookedAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })
     : '—';
-  const statusColors: Record<string, string> = {
-    confirmed: 'background:#d1fae5;color:#065f46',
-    pending:   'background:#fef3c7;color:#92400e',
-    cancelled: 'background:#fee2e2;color:#991b1b',
-    refunded:  'background:#f3f4f6;color:#6b7280',
-  };
-  const statusStyle = statusColors[booking.status] ?? statusColors.pending;
+  const statusStyle = STATUS_BADGE_STYLES[booking.status as BookingStatus] ?? STATUS_BADGE_STYLES.pending;
 
-  // Escape all user-supplied strings before embedding in HTML to prevent XSS
-  const esc = (s: string | undefined | null): string => {
-    if (!s) return '—';
-    return String(s)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#x27;');
-  };
-  const safeRef          = esc(ref);
-  const safeName         = esc(booking.customerName);
-  const safeTrip         = esc(booking.tripTitle);
-  const safeDate         = esc(booking.date);
-  const safeTravelers    = esc(String(booking.travelers));
-  const safeStatus       = esc(booking.status);
-  const safeEmail        = esc(booking.email);
-  const safePhone        = esc(booking.phone);
-  const safePrice        = esc(booking.totalPrice?.toLocaleString('en-IN') || '0');
-  const safeBookedDate   = esc(bookedDate);
+  const safeRef        = escHtml(ref);
+  const safeName       = escHtml(booking.customerName);
+  const safeTrip       = escHtml(booking.tripTitle);
+  const safeDate       = escHtml(booking.date);
+  const safeTravelers  = escHtml(String(booking.travelers));
+  const safeStatus     = escHtml(booking.status);
+  const safeEmail      = escHtml(booking.email);
+  const safePhone      = escHtml(booking.phone);
+  const safePrice      = escHtml(booking.totalPrice?.toLocaleString('en-IN') || '0');
+  const safeBookedDate = escHtml(bookedDate);
 
   const html = `<!DOCTYPE html>
 <html lang="en">
@@ -392,39 +406,28 @@ export function downloadManifestPDF(tripTitle: string, date: string, bookings: B
   const confirmedTravelers = confirmedBookings.reduce((sum, b) => sum + b.travelers, 0);
   const totalRevenue = confirmedBookings.reduce((sum, b) => sum + (b.totalPrice || 0), 0);
 
-  // Escape user-supplied strings to prevent XSS in the printed document
-  const esc = (s: string | undefined | null): string => {
-    if (s === undefined || s === null || s === '') return '&#8212;';
-    return String(s)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#x27;');
-  };
-
-  const safeTripTitle = esc(tripTitle);
-  const safeDate      = esc(date);
+  const safeTripTitle = escHtml(tripTitle);
+  const safeDate      = escHtml(date);
 
   const rows = bookings
     .slice()
     .sort((a, b) => {
-      const order: Record<string, number> = { confirmed: 0, pending: 1, cancelled: 2, refunded: 3 };
-      return (order[a.status] ?? 9) - (order[b.status] ?? 9);
+      const order: Record<BookingStatus, number> = { confirmed: 0, pending: 1, cancelled: 2, refunded: 3 };
+      return (order[a.status as BookingStatus] ?? 9) - (order[b.status as BookingStatus] ?? 9);
     })
     .map((b, i) => {
       const rowClass = b.status === 'confirmed' ? 'row-confirmed' : b.status === 'cancelled' ? 'row-cancelled' : '';
-      // Only allow known status values as CSS class names
-      const safeStatusClass = ['confirmed','pending','cancelled','refunded'].includes(b.status) ? b.status : 'pending';
+      // Guard against unknown status values being used as CSS class names
+      const safeStatusClass = (BOOKING_STATUSES as readonly string[]).includes(b.status) ? b.status : 'pending';
       return `<tr class="${rowClass}">
         <td style="text-align:center">${i + 1}</td>
-        <td><strong>${esc(b.customerName)}</strong></td>
-        <td>${esc(b.phone)}</td>
-        <td>${esc(b.email)}</td>
+        <td><strong>${escHtml(b.customerName)}</strong></td>
+        <td>${escHtml(b.phone)}</td>
+        <td>${escHtml(b.email)}</td>
         <td style="text-align:center">${Number(b.travelers) || 0}</td>
-        <td style="text-align:right">&#8377;${esc(b.totalPrice?.toLocaleString('en-IN') || '0')}</td>
-        <td style="text-align:center"><span class="badge status-${safeStatusClass}">${esc(b.status)}</span></td>
-        <td class="mono">${esc(b.id)}</td>
+        <td style="text-align:right">&#8377;${escHtml(b.totalPrice?.toLocaleString('en-IN') || '0')}</td>
+        <td style="text-align:center"><span class="badge status-${safeStatusClass}">${escHtml(b.status)}</span></td>
+        <td class="mono">${escHtml(b.id)}</td>
       </tr>`;
     })
     .join('');
