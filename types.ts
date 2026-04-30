@@ -63,6 +63,7 @@ export interface Booking {
   phone: string;
   date: string;
   travelers: number;
+  pickupPoint?: string; // Selected boarding/pickup point for the trip
   totalPrice: number;
   status: 'confirmed' | 'pending' | 'cancelled' | 'refunded';
   bookedAt: string;

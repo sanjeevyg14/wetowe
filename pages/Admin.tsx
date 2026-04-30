@@ -1075,6 +1075,32 @@ const Admin: React.FC = () => {
 
 
                             {activeTab === 'trips' && (
+                                <div className="space-y-4">
+                                {/* Image dimensions quick-reference card for trips tab */}
+                                <div className="bg-white rounded-xl shadow-sm border border-amber-200 p-5">
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <ImageIcon size={16} className="text-amber-600" />
+                                        <span className="font-bold text-amber-800 text-sm">📐 Admin Image Size Guide — use these exact dimensions when uploading images</span>
+                                    </div>
+                                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 text-xs">
+                                        {[
+                                            { label: 'Cover / Hero', size: '1920 × 1080', ratio: '16:9', bg: '#f5f3ff', border: '#ede9fe', text: '#5b21b6', hint: 'Trip detail hero' },
+                                            { label: 'Card Thumbnail', size: '800 × 600', ratio: '4:3', bg: '#eff6ff', border: '#dbeafe', text: '#1d4ed8', hint: 'Destinations listing' },
+                                            { label: 'Trip Gallery', size: '1200 × 800', ratio: '3:2', bg: '#f0fdf4', border: '#bbf7d0', text: '#15803d', hint: 'Trip photo grid' },
+                                            { label: 'Hero Carousel', size: '1920 × 1080', ratio: '16:9', bg: '#fff7ed', border: '#fed7aa', text: '#c2410c', hint: 'Home slideshow' },
+                                            { label: 'Landing Gallery', size: '800 × 800', ratio: '1:1', bg: '#fdf2f8', border: '#f5d0fe', text: '#a21caf', hint: 'Home gallery grid' },
+                                            { label: 'Review Avatar', size: '200 × 200', ratio: '1:1', bg: '#eef2ff', border: '#c7d2fe', text: '#4338ca', hint: 'Testimonial photo' },
+                                        ].map(({ label, size, ratio, bg, border, text, hint }) => (
+                                            <div key={label} style={{ background: bg, border: `1px solid ${border}` }} className="rounded-lg p-3 text-center">
+                                                <div style={{ color: text }} className="font-bold text-[11px] mb-1">{label}</div>
+                                                <div style={{ color: text }} className="font-mono font-black text-[13px]">{size}</div>
+                                                <div style={{ color: text, opacity: 0.7 }} className="text-[10px] mt-0.5">{ratio} ratio</div>
+                                                <div className="text-gray-400 text-[9px] mt-1 italic">{hint}</div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
                                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                                     <div className="p-6 border-b border-gray-100">
                                         <h3 className="text-lg font-bold text-gray-800">Manage Trips</h3>
@@ -1154,13 +1180,17 @@ const Admin: React.FC = () => {
                                         </table>
                                     </div>
                                 </div>
+                                </div>
                             )}
 
                             {activeTab === 'gallery' && (
                                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                                     <div className="p-6 border-b border-gray-100">
                                         <h3 className="text-lg font-bold text-gray-800">Gallery Management</h3>
-                                        <p className="text-sm text-gray-500 mt-1">Manage images displayed in the landing page gallery</p>
+                                        <p className="text-sm text-gray-500 mt-1">
+                                            Manage images displayed in the landing page gallery.{' '}
+                                            <span className="font-semibold text-pink-600">Recommended size: 800 × 800 px (1:1 square)</span>
+                                        </p>
                                     </div>
 
                                     {/* Upload Section */}
@@ -1246,7 +1276,10 @@ const Admin: React.FC = () => {
                                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                                     <div className="p-6 border-b border-gray-100">
                                         <h3 className="text-lg font-bold text-gray-800">Reviews Management</h3>
-                                        <p className="text-sm text-gray-500 mt-1">Manage testimonials displayed on the landing page</p>
+                                        <p className="text-sm text-gray-500 mt-1">
+                                            Manage testimonials displayed on the landing page.{' '}
+                                            <span className="font-semibold text-purple-600">Avatar: 200 × 200 px (1:1 square)</span>
+                                        </p>
                                     </div>
 
                                     {/* Add Review Form */}
@@ -1499,8 +1532,7 @@ const Admin: React.FC = () => {
                                         <h3 className="text-lg font-bold text-gray-800">Hero Carousel Management</h3>
                                         <p className="text-sm text-gray-500 mt-1">
                                             Manage the hero carousel images on the homepage.{' '}
-                                            <span className="font-semibold text-gray-600">Recommended image size: 1200×800 px (3:2 ratio)</span>{' '}
-                                            for best quality without width compression.
+                                            <span className="font-semibold text-orange-600">Recommended size: 1920 × 1080 px (16:9) for full-width display</span>
                                         </p>
                                     </div>
 
@@ -1715,6 +1747,70 @@ const Admin: React.FC = () => {
                             {/* Section 2: Media & Description (UPDATED FOR IMAGE UPLOAD) */}
                             <div className="space-y-4">
                                 <h4 className="font-bold text-gray-900 border-b pb-2">Media & Details</h4>
+
+                                {/* ── Image Dimension Quick-Reference ── */}
+                                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <ImageIcon size={16} className="text-amber-600" />
+                                        <span className="text-sm font-bold text-amber-800">📐 Image Size Reference — upload exactly these dimensions for best results</span>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
+                                        <div className="bg-white rounded-lg p-3 border border-amber-100 flex items-start gap-3">
+                                            <div className="bg-brand-purple/10 text-brand-purple rounded p-1.5 shrink-0 mt-0.5"><ImageIcon size={14} /></div>
+                                            <div>
+                                                <div className="font-bold text-gray-800">Cover / Hero Image</div>
+                                                <div className="font-mono text-brand-purple font-semibold mt-0.5">1920 × 1080 px</div>
+                                                <div className="text-gray-400 mt-0.5">Ratio 16:9 · JPG/WEBP · ≤ 5 MB</div>
+                                                <div className="text-gray-500 mt-0.5 italic">Full-bleed hero on Trip Detail page</div>
+                                            </div>
+                                        </div>
+                                        <div className="bg-white rounded-lg p-3 border border-amber-100 flex items-start gap-3">
+                                            <div className="bg-blue-100 text-blue-600 rounded p-1.5 shrink-0 mt-0.5"><ImageIcon size={14} /></div>
+                                            <div>
+                                                <div className="font-bold text-gray-800">Card / Thumbnail Image</div>
+                                                <div className="font-mono text-blue-600 font-semibold mt-0.5">800 × 600 px</div>
+                                                <div className="text-gray-400 mt-0.5">Ratio 4:3 · JPG/WEBP · ≤ 3 MB</div>
+                                                <div className="text-gray-500 mt-0.5 italic">Trip listing cards on Destinations page</div>
+                                            </div>
+                                        </div>
+                                        <div className="bg-white rounded-lg p-3 border border-amber-100 flex items-start gap-3">
+                                            <div className="bg-green-100 text-green-600 rounded p-1.5 shrink-0 mt-0.5"><ImageIcon size={14} /></div>
+                                            <div>
+                                                <div className="font-bold text-gray-800">Trip Gallery Photos</div>
+                                                <div className="font-mono text-green-600 font-semibold mt-0.5">1200 × 800 px</div>
+                                                <div className="text-gray-400 mt-0.5">Ratio 3:2 · JPG/WEBP · ≤ 4 MB each</div>
+                                                <div className="text-gray-500 mt-0.5 italic">Photo grid on Trip Detail page</div>
+                                            </div>
+                                        </div>
+                                        <div className="bg-white rounded-lg p-3 border border-amber-100 flex items-start gap-3">
+                                            <div className="bg-orange-100 text-orange-600 rounded p-1.5 shrink-0 mt-0.5"><ImageIcon size={14} /></div>
+                                            <div>
+                                                <div className="font-bold text-gray-800">Hero Carousel (Home page)</div>
+                                                <div className="font-mono text-orange-600 font-semibold mt-0.5">1920 × 1080 px</div>
+                                                <div className="text-gray-400 mt-0.5">Ratio 16:9 · JPG/WEBP · ≤ 5 MB</div>
+                                                <div className="text-gray-500 mt-0.5 italic">Full-width slideshow on Home page</div>
+                                            </div>
+                                        </div>
+                                        <div className="bg-white rounded-lg p-3 border border-amber-100 flex items-start gap-3">
+                                            <div className="bg-pink-100 text-pink-600 rounded p-1.5 shrink-0 mt-0.5"><ImageIcon size={14} /></div>
+                                            <div>
+                                                <div className="font-bold text-gray-800">Landing Page Gallery</div>
+                                                <div className="font-mono text-pink-600 font-semibold mt-0.5">800 × 800 px</div>
+                                                <div className="text-gray-400 mt-0.5">Ratio 1:1 square · JPG/WEBP · ≤ 3 MB</div>
+                                                <div className="text-gray-500 mt-0.5 italic">Gallery grid on the landing page</div>
+                                            </div>
+                                        </div>
+                                        <div className="bg-white rounded-lg p-3 border border-amber-100 flex items-start gap-3">
+                                            <div className="bg-purple-100 text-purple-600 rounded p-1.5 shrink-0 mt-0.5"><ImageIcon size={14} /></div>
+                                            <div>
+                                                <div className="font-bold text-gray-800">Review / Avatar Photo</div>
+                                                <div className="font-mono text-purple-600 font-semibold mt-0.5">200 × 200 px</div>
+                                                <div className="text-gray-400 mt-0.5">Ratio 1:1 square · JPG/PNG · ≤ 1 MB</div>
+                                                <div className="text-gray-500 mt-0.5 italic">Testimonial profile picture</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
 
                                 {/* Cover/Hero Image Upload */}
                                 <div>

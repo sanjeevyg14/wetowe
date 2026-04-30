@@ -17,6 +17,7 @@ const bookingSchema = new mongoose.Schema({
   // Booking Meta
   date: { type: String, required: true, index: true }, // Indexed for availability checks
   travelers: { type: Number, required: true, min: 1, max: 20 },
+  pickupPoint: { type: String, default: '' }, // Boarding/pickup location chosen by the traveller
   totalPrice: { type: Number, required: true },
 
   // Payment Status

@@ -17,6 +17,7 @@ const TripDetails: React.FC = () => {
 
     // Booking State
     const [selectedDate, setSelectedDate] = useState<string | null>(null);
+    const [selectedPickupPoint, setSelectedPickupPoint] = useState<string | null>(null);
     const [travelers, setTravelers] = useState(1);
     const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
     const [bookingStep, setBookingStep] = useState<'form' | 'processing' | 'success'>('form');
@@ -84,6 +85,12 @@ const TripDetails: React.FC = () => {
         e.preventDefault();
         if (!trip || !selectedDate) return;
 
+        // Require a pickup point if the trip defines any
+        if (trip.pickupPoints && trip.pickupPoints.length > 0 && !selectedPickupPoint) {
+            alert('Please select a boarding / pickup point before proceeding.');
+            return;
+        }
+
         setBookingStep('processing');
 
         try {
@@ -97,6 +104,7 @@ const TripDetails: React.FC = () => {
                 phone: bookingData.phone,
                 date: selectedDate,
                 travelers: travelers,
+                pickupPoint: selectedPickupPoint || undefined,
                 totalPrice: totalPrice
             });
 
@@ -167,7 +175,7 @@ const TripDetails: React.FC = () => {
     if (loading) {
         return (
             <div className="min-h-screen bg-brand-beige flex items-center justify-center">
-                <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-brand-olive"></div>
+                <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-brand-sage"></div>
             </div>
         );
     }
@@ -179,7 +187,7 @@ const TripDetails: React.FC = () => {
                 <div className="flex-grow flex items-center justify-center">
                     <div className="text-center">
                         <h2 className="text-2xl font-bold text-brand-black">Trip not found</h2>
-                        <Link to="/destinations" className="mt-4 inline-block text-brand-olive hover:underline font-bold">Browse all trips</Link>
+                        <Link to="/destinations" className="mt-4 inline-block text-brand-sage hover:underline font-bold">Browse all trips</Link>
                     </div>
                 </div>
                 <Footer />
@@ -248,16 +256,16 @@ const TripDetails: React.FC = () => {
                     <div className="max-w-7xl mx-auto">
                         <div className="flex items-center gap-2 mb-4">
                             <span className="bg-brand-olive text-brand-cream px-3 py-1 text-xs font-bold uppercase tracking-widest border border-brand-cream/20">Expedition</span>
-                            <div className="flex items-center text-brand-cream/90 bg-black/30 backdrop-blur-sm px-2 py-1 rounded-sm">
+                            <div className="flex items-center text-brand-olive/90 bg-black/30 backdrop-blur-sm px-2 py-1 rounded-sm">
                                 <Star size={14} className="fill-brand-olive text-brand-olive mr-1" />
                                 <span className="font-bold text-sm">{trip.rating}</span>
                                 <span className="text-xs ml-1 opacity-70">({trip.reviewsCount})</span>
                             </div>
                         </div>
-                        <h1 className="text-4xl md:text-6xl font-black text-brand-cream font-serif leading-none mb-4 max-w-4xl drop-shadow-lg">
+                        <h1 className="text-4xl md:text-6xl font-black text-brand-olive font-serif leading-none mb-4 max-w-4xl drop-shadow-lg">
                             {trip.title}
                         </h1>
-                        <div className="flex flex-wrap gap-6 text-brand-cream/80 text-sm font-medium tracking-wide">
+                        <div className="flex flex-wrap gap-6 text-brand-olive/80 text-sm font-medium tracking-wide">
                             <span className="flex items-center gap-2"><MapPin size={18} className="text-brand-olive" /> {trip.location}</span>
                             <span className="flex items-center gap-2"><Clock size={18} className="text-brand-olive" /> {trip.duration}</span>
                         </div>
@@ -275,7 +283,7 @@ const TripDetails: React.FC = () => {
                         <section>
                             <div className="flex items-center gap-3 mb-6">
                                 <div className="h-px bg-brand-black/20 flex-grow"></div>
-                                <h2 className="text-2xl font-bold font-serif uppercase tracking-widest text-brand-olive">The Dispatch</h2>
+                                <h2 className="text-2xl font-bold font-serif uppercase tracking-widest text-brand-cream">The Dispatch</h2>
                                 <div className="h-px bg-brand-black/20 flex-grow"></div>
                             </div>
                             <p className="text-lg leading-loose font-light text-brand-black/90 first-letter:text-5xl first-letter:font-serif first-letter:font-bold first-letter:float-left first-letter:mr-3 first-letter:mt-[-5px]">
@@ -285,7 +293,7 @@ const TripDetails: React.FC = () => {
                             <div className="mt-8 grid grid-cols-2 gap-4">
                                 {trip.highlights && trip.highlights.map((h, i) => (
                                     <div key={i} className="flex items-start gap-3 p-3 bg-brand-beige/50 border border-brand-olive/10 rounded-sm">
-                                        <Check size={16} className="text-brand-olive mt-1 shrink-0" />
+                                        <Check size={16} className="text-brand-sage mt-1 shrink-0" />
                                         <span className="text-sm font-medium">{h}</span>
                                     </div>
                                 ))}
@@ -294,7 +302,7 @@ const TripDetails: React.FC = () => {
 
                         {/* Pickup Points - NEW FEATURE - Visual Timeline */}
                         {trip.pickupPoints && trip.pickupPoints.length > 0 && (
-                            <section className="bg-brand-black text-brand-cream p-8 rounded-sm relative overflow-hidden">
+                            <section className="bg-brand-black text-brand-olive p-8 rounded-sm relative overflow-hidden">
                                 <div className="absolute top-0 right-0 p-4 opacity-10">
                                     <Bus size={120} />
                                 </div>
@@ -306,12 +314,12 @@ const TripDetails: React.FC = () => {
                                     {trip.pickupPoints.map((point, index) => (
                                         <div key={index} className="relative pl-8">
                                             <div className="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-brand-black border-2 border-brand-olive"></div>
-                                            <h4 className="font-bold text-lg text-brand-cream">{point}</h4>
-                                            <p className="text-xs text-brand-cream/50 uppercase tracking-widest mt-1">Pickup Location {index + 1}</p>
+                                            <h4 className="font-bold text-lg text-brand-olive">{point}</h4>
+                                            <p className="text-xs text-brand-olive/50 uppercase tracking-widest mt-1">Pickup Location {index + 1}</p>
                                         </div>
                                     ))}
                                 </div>
-                                <div className="mt-8 pt-4 border-t border-brand-cream/10 text-xs text-brand-cream/60 flex items-center gap-2">
+                                <div className="mt-8 pt-4 border-t border-brand-olive/10 text-xs text-brand-olive/60 flex items-center gap-2">
                                     <Info size={14} /> Please arrive 15 minutes before scheduled time.
                                 </div>
                             </section>
@@ -331,7 +339,7 @@ const TripDetails: React.FC = () => {
                                             <ul className="space-y-2">
                                                 {day.activities.map((act, i) => (
                                                     <li key={i} className="text-brand-black/70 flex items-start gap-2 text-sm">
-                                                        <div className="w-1.5 h-1.5 bg-brand-olive rounded-full mt-1.5 shrink-0"></div>
+                                                        <div className="w-1.5 h-1.5 bg-brand-sage rounded-full mt-1.5 shrink-0"></div>
                                                         {act}
                                                     </li>
                                                 ))}
@@ -346,7 +354,7 @@ const TripDetails: React.FC = () => {
                         {galleryImages.length > 0 && (
                             <section>
                                 <h3 className="text-xl font-bold font-serif mb-6 flex items-center gap-2">
-                                    <Camera size={20} className="text-brand-olive" /> Field Photos
+                                    <Camera size={20} className="text-brand-sage" /> Field Photos
                                 </h3>
                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                                     {galleryImages.map((img, idx) => (
@@ -363,11 +371,11 @@ const TripDetails: React.FC = () => {
                         <section className="border border-brand-black/10">
                             <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-brand-black/10">
                                 <div className="p-6">
-                                    <h4 className="font-bold text-sm uppercase tracking-widest text-brand-olive mb-4">Included</h4>
+                                    <h4 className="font-bold text-sm uppercase tracking-widest text-brand-sage mb-4">Included</h4>
                                     <ul className="space-y-2">
                                         {trip.inclusions && trip.inclusions.map((item, idx) => (
                                             <li key={idx} className="flex items-start gap-2 text-sm text-brand-black/80">
-                                                <Check size={14} className="text-brand-olive mt-1" /> {item}
+                                                <Check size={14} className="text-brand-sage mt-1" /> {item}
                                             </li>
                                         ))}
                                     </ul>
@@ -452,6 +460,31 @@ const TripDetails: React.FC = () => {
                                                 </div>
                                             </div>
                                         )}
+
+                                        {/* Pickup / Boarding Point Selector */}
+                                        {!availability.isSoldOut && trip.pickupPoints && trip.pickupPoints.length > 0 && (
+                                            <div>
+                                                <label className="block text-xs font-bold uppercase tracking-widest text-brand-olive/60 mb-2">
+                                                    <span className="flex items-center gap-1"><MapPin size={12} /> Boarding Point</span>
+                                                </label>
+                                                <div className="space-y-2 max-h-40 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-brand-olive scrollbar-track-brand-black">
+                                                    {trip.pickupPoints.map((point, idx) => (
+                                                        <div
+                                                            key={idx}
+                                                            onClick={() => setSelectedPickupPoint(point)}
+                                                            className={`p-3 border cursor-pointer transition flex items-center justify-between
+                                                            ${selectedPickupPoint === point
+                                                                ? 'border-brand-olive bg-brand-olive/20 text-brand-olive'
+                                                                : 'border-brand-olive/20 text-brand-olive/60 hover:border-brand-olive/40'}
+                                                            `}
+                                                        >
+                                                            <span className="text-sm font-bold">{point}</span>
+                                                            {selectedPickupPoint === point && <Check size={14} className="text-brand-olive shrink-0 ml-2" />}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 
@@ -479,7 +512,7 @@ const TripDetails: React.FC = () => {
                                         <>
                                             <button
                                                 onClick={initiateBooking}
-                                                disabled={!selectedDate || checkingAvailability}
+                                                disabled={!selectedDate || checkingAvailability || (trip.pickupPoints && trip.pickupPoints.length > 0 && !selectedPickupPoint)}
                                                 className="w-full bg-brand-olive text-brand-black font-bold py-4 uppercase tracking-widest text-sm hover:bg-brand-beige hover:text-brand-black transition border border-transparent hover:border-brand-olive disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                             >
                                                 {checkingAvailability ? "Checking..." : "Secure Spot"}
@@ -499,7 +532,7 @@ const TripDetails: React.FC = () => {
                             <div className="mt-6 border border-brand-black/10 p-4 text-center bg-brand-beige">
                                 <p className="font-bold text-sm text-brand-black mb-1">Questions?</p>
                                 <p className="text-xs text-brand-black/60 mb-2">Our expedition leaders are here.</p>
-                                <a href="tel:+919876543210" className="text-brand-olive font-bold text-sm hover:underline">
+                                <a href="tel:+919876543210" className="text-brand-sage font-bold text-sm hover:underline">
                                     +91 98765 43210
                                 </a>
                             </div>
@@ -541,6 +574,11 @@ const TripDetails: React.FC = () => {
                                         <div className="text-xs text-brand-black/50 mt-1 font-mono flex items-center gap-2">
                                             <Calendar size={12} /> {selectedDate}
                                         </div>
+                                        {selectedPickupPoint && (
+                                            <div className="text-xs text-brand-black/50 mt-1 flex items-center gap-2">
+                                                <MapPin size={12} className="text-brand-sage shrink-0" /> {selectedPickupPoint}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 
@@ -552,7 +590,7 @@ const TripDetails: React.FC = () => {
                                             <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
                                             <input
                                                 type="text" required
-                                                className="w-full pl-10 pr-4 py-3 border border-gray-200 focus:outline-none focus:border-brand-olive bg-white rounded-lg transition"
+                                                className="w-full pl-10 pr-4 py-3 border border-gray-200 focus:outline-none focus:border-brand-sage bg-white rounded-lg transition"
                                                 value={bookingData.name}
                                                 onChange={e => setBookingData({ ...bookingData, name: e.target.value })}
                                                 placeholder="Full Name as on ID"
@@ -564,7 +602,7 @@ const TripDetails: React.FC = () => {
                                             <label className="block text-xs font-bold text-brand-black/50 uppercase tracking-widest mb-2">Email</label>
                                             <input
                                                 type="email" required
-                                                className="w-full px-4 py-3 border border-gray-200 focus:outline-none focus:border-brand-olive bg-white rounded-lg transition"
+                                                className="w-full px-4 py-3 border border-gray-200 focus:outline-none focus:border-brand-sage bg-white rounded-lg transition"
                                                 value={bookingData.email}
                                                 onChange={e => setBookingData({ ...bookingData, email: e.target.value })}
                                             />
@@ -573,7 +611,7 @@ const TripDetails: React.FC = () => {
                                             <label className="block text-xs font-bold text-brand-black/50 uppercase tracking-widest mb-2">Phone</label>
                                             <input
                                                 type="tel" required
-                                                className="w-full px-4 py-3 border border-gray-200 focus:outline-none focus:border-brand-olive bg-white rounded-lg transition"
+                                                className="w-full px-4 py-3 border border-gray-200 focus:outline-none focus:border-brand-sage bg-white rounded-lg transition"
                                                 value={bookingData.phone}
                                                 onChange={e => setBookingData({ ...bookingData, phone: e.target.value })}
                                             />
@@ -582,6 +620,12 @@ const TripDetails: React.FC = () => {
 
                                     {/* Summary */}
                                     <div className="bg-brand-olive/5 p-4 rounded-lg border border-brand-olive/10 space-y-1">
+                                        {selectedPickupPoint && (
+                                            <div className="flex justify-between items-center text-sm text-brand-black/70 pb-2 mb-1 border-b border-brand-olive/10">
+                                                <span className="flex items-center gap-1"><MapPin size={12} className="text-brand-sage" /> Boarding Point</span>
+                                                <span className="font-semibold text-brand-black text-right max-w-[55%] leading-tight">{selectedPickupPoint}</span>
+                                            </div>
+                                        )}
                                         <div className="flex justify-between items-center text-sm text-brand-black/70">
                                             <span>Base price ({travelers} × ₹{trip.price.toLocaleString()})</span>
                                             <span className="font-mono">₹{basePrice.toLocaleString()}</span>
@@ -593,12 +637,12 @@ const TripDetails: React.FC = () => {
                                             </div>
                                         )}
                                         <div className="flex justify-between items-center pt-2 border-t border-brand-olive/20">
-                                            <span className="font-bold text-brand-olive">Total Amount</span>
+                                            <span className="font-bold text-brand-cream">Total Amount</span>
                                             <span className="text-xl font-bold font-mono text-brand-black">₹{totalPrice.toLocaleString()}</span>
                                         </div>
                                     </div>
 
-                                    <button type="submit" className="w-full bg-brand-olive text-brand-cream font-bold py-4 hover:bg-brand-black transition mt-4 flex items-center justify-center gap-2 uppercase tracking-wide text-sm rounded-lg shadow-lg">
+                                    <button type="submit" className="w-full bg-brand-cream text-brand-olive font-bold py-4 hover:bg-brand-black hover:text-brand-olive transition mt-4 flex items-center justify-center gap-2 uppercase tracking-wide text-sm rounded-lg shadow-lg">
                                         Proceed to Payment <ArrowRight size={16} />
                                     </button>
                                 </form>
@@ -642,7 +686,7 @@ const TripDetails: React.FC = () => {
                                             </div>
                                             <div className="text-right">
                                                 <p className="text-xs text-gray-400 uppercase tracking-widest">Ref ID</p>
-                                                <p className="font-mono font-bold text-lg text-brand-olive">#{confirmedBooking.id.slice(-6)}</p>
+                                                <p className="font-mono font-bold text-lg text-brand-sage">#{confirmedBooking.id.slice(-6)}</p>
                                             </div>
                                         </div>
                                         <div className="grid grid-cols-2 gap-4">
@@ -658,7 +702,7 @@ const TripDetails: React.FC = () => {
                                     </div>
 
                                     <div className="mt-8 space-y-3 animate-fade-in-up animate-delay-200">
-                                        <Link to="/my-bookings" className="w-full bg-brand-black text-brand-cream py-4 rounded-lg font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-brand-olive transition shadow-lg">
+                                        <Link to="/my-bookings" className="w-full bg-brand-black text-brand-olive py-4 rounded-lg font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-brand-cream transition shadow-lg">
                                             View Ticket <ArrowRight size={16} />
                                         </Link>
                                         <p className="text-center text-xs text-brand-black/40">A confirmation email has been sent to {confirmedBooking.email}</p>
@@ -674,26 +718,26 @@ const TripDetails: React.FC = () => {
             {/* Lightbox Modal */}
             {lightboxOpen && (
                 <div className="fixed inset-0 z-[60] bg-brand-black/95 flex items-center justify-center p-4 backdrop-blur-sm" onClick={closeLightbox}>
-                    <button className="absolute top-4 right-4 text-brand-cream hover:text-gray-300 z-50 p-2" onClick={closeLightbox}>
+                    <button className="absolute top-4 right-4 text-brand-olive hover:text-gray-300 z-50 p-2" onClick={closeLightbox}>
                         <X size={32} />
                     </button>
 
-                    <button className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-cream hover:text-gray-300 p-2 bg-white/10 rounded-full hover:bg-white/20 transition" onClick={prevImage}>
+                    <button className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-olive hover:text-gray-300 p-2 bg-white/10 rounded-full hover:bg-white/20 transition" onClick={prevImage}>
                         <ChevronLeft size={40} />
                     </button>
 
                     <img
                         src={galleryImages[currentImageIndex]}
                         alt="Full screen"
-                        className="max-h-[85vh] max-w-[90vw] object-contain border-8 border-brand-cream shadow-2xl"
+                        className="max-h-[85vh] max-w-[90vw] object-contain border-8 border-brand-beige/30 shadow-2xl"
                         onClick={(e) => e.stopPropagation()}
                     />
 
-                    <button className="absolute right-4 top-1/2 -translate-y-1/2 text-brand-cream hover:text-gray-300 p-2 bg-white/10 rounded-full hover:bg-white/20 transition" onClick={nextImage}>
+                    <button className="absolute right-4 top-1/2 -translate-y-1/2 text-brand-olive hover:text-gray-300 p-2 bg-white/10 rounded-full hover:bg-white/20 transition" onClick={nextImage}>
                         <ChevronRight size={40} />
                     </button>
 
-                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-brand-black text-xs font-bold bg-brand-cream px-4 py-1 uppercase tracking-widest">
+                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-brand-black text-xs font-bold bg-brand-beige px-4 py-1 uppercase tracking-widest">
                         {currentImageIndex + 1} / {galleryImages.length}
                     </div>
                 </div>

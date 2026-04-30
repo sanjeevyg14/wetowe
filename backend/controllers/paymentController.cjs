@@ -23,7 +23,8 @@ exports.initiatePayment = async (req, res) => {
 
         const {
             userId, tripId, tripTitle, tripImage,
-            customerName, email, phone, date, travelers, totalPrice
+            customerName, email, phone, date, travelers, totalPrice,
+            pickupPoint
         } = req.body;
 
         // Validate required fields - userId is optional (guest booking allowed)
@@ -57,6 +58,7 @@ exports.initiatePayment = async (req, res) => {
             customerName,
             email,
             phone,
+            pickupPoint: pickupPoint || '',
             totalPrice,
             transactionId
         });
