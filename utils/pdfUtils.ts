@@ -101,7 +101,7 @@ export function downloadTicketPDF(booking: Booking): void {
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Boarding Pass – ${ref}</title>
+  <title>Boarding Pass &#8211; ${safeRef}</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f0ede6; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; }
@@ -295,28 +295,28 @@ export function downloadTicketPDF(booking: Booking): void {
         <!-- Passenger -->
         <div class="field">
           <div class="field-label">Passenger Name</div>
-          <div class="field-value large">${booking.customerName || '—'}</div>
+          <div class="field-value large">${safeName}</div>
         </div>
 
         <!-- Trip destination -->
         <div class="field">
           <div class="field-label">Expedition / Destination</div>
-          <div class="field-value" style="font-size:17px">${booking.tripTitle || '—'}</div>
+          <div class="field-value" style="font-size:17px">${safeTrip}</div>
         </div>
 
         <!-- 3-col grid: date / travelers / status -->
         <div class="grid-3">
           <div class="field" style="margin-bottom:0">
             <div class="field-label">Departure Date</div>
-            <div class="field-value" style="font-size:13px">${booking.date || '—'}</div>
+            <div class="field-value" style="font-size:13px">${safeDate}</div>
           </div>
           <div class="field" style="margin-bottom:0">
             <div class="field-label">Travelers</div>
-            <div class="field-value" style="font-size:13px">${booking.travelers} Pax</div>
+            <div class="field-value" style="font-size:13px">${safeTravelers} Pax</div>
           </div>
           <div class="field" style="margin-bottom:0">
             <div class="field-label">Status</div>
-            <div style="margin-top:3px"><span class="status-badge">${booking.status}</span></div>
+            <div style="margin-top:3px"><span class="status-badge">${safeStatus}</span></div>
           </div>
         </div>
 
@@ -324,19 +324,19 @@ export function downloadTicketPDF(booking: Booking): void {
         <div class="grid-2" style="margin-top:4px">
           <div class="field" style="margin-bottom:0">
             <div class="field-label">Email</div>
-            <div class="field-value mono" style="font-size:11px">${booking.email || '—'}</div>
+            <div class="field-value mono" style="font-size:11px">${safeEmail}</div>
           </div>
           <div class="field" style="margin-bottom:0">
             <div class="field-label">Phone</div>
-            <div class="field-value mono" style="font-size:12px">${booking.phone || '—'}</div>
+            <div class="field-value mono" style="font-size:12px">${safePhone}</div>
           </div>
         </div>
 
         <!-- Amount highlight -->
         <div class="price-highlight">
           <div class="field-label" style="opacity:0.7">Total Amount Paid</div>
-          <div class="field-value" style="font-size:26px;color:#a8d5a2;">₹${booking.totalPrice?.toLocaleString('en-IN') || '0'}</div>
-          <div style="font-size:9px;opacity:0.5;margin-top:2px;">Booked on ${bookedDate}</div>
+          <div class="field-value" style="font-size:26px;color:#a8d5a2;">&#8377;${safePrice}</div>
+          <div style="font-size:9px;opacity:0.5;margin-top:2px;">Booked on ${safeBookedDate}</div>
         </div>
       </div>
 
@@ -352,7 +352,7 @@ export function downloadTicketPDF(booking: Booking): void {
     <div class="stub">
       <div>
         <div class="stub-title">Admit One</div>
-        <div class="stub-ref">${ref}</div>
+        <div class="stub-ref">${safeRef}</div>
         <div class="stub-title" style="margin-top:2px">Booking Reference</div>
       </div>
 
@@ -360,15 +360,15 @@ export function downloadTicketPDF(booking: Booking): void {
 
       <div class="stub-field">
         <div class="lbl">Date</div>
-        <div class="val" style="font-size:12px;">${booking.date || '—'}</div>
+        <div class="val" style="font-size:12px;">${safeDate}</div>
       </div>
       <div class="stub-field">
         <div class="lbl">Travelers</div>
-        <div class="val big">${booking.travelers}</div>
+        <div class="val big">${safeTravelers}</div>
       </div>
       <div class="stub-field">
         <div class="lbl">Total Paid</div>
-        <div class="val" style="font-size:13px;color:${BRAND_DARK};">₹${booking.totalPrice?.toLocaleString('en-IN') || '0'}</div>
+        <div class="val" style="font-size:13px;color:${BRAND_DARK};">&#8377;${safePrice}</div>
       </div>
 
       <div class="divider-stub"></div>
@@ -376,7 +376,7 @@ export function downloadTicketPDF(booking: Booking): void {
       <!-- Barcode section -->
       <div class="barcode-wrap">
         ${barcode}
-        <div class="barcode-text">${ref}</div>
+        <div class="barcode-text">${safeRef}</div>
       </div>
     </div>
   </div>
@@ -392,6 +392,20 @@ export function downloadManifestPDF(tripTitle: string, date: string, bookings: B
   const confirmedTravelers = confirmedBookings.reduce((sum, b) => sum + b.travelers, 0);
   const totalRevenue = confirmedBookings.reduce((sum, b) => sum + (b.totalPrice || 0), 0);
 
+  // Escape user-supplied strings to prevent XSS in the printed document
+  const esc = (s: string | undefined | null): string => {
+    if (s === undefined || s === null || s === '') return '&#8212;';
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#x27;');
+  };
+
+  const safeTripTitle = esc(tripTitle);
+  const safeDate      = esc(date);
+
   const rows = bookings
     .slice()
     .sort((a, b) => {
@@ -400,15 +414,17 @@ export function downloadManifestPDF(tripTitle: string, date: string, bookings: B
     })
     .map((b, i) => {
       const rowClass = b.status === 'confirmed' ? 'row-confirmed' : b.status === 'cancelled' ? 'row-cancelled' : '';
+      // Only allow known status values as CSS class names
+      const safeStatusClass = ['confirmed','pending','cancelled','refunded'].includes(b.status) ? b.status : 'pending';
       return `<tr class="${rowClass}">
         <td style="text-align:center">${i + 1}</td>
-        <td><strong>${b.customerName || '—'}</strong></td>
-        <td>${b.phone || '—'}</td>
-        <td>${b.email || '—'}</td>
-        <td style="text-align:center">${b.travelers}</td>
-        <td style="text-align:right">₹${b.totalPrice?.toLocaleString('en-IN') || '0'}</td>
-        <td style="text-align:center"><span class="badge status-${b.status}">${b.status}</span></td>
-        <td class="mono">${b.id}</td>
+        <td><strong>${esc(b.customerName)}</strong></td>
+        <td>${esc(b.phone)}</td>
+        <td>${esc(b.email)}</td>
+        <td style="text-align:center">${Number(b.travelers) || 0}</td>
+        <td style="text-align:right">&#8377;${esc(b.totalPrice?.toLocaleString('en-IN') || '0')}</td>
+        <td style="text-align:center"><span class="badge status-${safeStatusClass}">${esc(b.status)}</span></td>
+        <td class="mono">${esc(b.id)}</td>
       </tr>`;
     })
     .join('');
@@ -417,17 +433,17 @@ export function downloadManifestPDF(tripTitle: string, date: string, bookings: B
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Manifest – ${tripTitle} – ${date}</title>
+  <title>Manifest &#8211; ${safeTripTitle} &#8211; ${safeDate}</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: Arial, sans-serif; color: #222; background: #fff; font-size: 13px; }
-    .header { background: ${BRAND_COLOR}; color: #fff; padding: 18px 24px; }
+    .header { background: ${BRAND_DARK}; color: #fff; padding: 18px 24px; }
     .header h1 { font-size: 20px; font-weight: bold; }
     .header .meta { font-size: 12px; opacity: 0.8; margin-top: 5px; }
-    .summary { display: flex; gap: 0; border-bottom: 2px solid ${BRAND_COLOR}; }
-    .summary-item { flex: 1; padding: 14px 16px; text-align: center; border-right: 1px solid #ddd; background: ${BRAND_LIGHT}; }
+    .summary { display: flex; gap: 0; border-bottom: 2px solid ${BRAND_DARK}; }
+    .summary-item { flex: 1; padding: 14px 16px; text-align: center; border-right: 1px solid #ddd; background: ${BRAND_CREAM}; }
     .summary-item:last-child { border-right: none; }
-    .summary-item .num { font-size: 22px; font-weight: bold; color: ${BRAND_COLOR}; }
+    .summary-item .num { font-size: 22px; font-weight: bold; color: ${BRAND_DARK}; }
     .summary-item .lbl { font-size: 10px; text-transform: uppercase; color: #777; margin-top: 2px; letter-spacing: 0.5px; }
     table { width: 100%; border-collapse: collapse; }
     thead th { background: #f3f4f6; padding: 10px 12px; text-align: left; font-size: 11px; text-transform: uppercase; color: #555; border-bottom: 2px solid #ddd; font-weight: 700; }
@@ -447,15 +463,15 @@ export function downloadManifestPDF(tripTitle: string, date: string, bookings: B
 </head>
 <body>
   <div class="header">
-    <h1>📋 Passenger Manifest — ${tripTitle}</h1>
-    <div class="meta">Travel Date: ${date} &bull; Generated: ${new Date().toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}</div>
+    <h1>&#128203; Passenger Manifest &#8212; ${safeTripTitle}</h1>
+    <div class="meta">Travel Date: ${safeDate} &bull; Generated: ${new Date().toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}</div>
   </div>
   <div class="summary">
     <div class="summary-item"><div class="num">${bookings.length}</div><div class="lbl">Bookings</div></div>
     <div class="summary-item"><div class="num">${confirmedBookings.length}</div><div class="lbl">Confirmed</div></div>
     <div class="summary-item"><div class="num">${confirmedTravelers}</div><div class="lbl">Confirmed Travelers</div></div>
     <div class="summary-item"><div class="num">${totalTravelers}</div><div class="lbl">Total Travelers</div></div>
-    <div class="summary-item"><div class="num">₹${totalRevenue.toLocaleString('en-IN')}</div><div class="lbl">Confirmed Revenue</div></div>
+    <div class="summary-item"><div class="num">&#8377;${totalRevenue.toLocaleString('en-IN')}</div><div class="lbl">Confirmed Revenue</div></div>
   </div>
   <table>
     <thead>
