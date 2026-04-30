@@ -165,6 +165,14 @@ const MyBookings: React.FC = () => {
                                                 <Clock size={16} className="text-brand-sage" /> {new Date(booking.bookedAt).toLocaleDateString()}
                                             </div>
                                         </div>
+                                        {booking.pickupPoint && (
+                                            <div className="col-span-2 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                                                <p className="text-[10px] uppercase font-bold text-gray-400 tracking-widest mb-1">Boarding Point</p>
+                                                <div className="flex items-center gap-2 font-bold text-gray-700">
+                                                    <MapPin size={16} className="text-brand-sage shrink-0" /> {booking.pickupPoint}
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
 
                                     <div className="flex items-center justify-between border-t border-gray-100 pt-6 mt-auto">

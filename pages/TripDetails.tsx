@@ -17,6 +17,7 @@ const TripDetails: React.FC = () => {
 
     // Booking State
     const [selectedDate, setSelectedDate] = useState<string | null>(null);
+    const [selectedPickupPoint, setSelectedPickupPoint] = useState<string | null>(null);
     const [travelers, setTravelers] = useState(1);
     const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
     const [bookingStep, setBookingStep] = useState<'form' | 'processing' | 'success'>('form');
@@ -84,6 +85,12 @@ const TripDetails: React.FC = () => {
         e.preventDefault();
         if (!trip || !selectedDate) return;
 
+        // Require a pickup point if the trip defines any
+        if (trip.pickupPoints && trip.pickupPoints.length > 0 && !selectedPickupPoint) {
+            alert('Please select a boarding / pickup point before proceeding.');
+            return;
+        }
+
         setBookingStep('processing');
 
         try {
@@ -97,6 +104,7 @@ const TripDetails: React.FC = () => {
                 phone: bookingData.phone,
                 date: selectedDate,
                 travelers: travelers,
+                pickupPoint: selectedPickupPoint || undefined,
                 totalPrice: totalPrice
             });
 
@@ -452,6 +460,31 @@ const TripDetails: React.FC = () => {
                                                 </div>
                                             </div>
                                         )}
+
+                                        {/* Pickup / Boarding Point Selector */}
+                                        {!availability.isSoldOut && trip.pickupPoints && trip.pickupPoints.length > 0 && (
+                                            <div>
+                                                <label className="block text-xs font-bold uppercase tracking-widest text-brand-olive/60 mb-2">
+                                                    <span className="flex items-center gap-1"><MapPin size={12} /> Boarding Point</span>
+                                                </label>
+                                                <div className="space-y-2 max-h-40 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-brand-olive scrollbar-track-brand-black">
+                                                    {trip.pickupPoints.map((point, idx) => (
+                                                        <div
+                                                            key={idx}
+                                                            onClick={() => setSelectedPickupPoint(point)}
+                                                            className={`p-3 border cursor-pointer transition flex items-center justify-between
+                                                            ${selectedPickupPoint === point
+                                                                ? 'border-brand-olive bg-brand-olive/20 text-brand-olive'
+                                                                : 'border-brand-olive/20 text-brand-olive/60 hover:border-brand-olive/40'}
+                                                            `}
+                                                        >
+                                                            <span className="text-sm font-bold">{point}</span>
+                                                            {selectedPickupPoint === point && <Check size={14} className="text-brand-olive shrink-0 ml-2" />}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 
@@ -479,7 +512,7 @@ const TripDetails: React.FC = () => {
                                         <>
                                             <button
                                                 onClick={initiateBooking}
-                                                disabled={!selectedDate || checkingAvailability}
+                                                disabled={!selectedDate || checkingAvailability || (trip.pickupPoints && trip.pickupPoints.length > 0 && !selectedPickupPoint)}
                                                 className="w-full bg-brand-olive text-brand-black font-bold py-4 uppercase tracking-widest text-sm hover:bg-brand-beige hover:text-brand-black transition border border-transparent hover:border-brand-olive disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                             >
                                                 {checkingAvailability ? "Checking..." : "Secure Spot"}
@@ -541,6 +574,11 @@ const TripDetails: React.FC = () => {
                                         <div className="text-xs text-brand-black/50 mt-1 font-mono flex items-center gap-2">
                                             <Calendar size={12} /> {selectedDate}
                                         </div>
+                                        {selectedPickupPoint && (
+                                            <div className="text-xs text-brand-black/50 mt-1 flex items-center gap-2">
+                                                <MapPin size={12} className="text-brand-sage shrink-0" /> {selectedPickupPoint}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 
@@ -582,6 +620,12 @@ const TripDetails: React.FC = () => {
 
                                     {/* Summary */}
                                     <div className="bg-brand-olive/5 p-4 rounded-lg border border-brand-olive/10 space-y-1">
+                                        {selectedPickupPoint && (
+                                            <div className="flex justify-between items-center text-sm text-brand-black/70 pb-2 mb-1 border-b border-brand-olive/10">
+                                                <span className="flex items-center gap-1"><MapPin size={12} className="text-brand-sage" /> Boarding Point</span>
+                                                <span className="font-semibold text-brand-black text-right max-w-[55%] leading-tight">{selectedPickupPoint}</span>
+                                            </div>
+                                        )}
                                         <div className="flex justify-between items-center text-sm text-brand-black/70">
                                             <span>Base price ({travelers} × ₹{trip.price.toLocaleString()})</span>
                                             <span className="font-mono">₹{basePrice.toLocaleString()}</span>

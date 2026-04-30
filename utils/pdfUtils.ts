@@ -100,16 +100,17 @@ export function downloadTicketPDF(booking: Booking): void {
     : '—';
   const statusStyle = STATUS_BADGE_STYLES[booking.status as BookingStatus] ?? STATUS_BADGE_STYLES.pending;
 
-  const safeRef        = escHtml(ref);
-  const safeName       = escHtml(booking.customerName);
-  const safeTrip       = escHtml(booking.tripTitle);
-  const safeDate       = escHtml(booking.date);
-  const safeTravelers  = escHtml(String(booking.travelers));
-  const safeStatus     = escHtml(booking.status);
-  const safeEmail      = escHtml(booking.email);
-  const safePhone      = escHtml(booking.phone);
-  const safePrice      = escHtml(booking.totalPrice?.toLocaleString('en-IN') || '0');
-  const safeBookedDate = escHtml(bookedDate);
+  const safeRef          = escHtml(ref);
+  const safeName         = escHtml(booking.customerName);
+  const safeTrip         = escHtml(booking.tripTitle);
+  const safeDate         = escHtml(booking.date);
+  const safeTravelers    = escHtml(String(booking.travelers));
+  const safeStatus       = escHtml(booking.status);
+  const safeEmail        = escHtml(booking.email);
+  const safePhone        = escHtml(booking.phone);
+  const safePrice        = escHtml(booking.totalPrice?.toLocaleString('en-IN') || '0');
+  const safeBookedDate   = escHtml(bookedDate);
+  const safePickupPoint  = booking.pickupPoint ? escHtml(booking.pickupPoint) : null;
 
   const html = `<!DOCTYPE html>
 <html lang="en">
@@ -346,6 +347,13 @@ export function downloadTicketPDF(booking: Booking): void {
           </div>
         </div>
 
+        ${safePickupPoint ? `
+        <!-- Boarding Point -->
+        <div class="field" style="margin-top:4px">
+          <div class="field-label">&#128652; Boarding / Pickup Point</div>
+          <div class="field-value" style="font-size:13px">${safePickupPoint}</div>
+        </div>` : ''}
+
         <!-- Amount highlight -->
         <div class="price-highlight">
           <div class="field-label" style="opacity:0.7">Total Amount Paid</div>
@@ -380,6 +388,10 @@ export function downloadTicketPDF(booking: Booking): void {
         <div class="lbl">Travelers</div>
         <div class="val big">${safeTravelers}</div>
       </div>
+      ${safePickupPoint ? `<div class="stub-field">
+        <div class="lbl">Boarding Point</div>
+        <div class="val" style="font-size:10px;line-height:1.3;">${safePickupPoint}</div>
+      </div>` : ''}
       <div class="stub-field">
         <div class="lbl">Total Paid</div>
         <div class="val" style="font-size:13px;color:${BRAND_DARK};">&#8377;${safePrice}</div>
@@ -425,6 +437,7 @@ export function downloadManifestPDF(tripTitle: string, date: string, bookings: B
         <td>${escHtml(b.phone)}</td>
         <td>${escHtml(b.email)}</td>
         <td style="text-align:center">${Number(b.travelers) || 0}</td>
+        <td>${b.pickupPoint ? escHtml(b.pickupPoint) : '<span style="color:#ccc">&#8212;</span>'}</td>
         <td style="text-align:right">&#8377;${escHtml(b.totalPrice?.toLocaleString('en-IN') || '0')}</td>
         <td style="text-align:center"><span class="badge status-${safeStatusClass}">${escHtml(b.status)}</span></td>
         <td class="mono">${escHtml(b.id)}</td>
@@ -484,6 +497,7 @@ export function downloadManifestPDF(tripTitle: string, date: string, bookings: B
         <th>Phone</th>
         <th>Email</th>
         <th style="text-align:center">Travelers</th>
+        <th>Boarding Point</th>
         <th style="text-align:right">Amount</th>
         <th style="text-align:center">Status</th>
         <th>Booking ID</th>
