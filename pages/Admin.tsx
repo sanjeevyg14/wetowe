@@ -571,6 +571,7 @@ const Admin: React.FC = () => {
     };
 
     if (authLoading) return <div>Loading...</div>;
+    if (!user) return <Navigate to="/login?redirect=/admin" />;
     if (!isAdmin) return <Navigate to="/" />;
 
     return (

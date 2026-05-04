@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowRight, AlertCircle, Loader } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -10,6 +10,7 @@ const Login: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,7 +19,10 @@ const Login: React.FC = () => {
 
     try {
       await login(email, password);
-      navigate('/profile');
+      const params = new URLSearchParams(location.search);
+      const redirect = params.get('redirect');
+      const safeRedirect = redirect && redirect.startsWith('/') && !redirect.startsWith('//') ? redirect : '/profile';
+      navigate(safeRedirect);
     } catch (err: any) {
       setError(err.message || 'Failed to sign in');
     } finally {
