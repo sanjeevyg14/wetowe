@@ -21,7 +21,8 @@ const Login: React.FC = () => {
       await login(email, password);
       const params = new URLSearchParams(location.search);
       const redirect = params.get('redirect');
-      navigate(redirect || '/profile');
+      const safeRedirect = redirect && redirect.startsWith('/') && !redirect.startsWith('//') ? redirect : '/profile';
+      navigate(safeRedirect);
     } catch (err: any) {
       setError(err.message || 'Failed to sign in');
     } finally {
