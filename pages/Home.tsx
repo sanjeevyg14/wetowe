@@ -834,7 +834,7 @@ const Home: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
 
             <div className="text-brand-olive">
-              <span className="font-bold tracking-widest uppercase text-xs mb-4 block">Get in Touch</span>
+              <span className="text-brand-olive font-bold tracking-widest uppercase text-xs mb-4 block">Get in Touch</span>
               <h2 className="text-5xl font-bold mb-8 font-serif text-brand-olive">Plan your <br />Next Escape.</h2>
               <p className="text-lg text-brand-olive/60 mb-10 leading-relaxed font-light">
                 Whether you're planning your first solo trip or a group getaway, our travel experts are ready to assist you.
