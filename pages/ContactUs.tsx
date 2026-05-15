@@ -37,6 +37,7 @@ const ContactUs: React.FC = () => {
                 description="Get in touch with Wheels to Wilderness. Plan your next adventure, ask questions, or send an enquiry. We're here to help you explore!"
                 keywords="contact wheels to wilderness, travel enquiry, book trip, adventure travel contact"
                 url="/contact"
+                image="https://wheelstowilderness.in/og-image.jpg"
             />
             <Navbar />
 

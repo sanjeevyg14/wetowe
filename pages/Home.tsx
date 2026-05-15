@@ -348,6 +348,7 @@ const Home: React.FC = () => {
         description="Discover handpicked weekend getaways, trekking spots, and hidden gems across India. Book curated travel experiences to Gokarna, Hampi, Pondicherry, Wayanad and more."
         keywords="travel, trips, weekend getaway, trekking, adventure, India travel, group tours, Gokarna, Hampi, Pondicherry, Wayanad"
         url="/"
+        image="https://wheelstowilderness.in/og-image.jpg"
       />
       <Navbar />
 

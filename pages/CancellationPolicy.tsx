@@ -13,6 +13,7 @@ const CancellationPolicy: React.FC = () => {
                 description="Understand our cancellation and refund policy. Get up to 90% refund for cancellations made 30+ days before your trip."
                 keywords="cancellation policy, refund policy, travel cancellation, trip refund"
                 url="/cancellation-policy"
+                image="https://wheelstowilderness.in/og-image.jpg"
             />
             <Navbar />
 

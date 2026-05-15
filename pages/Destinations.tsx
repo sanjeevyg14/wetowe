@@ -78,6 +78,7 @@ const Destinations: React.FC = () => {
                 description="Explore all travel destinations with Wheels to Wilderness. Find weekend getaways, trekking trips, beach escapes, and heritage tours across India."
                 keywords="travel destinations, weekend getaway, trekking, beach trips, heritage tours, India travel, adventure trips"
                 url="/destinations"
+                image="https://wheelstowilderness.in/og-image.jpg"
             />
             <Navbar />
 

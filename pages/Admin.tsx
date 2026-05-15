@@ -170,6 +170,10 @@ const Admin: React.FC = () => {
     const [currentTrip, setCurrentTrip] = useState<Partial<Trip>>({});
     const [isUploading, setIsUploading] = useState(false);
 
+    // Enquiry Modal State
+    const [enquiryModalOpen, setEnquiryModalOpen] = useState(false);
+    const [selectedEnquiry, setSelectedEnquiry] = useState<Enquiry | null>(null);
+
     // Refs for file inputs
     const mainImageInputRef = useRef<HTMLInputElement>(null);
     const cardImageInputRef = useRef<HTMLInputElement>(null);
@@ -1033,8 +1037,18 @@ const Admin: React.FC = () => {
                                                             </div>
                                                         </td>
 
-                                                        <td className="px-6 py-4 text-sm text-gray-600 max-w-xs truncate" title={enquiry.message}>
-                                                            {enquiry.message ?? '—'}
+                                                        <td className="px-6 py-4 text-sm text-gray-600">
+                                                            <div className="max-w-xs">
+                                                                <p className="line-clamp-2 text-gray-600">{enquiry.message ?? '—'}</p>
+                                                                {enquiry.message && enquiry.message.length > 100 && (
+                                                                    <button 
+                                                                        onClick={() => { setSelectedEnquiry(enquiry); setEnquiryModalOpen(true); }}
+                                                                        className="text-brand-purple hover:text-brand-purple/70 text-xs font-bold mt-1"
+                                                                    >
+                                                                        View Full Message
+                                                                    </button>
+                                                                )}
+                                                            </div>
                                                         </td>
 
                                                         <td className="px-6 py-4">
@@ -2013,6 +2027,107 @@ const Admin: React.FC = () => {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Enquiry Detail Modal */}
+            {enquiryModalOpen && selectedEnquiry && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                        <div className="sticky top-0 bg-white border-b border-gray-100 p-6 flex justify-between items-center z-10">
+                            <h3 className="text-xl font-bold text-gray-900">Enquiry Details</h3>
+                            <button onClick={() => { setEnquiryModalOpen(false); setSelectedEnquiry(null); }} className="text-gray-400 hover:text-gray-600">
+                                <X size={24} />
+                            </button>
+                        </div>
+
+                        <div className="p-6 space-y-6">
+                            {/* Contact Information */}
+                            <div className="space-y-4">
+                                <h4 className="font-bold text-gray-900 border-b pb-2">Contact Information</h4>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="text-xs font-bold text-gray-500 uppercase">Name</label>
+                                        <p className="text-gray-900 font-medium">{selectedEnquiry.name ?? '—'}</p>
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-gray-500 uppercase">Email</label>
+                                        <p className="text-gray-900 font-medium break-all">{selectedEnquiry.email ?? '—'}</p>
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-gray-500 uppercase">Phone</label>
+                                        <p className="text-gray-900 font-medium">{selectedEnquiry.phone ?? '—'}</p>
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-gray-500 uppercase">Submitted On</label>
+                                        <p className="text-gray-900 font-medium">
+                                            {selectedEnquiry.createdAt ? new Date(selectedEnquiry.createdAt).toLocaleString() : '—'}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Trip Information */}
+                            <div className="space-y-4">
+                                <h4 className="font-bold text-gray-900 border-b pb-2">Trip Information</h4>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="text-xs font-bold text-gray-500 uppercase">Destination</label>
+                                        <p className="text-gray-900 font-medium">{selectedEnquiry.where ?? '—'}</p>
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-gray-500 uppercase">Travel Date</label>
+                                        <p className="text-gray-900 font-medium">
+                                            {selectedEnquiry.when ? new Date(selectedEnquiry.when).toLocaleDateString() : '—'}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-gray-500 uppercase">Number of Travelers</label>
+                                        <p className="text-gray-900 font-medium">{selectedEnquiry.Travellers ?? '—'}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Message */}
+                            <div className="space-y-4">
+                                <h4 className="font-bold text-gray-900 border-b pb-2">Message</h4>
+                                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                                    <p className="text-gray-800 whitespace-pre-wrap leading-relaxed">
+                                        {selectedEnquiry.message ?? '—'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Status and Actions */}
+                            <div className="space-y-4">
+                                <h4 className="font-bold text-gray-900 border-b pb-2">Status</h4>
+                                <div className="flex items-center justify-between">
+                                    <span
+                                        className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${selectedEnquiry.status === 'new'
+                                            ? 'bg-orange-100 text-orange-700'
+                                            : selectedEnquiry.status === 'contacted'
+                                                ? 'bg-green-100 text-green-700'
+                                                : 'bg-gray-100 text-gray-700'
+                                            }`}
+                                    >
+                                        {selectedEnquiry.status ?? 'new'}
+                                    </span>
+                                    {selectedEnquiry.status === 'new' && (
+                                        <button
+                                            onClick={() => {
+                                                handleEnquiryStatus(selectedEnquiry.id ?? selectedEnquiry._id, 'contacted');
+                                                setEnquiryModalOpen(false);
+                                                setSelectedEnquiry(null);
+                                            }}
+                                            className="text-brand-purple hover:bg-purple-50 px-4 py-2 rounded text-sm font-bold border border-purple-200"
+                                        >
+                                            Mark as Contacted
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}
