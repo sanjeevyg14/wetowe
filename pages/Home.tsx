@@ -833,10 +833,10 @@ const Home: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
 
-            <div className="text-brand-cream">
+            <div className="text-brand-olive">
               <span className="text-brand-olive font-bold tracking-widest uppercase text-xs mb-4 block">Get in Touch</span>
-              <h2 className="text-5xl font-bold mb-8 font-serif">Plan your <br />Next Escape.</h2>
-              <p className="text-lg text-brand-cream/60 mb-10 leading-relaxed font-light">
+              <h2 className="text-5xl font-bold mb-8 font-serif text-brand-olive">Plan your <br />Next Escape.</h2>
+              <p className="text-lg text-brand-olive/60 mb-10 leading-relaxed font-light">
                 Whether you're planning your first solo trip or a group getaway, our travel experts are ready to assist you.
               </p>
 
@@ -846,8 +846,8 @@ const Home: React.FC = () => {
                     <Mail size={24} />
                   </div>
                   <div>
-                    <h4 className="font-bold text-lg text-brand-cream">Email Us</h4>
-                    <p className="text-brand-cream/50">hello@wheeltowilderness.com</p>
+                    <h4 className="font-bold text-lg text-brand-olive">Email Us</h4>
+                    <p className="text-brand-olive/50">hello@wheeltowilderness.com</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-6 group cursor-pointer">
@@ -855,8 +855,8 @@ const Home: React.FC = () => {
                     <Phone size={24} />
                   </div>
                   <div>
-                    <h4 className="font-bold text-lg text-brand-cream">Call Us</h4>
-                    <p className="text-brand-cream/50">+91 98765 43210</p>
+                    <h4 className="font-bold text-lg text-brand-olive">Call Us</h4>
+                    <p className="text-brand-olive/50">+91 98765 43210</p>
                   </div>
                 </div>
               </div>
