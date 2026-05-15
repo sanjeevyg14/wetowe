@@ -724,7 +724,7 @@ const Home: React.FC = () => {
               onMouseEnter={() => setIsTestimonialHovered(true)}
               onMouseLeave={() => setIsTestimonialHovered(false)}
             >
-              <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-brand-cream bg-brand-olive p-3 rounded-full shadow-lg">
+              <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-brand-olive bg-brand-cream p-3 rounded-full shadow-lg">
                 <Quote size={32} fill="currentColor" />
               </div>
 
@@ -744,7 +744,7 @@ const Home: React.FC = () => {
                   />
                   <div className="text-left">
                     <h4 className="font-bold text-brand-black uppercase text-sm tracking-wide">{testimonials[testimonialIndex].name}</h4>
-                    <span className="text-brand-olive text-xs font-bold flex items-center gap-1"><MapPin size={10} /> {testimonials[testimonialIndex].location}</span>
+                    <span className="text-brand-cream text-xs font-bold flex items-center gap-1"><MapPin size={10} /> {testimonials[testimonialIndex].location}</span>
                   </div>
                 </div>
               </div>
