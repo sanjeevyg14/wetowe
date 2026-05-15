@@ -348,6 +348,7 @@ const Home: React.FC = () => {
         description="Discover handpicked weekend getaways, trekking spots, and hidden gems across India. Book curated travel experiences to Gokarna, Hampi, Pondicherry, Wayanad and more."
         keywords="travel, trips, weekend getaway, trekking, adventure, India travel, group tours, Gokarna, Hampi, Pondicherry, Wayanad"
         url="/"
+        image="https://wheelstowilderness.in/og-image.jpg"
       />
       <Navbar />
 
@@ -724,7 +725,7 @@ const Home: React.FC = () => {
               onMouseEnter={() => setIsTestimonialHovered(true)}
               onMouseLeave={() => setIsTestimonialHovered(false)}
             >
-              <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-brand-cream bg-brand-olive p-3 rounded-full shadow-lg">
+              <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-brand-olive bg-brand-cream p-3 rounded-full shadow-lg">
                 <Quote size={32} fill="currentColor" />
               </div>
 
@@ -744,7 +745,7 @@ const Home: React.FC = () => {
                   />
                   <div className="text-left">
                     <h4 className="font-bold text-brand-black uppercase text-sm tracking-wide">{testimonials[testimonialIndex].name}</h4>
-                    <span className="text-brand-olive text-xs font-bold flex items-center gap-1"><MapPin size={10} /> {testimonials[testimonialIndex].location}</span>
+                    <span className="text-brand-cream text-xs font-bold flex items-center gap-1"><MapPin size={10} /> {testimonials[testimonialIndex].location}</span>
                   </div>
                 </div>
               </div>
@@ -833,10 +834,10 @@ const Home: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
 
-            <div className="text-brand-cream">
+            <div className="text-brand-olive">
               <span className="text-brand-olive font-bold tracking-widest uppercase text-xs mb-4 block">Get in Touch</span>
-              <h2 className="text-5xl font-bold mb-8 font-serif">Plan your <br />Next Escape.</h2>
-              <p className="text-lg text-brand-cream/60 mb-10 leading-relaxed font-light">
+              <h2 className="text-5xl font-bold mb-8 font-serif text-brand-olive">Plan your <br />Next Escape.</h2>
+              <p className="text-lg text-brand-olive/60 mb-10 leading-relaxed font-light">
                 Whether you're planning your first solo trip or a group getaway, our travel experts are ready to assist you.
               </p>
 
@@ -846,8 +847,8 @@ const Home: React.FC = () => {
                     <Mail size={24} />
                   </div>
                   <div>
-                    <h4 className="font-bold text-lg text-brand-cream">Email Us</h4>
-                    <p className="text-brand-cream/50">hello@wheeltowilderness.com</p>
+                    <h4 className="font-bold text-lg text-brand-olive">Email Us</h4>
+                    <p className="text-brand-olive/50">hello@wheeltowilderness.com</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-6 group cursor-pointer">
@@ -855,8 +856,8 @@ const Home: React.FC = () => {
                     <Phone size={24} />
                   </div>
                   <div>
-                    <h4 className="font-bold text-lg text-brand-cream">Call Us</h4>
-                    <p className="text-brand-cream/50">+91 98765 43210</p>
+                    <h4 className="font-bold text-lg text-brand-olive">Call Us</h4>
+                    <p className="text-brand-olive/50">+91 98765 43210</p>
                   </div>
                 </div>
               </div>

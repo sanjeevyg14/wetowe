@@ -43,11 +43,11 @@ const Footer: React.FC = () => {
           </div>
         </div>
 
-        <div className="border-t border-brand-cream/10 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-brand-cream/40">
+        <div className="border-t border-brand-cream/10 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-brand-olive/60">
           <p>&copy; 2024 Wheels to Wilderness. Est. Bangalore.</p>
           <div className="flex space-x-6 mt-4 md:mt-0">
-            <Link to="/terms" className="hover:text-brand-cream">Terms & Conditions</Link>
-            <Link to="/cancellation-policy" className="hover:text-brand-cream">Cancellation Policy</Link>
+            <Link to="/terms" className="hover:text-brand-olive text-brand-olive/70">Terms & Conditions</Link>
+            <Link to="/cancellation-policy" className="hover:text-brand-olive text-brand-olive/70">Cancellation Policy</Link>
           </div>
         </div>
       </div>

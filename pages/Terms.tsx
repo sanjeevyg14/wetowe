@@ -13,6 +13,7 @@ const Terms: React.FC = () => {
                 description="Read the terms and conditions for using Wheels to Wilderness services. Learn about booking policies, traveler responsibilities, and more."
                 keywords="terms and conditions, travel policy, booking terms, wheels to wilderness legal"
                 url="/terms"
+                image="https://wheelstowilderness.in/og-image.jpg"
             />
             <Navbar />
 
