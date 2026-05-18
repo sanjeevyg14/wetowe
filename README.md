@@ -12,12 +12,34 @@ View your app in AI Studio: https://ai.studio/apps/drive/1UWK-sJ8H5LrA8BpoVsqd_-
 
 **Prerequisites:**  Node.js
 
-
 1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
+   ```bash
+   npm install
+   ```
+
+2. Set up environment variables:
+   ```bash
+   cp .env.example .env
+   ```
+   Then update `.env` with your actual credentials. See [ENVIRONMENT_VARIABLES.md](ENVIRONMENT_VARIABLES.md) for detailed configuration instructions.
+
 3. Run the app:
-   `npm run dev`
+   ```bash
+   npm run dev
+   ```
+
+## 🔒 Environment Configuration
+
+This application requires several environment variables to be configured:
+
+- **JWT_SECRET** - Secure token for authentication (generate with crypto.randomBytes)
+- **MONGO_URI** - MongoDB connection string
+- **CLOUDINARY_*** - Image upload service credentials
+- **VITE_GEMINI_API_KEY** - AI API key
+
+For complete environment variable documentation, see [ENVIRONMENT_VARIABLES.md](ENVIRONMENT_VARIABLES.md).
+
+For production deployment checklist, see [PRODUCTION_DEPLOYMENT_CHECKLIST.md](PRODUCTION_DEPLOYMENT_CHECKLIST.md).
 
 ## 📸 Image Management
 
