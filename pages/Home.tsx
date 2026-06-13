@@ -795,7 +795,7 @@ const Home: React.FC = () => {
             <ScrollReveal delay={100}>
               <div className="flex gap-4 items-start group">
                 <div className="p-3 bg-brand-olive text-brand-black rounded-lg group-hover:scale-110 transition-transform duration-300 shadow-md">
-                  <Shield size={24} />
+                  <ShieldCheck size={24} />
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-brand-olive mb-2 font-serif">Verified Safety</h3>
