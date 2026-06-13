@@ -79,7 +79,6 @@ if (process.env.NODE_ENV !== 'production') {
 
 // Import Routes
 const tripRoutes = require('./routes/trips.cjs');
-const paymentRoutes = require('./routes/payment.cjs');
 const authRoutes = require('./routes/auth.cjs');
 const bookingRoutes = require('./routes/bookings.cjs');
 const testimonialRoutes = require('./routes/testimonials.cjs');
@@ -118,7 +117,6 @@ setInterval(async () => {
 
 // Use Routes
 app.use('/api/trips', tripRoutes);
-app.use('/api/payment', paymentRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/testimonials', testimonialRoutes);

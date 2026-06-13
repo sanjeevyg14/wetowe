@@ -23,7 +23,7 @@ const bookingSchema = new mongoose.Schema({
   // Payment Status
   status: {
     type: String,
-    enum: ['pending', 'confirmed', 'failed', 'refunded', 'cancelled', 'expired'],
+    enum: ['pending', 'contacted', 'confirmed', 'failed', 'refunded', 'cancelled', 'expired'],
     default: 'pending',
     index: true // Indexed for status-based queries
   },
@@ -33,7 +33,7 @@ const bookingSchema = new mongoose.Schema({
   // Pending booking expiry (15 min from creation)
   pendingExpiresAt: {
     type: Date,
-    default: () => new Date(Date.now() + 15 * 60 * 1000), // 15 minutes
+    default: null,
     index: true // Indexed for cleanup queries
   },
 

@@ -202,21 +202,15 @@ export const api = {
 
     // --- BOOKINGS ---
 
-    createBooking: async (bookingData: Omit<Booking, 'id' | 'status' | 'bookedAt'>): Promise<Booking | { url: string }> => {
-        const response = await fetch(`${API_URL}/payment/initiate`, {
+    createBooking: async (bookingData: Omit<Booking, 'id' | 'status' | 'bookedAt'>): Promise<Booking> => {
+        const response = await fetch(`${API_URL}/bookings`, {
             method: 'POST',
             headers: getAuthHeaders(),
             body: JSON.stringify(bookingData),
         });
 
-        if (response.ok) {
-            const data = await response.json();
-            if (data.success && data.url) {
-                return { url: data.url };
-            }
-            return { ...bookingData, id: data.bookingId, status: 'pending', bookedAt: new Date().toISOString() } as Booking;
-        }
-        throw new Error("Booking failed");
+        if (!response.ok) throw new Error("Booking failed");
+        return await response.json();
     },
 
     getBookingsByUser: async (userId: string): Promise<Booking[]> => {
@@ -255,6 +249,16 @@ export const api = {
             headers: getAuthHeaders()
         });
         if (!response.ok) throw new Error('Failed to process refund');
+    },
+
+    updateBookingStatus: async (bookingId: string, status: 'pending' | 'contacted' | 'confirmed' | 'cancelled' | 'refunded' | 'failed' | 'expired'): Promise<Booking> => {
+        const response = await fetch(`${API_URL}/bookings/${bookingId}/status`, {
+            method: 'PUT',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ status })
+        });
+        if (!response.ok) throw new Error('Failed to update booking status');
+        return await response.json();
     },
 
     // --- SEAT MANAGEMENT (Admin) ---

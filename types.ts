@@ -65,7 +65,7 @@ export interface Booking {
   travelers: number;
   pickupPoint?: string; // Selected boarding/pickup point for the trip
   totalPrice: number;
-  status: 'confirmed' | 'pending' | 'cancelled' | 'refunded';
+  status: 'pending' | 'contacted' | 'confirmed' | 'cancelled' | 'refunded' | 'failed' | 'expired';
   bookedAt: string;
 }
 

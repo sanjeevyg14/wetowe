@@ -3,6 +3,86 @@ const router = express.Router();
 const Booking = require('../models/Booking.cjs');
 const authMiddleware = require('../middleware/authMiddleware.cjs');
 const connectDB = require('../lib/db.cjs');
+const { v4: uuidv4 } = require('uuid');
+const { sendBookingNotification } = require('../lib/emailService.cjs');
+
+const mapBooking = (b) => ({
+  ...b.toObject(),
+  id: b._id,
+  bookedAt: b.createdAt
+});
+
+// POST create booking enquiry (Public)
+router.post('/', async (req, res) => {
+  try {
+    await connectDB();
+    const {
+      userId,
+      tripId,
+      tripTitle,
+      tripImage,
+      customerName,
+      email,
+      phone,
+      date,
+      travelers,
+      pickupPoint,
+      totalPrice
+    } = req.body || {};
+
+    if (!tripId || !tripTitle || !customerName || !email || !phone || !date || !travelers || !totalPrice) {
+      return res.status(400).json({ message: 'Missing required booking fields' });
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(String(email))) {
+      return res.status(400).json({ message: 'Invalid email format' });
+    }
+
+    const phoneRegex = /^[0-9]{10}$/;
+    if (!phoneRegex.test(String(phone))) {
+      return res.status(400).json({ message: 'Phone number must be 10 digits' });
+    }
+
+    const { getAvailability } = require('../lib/bookingUtils.cjs');
+    const availability = await getAvailability(String(tripId), String(date));
+    if (!availability.success) {
+      return res.status(400).json({ message: availability.error || 'Unable to verify availability' });
+    }
+    if (Number(travelers) > availability.remaining) {
+      return res.status(400).json({ message: `Only ${availability.remaining} seat(s) available` });
+    }
+
+    const booking = new Booking({
+      userId: userId || 'guest',
+      tripId: String(tripId),
+      tripTitle: String(tripTitle),
+      tripImage: tripImage || '',
+      customerName: String(customerName),
+      email: String(email),
+      phone: String(phone),
+      date: String(date),
+      travelers: Number(travelers),
+      pickupPoint: pickupPoint ? String(pickupPoint) : '',
+      totalPrice: Number(totalPrice),
+      transactionId: `MANUAL-${Date.now()}-${uuidv4().slice(0, 6)}`,
+      status: 'pending',
+      pendingExpiresAt: null
+    });
+
+    await booking.save();
+
+    try {
+      await sendBookingNotification(booking);
+    } catch (emailError) {
+      console.error('[Booking Email] Failed to send notification:', emailError.message);
+    }
+
+    res.status(201).json(mapBooking(booking));
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
 
 // GET all bookings (Admin)
 router.get('/', authMiddleware, async (req, res) => {
@@ -14,11 +94,7 @@ router.get('/', authMiddleware, async (req, res) => {
     }
     const bookings = await Booking.find().sort({ createdAt: -1 });
     // Map createdAt to bookedAt for frontend compatibility
-    const mappedBookings = bookings.map(b => ({
-      ...b.toObject(),
-      id: b._id,
-      bookedAt: b.createdAt
-    }));
+    const mappedBookings = bookings.map(mapBooking);
     res.json(mappedBookings);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -36,11 +112,7 @@ router.get('/user/:userId', authMiddleware, async (req, res) => {
 
     const bookings = await Booking.find({ userId: req.params.userId }).sort({ createdAt: -1 });
     // Map createdAt to bookedAt for frontend compatibility
-    const mappedBookings = bookings.map(b => ({
-      ...b.toObject(),
-      id: b._id,
-      bookedAt: b.createdAt
-    }));
+    const mappedBookings = bookings.map(mapBooking);
     res.json(mappedBookings);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -118,6 +190,35 @@ router.put('/:id/refund', authMiddleware, async (req, res) => {
   }
 });
 
+// PUT update booking status (Admin)
+router.put('/:id/status', authMiddleware, async (req, res) => {
+  try {
+    await connectDB();
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+
+    const { status } = req.body;
+    const allowedStatuses = ['pending', 'contacted', 'confirmed', 'cancelled', 'refunded', 'failed', 'expired'];
+    if (!allowedStatuses.includes(status)) {
+      return res.status(400).json({ message: 'Invalid booking status' });
+    }
+
+    const booking = await Booking.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true }
+    );
+    if (!booking) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+
+    res.json(mapBooking(booking));
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
 // POST cleanup expired pending bookings (Admin)
 router.post('/cleanup-expired', authMiddleware, async (req, res) => {
   try {
@@ -156,12 +257,10 @@ router.get('/seat-stats', authMiddleware, async (req, res) => {
     const stats = await getBookingStats(tripId, date);
 
     // Also get list of pending bookings for this trip/date
-    const now = new Date();
     const pendingBookings = await Booking.find({
       tripId,
       date,
-      status: 'pending',
-      pendingExpiresAt: { $gt: now }
+      status: { $in: ['pending', 'contacted'] }
     }).select('customerName email travelers createdAt pendingExpiresAt');
 
     res.json({

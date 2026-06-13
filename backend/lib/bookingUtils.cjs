@@ -45,8 +45,6 @@ async function cleanupExpiredBookings() {
 async function getBookingStats(tripId, date) {
     await connectDB();
 
-    const now = new Date();
-
     const trip = await Trip.findById(tripId);
     const maxCapacity = trip?.maxCapacity || 12;
 
@@ -57,7 +55,7 @@ async function getBookingStats(tripId, date) {
                 date: date,
                 $or: [
                     { status: 'confirmed' },
-                    { status: 'pending', pendingExpiresAt: { $gt: now } }
+                    { status: { $in: ['pending', 'contacted'] } }
                 ]
             }
         },
@@ -126,7 +124,7 @@ async function reserveSeatsAtomically(tripId, date, requestedSeats, bookingData)
                 date: date,
                 $or: [
                     { status: 'confirmed' },
-                    { status: 'pending', pendingExpiresAt: { $gt: now } }
+                    { status: { $in: ['pending', 'contacted'] } }
                 ]
             }
         },
@@ -175,7 +173,7 @@ async function reserveSeatsAtomically(tripId, date, requestedSeats, bookingData)
                     date: date,
                     $or: [
                         { status: 'confirmed' },
-                        { status: 'pending', pendingExpiresAt: { $gt: now } }
+                        { status: { $in: ['pending', 'contacted'] } }
                     ]
                 }
             },
@@ -256,8 +254,6 @@ async function getAvailability(tripId, date) {
     // First cleanup expired bookings
     await cleanupExpiredBookings();
 
-    const now = new Date();
-
     const trip = await Trip.findById(tripId);
     if (!trip) {
         return { success: false, error: 'Trip not found' };
@@ -272,7 +268,7 @@ async function getAvailability(tripId, date) {
                 date: String(date),
                 $or: [
                     { status: 'confirmed' },
-                    { status: 'pending', pendingExpiresAt: { $gt: now } }
+                    { status: { $in: ['pending', 'contacted'] } }
                 ]
             }
         },

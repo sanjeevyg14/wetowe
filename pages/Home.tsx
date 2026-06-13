@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Calendar, MapPin, Users, Star, Filter, ArrowRight, UserPlus, Minus, Plus, ChevronLeft, ChevronRight, Quote, X, Camera, Zap, Trophy, Heart, Map, Mail, Phone, Send, Compass, ArrowUpRight, Shield, Leaf, Gift, Percent, Tag, Clock, Flame } from 'lucide-react';
+import { Search, Calendar, MapPin, Users, Star, Filter, ArrowRight, UserPlus, Minus, Plus, ChevronLeft, ChevronRight, Quote, X, Camera, Zap, Trophy, Heart, Map, Mail, Phone, Send, Compass, ArrowUpRight, ShieldCheck, Leaf, Gift, Percent, Tag, Clock, Flame } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import TripCard from '../components/TripCard';
@@ -531,11 +531,11 @@ const Home: React.FC = () => {
               <div className="absolute top-4 -left-12 bg-white p-4 rounded-xl shadow-xl z-20 animate-float hidden md:block border border-brand-beige/30">
                 <div className="flex items-center gap-3">
                   <div className="bg-green-100 p-2 rounded-full text-green-600">
-                    <Shield size={20} />
+                    <ShieldCheck size={20} />
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Safety Score</p>
-                    <p className="text-lg font-black text-brand-black">100%</p>
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Travel Insured Trips</p>
+                    <p className="text-lg font-black text-brand-black">Verified</p>
                   </div>
                 </div>
               </div>
