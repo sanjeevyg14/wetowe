@@ -4,6 +4,7 @@ const Booking = require('../models/Booking.cjs');
 const authMiddleware = require('../middleware/authMiddleware.cjs');
 const connectDB = require('../lib/db.cjs');
 const { v4: uuidv4 } = require('uuid');
+const validator = require('validator');
 const { sendBookingNotification } = require('../lib/emailService.cjs');
 
 const mapBooking = (b) => ({
@@ -34,8 +35,7 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ message: 'Missing required booking fields' });
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(String(email))) {
+    if (!validator.isEmail(String(email))) {
       return res.status(400).json({ message: 'Invalid email format' });
     }
 
@@ -198,7 +198,7 @@ router.put('/:id/status', authMiddleware, async (req, res) => {
       return res.status(403).json({ message: "Admin access required" });
     }
 
-    const { status } = req.body;
+    const status = typeof req.body?.status === 'string' ? req.body.status : '';
     const allowedStatuses = ['pending', 'contacted', 'confirmed', 'cancelled', 'refunded', 'failed', 'expired'];
     if (!allowedStatuses.includes(status)) {
       return res.status(400).json({ message: 'Invalid booking status' });
@@ -248,7 +248,8 @@ router.get('/seat-stats', authMiddleware, async (req, res) => {
       return res.status(403).json({ message: "Admin access required" });
     }
 
-    const { tripId, date } = req.query;
+    const tripId = typeof req.query?.tripId === 'string' ? req.query.tripId : '';
+    const date = typeof req.query?.date === 'string' ? req.query.date : '';
     if (!tripId || !date) {
       return res.status(400).json({ message: "tripId and date are required" });
     }
