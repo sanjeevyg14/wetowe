@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Calendar, MapPin, Users, Star, Filter, ArrowRight, UserPlus, Minus, Plus, ChevronLeft, ChevronRight, Quote, X, Camera, Zap, Trophy, Heart, Map, Mail, Phone, Send, Compass, ArrowUpRight, ShieldCheck, Leaf, Gift, Percent, Tag, Clock, Flame } from 'lucide-react';
+import { Search, Calendar, MapPin, Users, Star, Filter, ArrowRight, Minus, Plus, ChevronLeft, ChevronRight, Quote, X, Camera, Zap, Trophy, Heart, Map, Mail, Phone, Send, Compass, ArrowUpRight, ShieldCheck, Leaf, Gift, Percent, Tag, Clock, Flame } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import TripCard from '../components/TripCard';

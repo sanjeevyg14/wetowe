@@ -246,8 +246,13 @@ const Admin: React.FC = () => {
     };
 
     const handleBookingStatusUpdate = async (bookingId: string, status: 'pending' | 'contacted' | 'confirmed' | 'cancelled' | 'refunded' | 'failed' | 'expired') => {
-        const updated = await api.updateBookingStatus(bookingId, status);
-        setAllBookings(allBookings.map(b => b.id === bookingId ? updated : b));
+        try {
+            const updated = await api.updateBookingStatus(bookingId, status);
+            setAllBookings(allBookings.map(b => b.id === bookingId ? updated : b));
+        } catch (error) {
+            console.error('Failed to update booking status:', error);
+            alert('Failed to update booking status. Please try again.');
+        }
     };
 
     // Bookings grouped by trip → date for the admin bookings tab

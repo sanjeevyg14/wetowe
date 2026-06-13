@@ -16,7 +16,7 @@ const buildUserTemplate = (booking) => {
   const tripDate = escapeHtml(booking.date || 'TBD');
   const travelers = escapeHtml(booking.travelers || 1);
   const pickupPoint = escapeHtml(booking.pickupPoint || 'Will be shared by team');
-  const bookingRef = escapeHtml(String(booking._id || '').slice(-6).toUpperCase());
+  const bookingRef = escapeHtml(String(booking._id || '').padStart(6, '0').slice(-6).toUpperCase());
 
   return `
     <div style="font-family:Arial,Helvetica,sans-serif;background:#f7f4ec;padding:32px;color:#1a1a1a;">
@@ -52,7 +52,14 @@ async function sendBookingNotification(booking) {
   const senderName = process.env.BREVO_SENDER_NAME || 'Wheels to Wilderness';
   const adminEmail = process.env.BOOKING_ADMIN_EMAIL;
 
-  if (!apiKey || !senderEmail || !adminEmail || !booking?.email) {
+  const missing = [];
+  if (!apiKey) missing.push('BREVO_API_KEY');
+  if (!senderEmail) missing.push('BREVO_SENDER_EMAIL');
+  if (!adminEmail) missing.push('BOOKING_ADMIN_EMAIL');
+  if (!booking?.email) missing.push('booking.email');
+
+  if (missing.length > 0) {
+    console.error(`[Booking Email] Missing required configuration/parameters: ${missing.join(', ')}`);
     return { sent: false };
   }
 

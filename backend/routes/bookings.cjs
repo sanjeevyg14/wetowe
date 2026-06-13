@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 const Booking = require('../models/Booking.cjs');
 const authMiddleware = require('../middleware/authMiddleware.cjs');
 const connectDB = require('../lib/db.cjs');
@@ -39,9 +40,10 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ message: 'Invalid email format' });
     }
 
-    const phoneRegex = /^[0-9]{10}$/;
+    // Allow 10-15 digits, optionally starting with '+' (supports international/country codes)
+    const phoneRegex = /^\+?[0-9]{10,15}$/;
     if (!phoneRegex.test(String(phone))) {
-      return res.status(400).json({ message: 'Phone number must be 10 digits' });
+      return res.status(400).json({ message: 'Invalid phone number format. Must be 10 to 15 digits, optionally starting with "+".' });
     }
 
     const { getAvailability } = require('../lib/bookingUtils.cjs');
@@ -65,7 +67,7 @@ router.post('/', async (req, res) => {
       travelers: Number(travelers),
       pickupPoint: pickupPoint ? String(pickupPoint) : '',
       totalPrice: Number(totalPrice),
-      transactionId: `MANUAL-${Date.now()}-${uuidv4().slice(0, 6)}`,
+      transactionId: `MANUAL-${uuidv4().slice(-6).toUpperCase()}`,
       status: 'pending',
       pendingExpiresAt: null
     });
@@ -155,6 +157,9 @@ router.get('/check-availability', async (req, res) => {
 router.put('/:id/cancel', authMiddleware, async (req, res) => {
   try {
     await connectDB();
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: 'Invalid booking ID format' });
+    }
     const booking = await Booking.findById(req.params.id);
     if (!booking) return res.status(404).json({ message: "Booking not found" });
 
@@ -179,6 +184,9 @@ router.put('/:id/refund', authMiddleware, async (req, res) => {
     if (req.user.role !== 'admin') {
       return res.status(403).json({ message: "Admin access required" });
     }
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: 'Invalid booking ID format' });
+    }
     const booking = await Booking.findByIdAndUpdate(
       req.params.id,
       { status: 'refunded' },
@@ -196,6 +204,10 @@ router.put('/:id/status', authMiddleware, async (req, res) => {
     await connectDB();
     if (req.user.role !== 'admin') {
       return res.status(403).json({ message: "Admin access required" });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: 'Invalid booking ID format' });
     }
 
     const status = typeof req.body?.status === 'string' ? req.body.status : '';
@@ -286,6 +298,10 @@ router.put('/:id/force-release', authMiddleware, async (req, res) => {
     await connectDB();
     if (req.user.role !== 'admin') {
       return res.status(403).json({ message: "Admin access required" });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: 'Invalid booking ID format' });
     }
 
     const booking = await Booking.findById(req.params.id);
