@@ -28,10 +28,38 @@ function loadHtml2Pdf(): Promise<void> {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
+ *  Helpers
+ * ─────────────────────────────────────────────────────────────────────────── */
+
+/**
+ * Fetches an image URL and returns a base64 data-URI so html2canvas never
+ * has to deal with cross-origin requests (which it often blocks).
+ * Returns null on any failure so the caller can skip the image gracefully.
+ */
+async function toBase64(url: string): Promise<string | null> {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    return new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = () => reject(new Error('FileReader failed'));
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
  *  Itinerary PDF  – direct download, no print dialog
  * ─────────────────────────────────────────────────────────────────────────── */
 export async function downloadItineraryPDF(trip: Trip): Promise<void> {
   await loadHtml2Pdf();
+
+  // Pre-fetch cover image as base64 so html2canvas has no CORS issues
+  const coverBase64 = trip.imageUrl ? await toBase64(trip.imageUrl) : null;
 
   const brandDark  = '#3A4D39';
   const brandSage  = '#739072';
@@ -90,9 +118,9 @@ export async function downloadItineraryPDF(trip: Trip): Promise<void> {
     ? (trip.dates ?? []).map(d => `<span style="display:inline-block;background:${accent2}20;border:1px solid ${accent2}50;border-radius:4px;padding:3px 10px;font-size:11px;color:${accent2};font-weight:700;margin:3px;font-family:monospace;">${escHtml(d)}</span>`).join('')
     : `<span style="font-size:12px;color:#888;">Contact us for upcoming dates</span>`;
 
-  const imageSection = trip.imageUrl
+  const imageSection = coverBase64
     ? `<div style="height:240px;overflow:hidden;border-radius:0 0 8px 8px;margin-bottom:0;">
-         <img src="${escHtml(trip.imageUrl)}" alt="${escHtml(trip.title)}" style="width:100%;height:100%;object-fit:cover;" crossorigin="anonymous" />
+         <img src="${coverBase64}" alt="${escHtml(trip.title)}" style="width:100%;height:100%;object-fit:cover;" />
        </div>`
     : '';
 
@@ -211,13 +239,18 @@ export async function downloadItineraryPDF(trip: Trip): Promise<void> {
   const opts = {
     margin:      [0, 0, 0, 0],
     filename:    `${trip.title.replace(/[^a-z0-9]/gi, '_')}_Itinerary.pdf`,
-    image:       { type: 'jpeg', quality: 0.92 },
-    html2canvas: { scale: 2, useCORS: true, logging: false, allowTaint: true },
-    jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    image:       { type: 'jpeg', quality: 0.95 },
+    html2canvas: {
+      scale: 2,
+      useCORS: false,   // false because all images are already base64 data URIs
+      logging: false,
+      imageTimeout: 0,  // disable per-image timeout
+    },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
   };
 
-  // Pass the HTML string directly — html2pdf creates its own sandboxed iframe
-  // internally so html2canvas can capture it (off-screen DOM elements render blank).
+  // Pass the raw HTML string – html2pdf creates its own sandboxed iframe
+  // so html2canvas can capture it properly.
   await window.html2pdf().set(opts).from(htmlContent, 'string').save();
 }
 

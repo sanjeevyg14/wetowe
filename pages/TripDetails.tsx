@@ -107,8 +107,8 @@ const TripDetails: React.FC = () => {
         try {
             await downloadItineraryPDF(trip);
         } catch (err) {
-            console.error('PDF generation failed', err);
-            alert('Could not generate PDF. Please try again.');
+            console.error('PDF generation failed:', err);
+            alert(`Could not generate PDF: ${err instanceof Error ? err.message : 'Unknown error'}. Please try again.`);
         } finally {
             setDownloadingPDF(false);
         }
