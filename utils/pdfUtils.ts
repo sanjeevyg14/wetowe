@@ -207,26 +207,21 @@ export async function downloadItineraryPDF(trip: Trip): Promise<void> {
 </body>
 </html>`;
 
-  /* ── Create a hidden container, inject HTML, then use html2pdf ── */
-  const container = document.createElement('div');
-  container.style.cssText = 'position:fixed;left:-9999px;top:0;width:210mm;background:white;';
-  container.innerHTML = htmlContent;
-  document.body.appendChild(container);
 
   const opts = {
     margin:      [0, 0, 0, 0],
     filename:    `${trip.title.replace(/[^a-z0-9]/gi, '_')}_Itinerary.pdf`,
     image:       { type: 'jpeg', quality: 0.92 },
-    html2canvas: { scale: 2, useCORS: true, logging: false },
+    html2canvas: { scale: 2, useCORS: true, logging: false, allowTaint: true },
     jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' },
   };
 
-  try {
-    await window.html2pdf().set(opts).from(container).save();
-  } finally {
-    document.body.removeChild(container);
-  }
+  // Pass the HTML string directly — html2pdf creates its own sandboxed iframe
+  // internally so html2canvas can capture it (off-screen DOM elements render blank).
+  await window.html2pdf().set(opts).from(htmlContent, 'string').save();
 }
+
+
 
 const BRAND_DARK  = '#3A4D39';  // forest green – used for ticket main panel
 const BRAND_SAGE  = '#739072';  // medium green – accents (reserved for future use)
