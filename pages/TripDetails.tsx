@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { MapPin, Clock, Star, Check, X, Shield, Minus, Plus, ChevronLeft, ChevronRight, ArrowRight, Bus, Map as MapIcon, Info, Camera, Calendar, User as UserIcon, CheckCircle } from 'lucide-react';
+import { MapPin, Clock, Star, Check, X, Shield, Minus, Plus, ChevronLeft, ChevronRight, ArrowRight, Bus, Map as MapIcon, Info, Camera, Calendar, User as UserIcon } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { api } from '../services/api';
-import { Trip, Booking } from '../types';
+import { Trip } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import SEO from '../components/SEO';
 
@@ -20,13 +20,12 @@ const TripDetails: React.FC = () => {
     const [selectedPickupPoint, setSelectedPickupPoint] = useState<string | null>(null);
     const [travelers, setTravelers] = useState(1);
     const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
-    const [bookingStep, setBookingStep] = useState<'form' | 'processing' | 'success'>('form');
+    const [bookingStep, setBookingStep] = useState<'form' | 'processing'>('form');
     const [bookingData, setBookingData] = useState({
         name: '',
         email: '',
         phone: ''
     });
-    const [confirmedBooking, setConfirmedBooking] = useState<Booking | null>(null);
 
     // Availability State
     const [availability, setAvailability] = useState({ totalBooked: 0, remaining: 12, isSoldOut: false });
@@ -108,13 +107,13 @@ const TripDetails: React.FC = () => {
                 totalPrice: totalPrice
             });
 
-            if (result && 'url' in result && typeof result.url === 'string') {
-                window.location.href = result.url;
-            }
-            else if (result && 'id' in result) {
-                setConfirmedBooking(result as Booking);
-                setBookingStep('success');
-            }
+            setIsBookingModalOpen(false);
+            navigate('/booking-confirmation', {
+                state: {
+                    booking: result,
+                    tripTitle: trip.title
+                }
+            });
         } catch (error) {
             console.error("Booking failed", error);
             setBookingStep('form');
@@ -522,7 +521,7 @@ const TripDetails: React.FC = () => {
                                     )}
                                     <div className="mt-4 text-center">
                                         <span className="text-[10px] text-brand-olive/40 flex items-center justify-center gap-1">
-                                            <Shield size={10} /> Secure SSL Payment
+                                            <Shield size={10} /> No online payment required
                                         </span>
                                     </div>
                                 </div>
@@ -562,7 +561,7 @@ const TripDetails: React.FC = () => {
                                         <Bus size={20} />
                                     </div>
                                     <div>
-                                        <h2 className="text-2xl font-bold text-brand-black font-serif">Expedition Manifest</h2>
+                                        <h2 className="text-2xl font-bold text-brand-black font-serif">Booking Enquiry Form</h2>
                                         <p className="text-brand-black/50 text-xs uppercase tracking-widest">Passenger Details</p>
                                     </div>
                                 </div>
@@ -637,13 +636,13 @@ const TripDetails: React.FC = () => {
                                             </div>
                                         )}
                                         <div className="flex justify-between items-center pt-2 border-t border-brand-olive/20">
-                                            <span className="font-bold text-brand-cream">Total Amount</span>
+                                            <span className="font-bold text-brand-cream">Estimated Amount</span>
                                             <span className="text-xl font-bold font-mono text-brand-black">₹{totalPrice.toLocaleString()}</span>
                                         </div>
                                     </div>
 
                                     <button type="submit" className="w-full bg-brand-cream text-brand-olive font-bold py-4 hover:bg-brand-black hover:text-brand-olive transition mt-4 flex items-center justify-center gap-2 uppercase tracking-wide text-sm rounded-lg shadow-lg">
-                                        Proceed to Payment <ArrowRight size={16} />
+                                        Submit Booking Enquiry <ArrowRight size={16} />
                                     </button>
                                 </form>
                             </div>
@@ -653,61 +652,8 @@ const TripDetails: React.FC = () => {
                         {bookingStep === 'processing' && (
                             <div className="p-12 text-center flex flex-col items-center justify-center min-h-[500px]">
                                 <div className="w-20 h-20 border-4 border-gray-200 border-t-brand-olive rounded-full animate-spin mb-8"></div>
-                                <h3 className="text-2xl font-bold text-brand-black mb-2 font-serif">Securing Your Spot...</h3>
-                                <p className="text-brand-black/50">Please wait while we confirm your reservation.</p>
-                            </div>
-                        )}
-
-                        {/* Step 3: Success - Boarding Pass Style */}
-                        {bookingStep === 'success' && confirmedBooking && (
-                            <div className="flex flex-col h-full bg-brand-beige">
-                                {/* Ticket Header */}
-                                <div className="bg-brand-olive p-8 text-center text-brand-cream relative overflow-hidden">
-                                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-400 via-red-500 to-pink-500"></div>
-                                    <div className="animate-fade-in-up">
-                                        <div className="w-16 h-16 bg-brand-cream rounded-full flex items-center justify-center mx-auto mb-4 text-brand-olive shadow-lg">
-                                            <CheckCircle size={32} strokeWidth={3} />
-                                        </div>
-                                        <h2 className="text-3xl font-bold font-serif mb-1">You're In!</h2>
-                                        <p className="text-brand-cream/70 text-sm uppercase tracking-widest">Booking Confirmed</p>
-                                    </div>
-                                </div>
-
-                                {/* Ticket Body */}
-                                <div className="p-8 relative">
-                                    {/* Serrated Edge Visual */}
-                                    <div className="absolute top-0 left-0 w-full h-4 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMTAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTAgMTBMMTAgMEwyMCAxMFoiIGZpbGw9IiMzQTREMzkiLz48L3N2Zz4=')] bg-repeat-x opacity-100 -mt-2"></div>
-
-                                    <div className="bg-white p-6 rounded-lg shadow-sm border border-brand-black/5 space-y-4 animate-fade-in-up animate-delay-100">
-                                        <div className="flex justify-between border-b border-dashed border-gray-200 pb-4">
-                                            <div>
-                                                <p className="text-xs text-gray-400 uppercase tracking-widest">Passenger</p>
-                                                <p className="font-bold text-lg text-brand-black">{confirmedBooking.customerName}</p>
-                                            </div>
-                                            <div className="text-right">
-                                                <p className="text-xs text-gray-400 uppercase tracking-widest">Ref ID</p>
-                                                <p className="font-mono font-bold text-lg text-brand-sage">#{confirmedBooking.id.slice(-6)}</p>
-                                            </div>
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div>
-                                                <p className="text-xs text-gray-400 uppercase tracking-widest">Destination</p>
-                                                <p className="font-bold text-brand-black">{trip.title}</p>
-                                            </div>
-                                            <div className="text-right">
-                                                <p className="text-xs text-gray-400 uppercase tracking-widest">Date</p>
-                                                <p className="font-bold text-brand-black">{confirmedBooking.date}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="mt-8 space-y-3 animate-fade-in-up animate-delay-200">
-                                        <Link to="/my-bookings" className="w-full bg-brand-black text-brand-olive py-4 rounded-lg font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-brand-cream transition shadow-lg">
-                                            View Ticket <ArrowRight size={16} />
-                                        </Link>
-                                        <p className="text-center text-xs text-brand-black/40">A confirmation email has been sent to {confirmedBooking.email}</p>
-                                    </div>
-                                </div>
+                                <h3 className="text-2xl font-bold text-brand-black mb-2 font-serif">Submitting Booking Enquiry...</h3>
+                                <p className="text-brand-black/50">Please wait while we save your details.</p>
                             </div>
                         )}
 

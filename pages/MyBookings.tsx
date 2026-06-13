@@ -44,7 +44,7 @@ const MyBookings: React.FC = () => {
     if (!isAuthenticated || !user) return <Navigate to="/login" />;
 
     const filteredBookings = bookings.filter(b => {
-        if (activeTab === 'active') return ['confirmed', 'pending'].includes(b.status);
+        if (activeTab === 'active') return ['confirmed', 'pending', 'contacted'].includes(b.status);
         if (activeTab === 'cancelled') return ['cancelled', 'refunded'].includes(b.status);
         return true;
     });
@@ -75,7 +75,7 @@ const MyBookings: React.FC = () => {
                     >
                         <Plane size={16} /> Upcoming & Active
                         <span className={`ml-1 text-xs px-2 py-0.5 rounded-full ${activeTab === 'active' ? 'bg-white/20 text-white' : 'bg-gray-200 text-gray-600'}`}>
-                            {bookings.filter(b => ['confirmed', 'pending'].includes(b.status)).length}
+                            {bookings.filter(b => ['confirmed', 'pending', 'contacted'].includes(b.status)).length}
                         </span>
                     </button>
                     <button
@@ -125,6 +125,7 @@ const MyBookings: React.FC = () => {
                                     <div className="absolute top-4 left-4">
                                         <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest shadow-lg border border-white/20 backdrop-blur-md
                                     ${booking.status === 'confirmed' ? 'bg-green-500/90 text-white' :
+                                               booking.status === 'contacted' ? 'bg-blue-500/90 text-white' :
                                                 booking.status === 'pending' ? 'bg-yellow-500/90 text-white' :
                                                     booking.status === 'cancelled' ? 'bg-red-500/90 text-white' :
                                                         'bg-gray-500/90 text-white'}
@@ -147,7 +148,7 @@ const MyBookings: React.FC = () => {
                                             </div>
                                         </div>
                                         <div className="space-y-1 text-right">
-                                            <p className="text-[10px] uppercase font-bold text-gray-400 tracking-widest">Total Paid</p>
+                                            <p className="text-[10px] uppercase font-bold text-gray-400 tracking-widest">Estimated Amount</p>
                                             <div className="text-2xl font-black text-brand-olive font-mono">₹{booking.totalPrice.toLocaleString()}</div>
                                         </div>
                                     </div>
@@ -177,7 +178,7 @@ const MyBookings: React.FC = () => {
 
                                     <div className="flex items-center justify-between border-t border-gray-100 pt-6 mt-auto">
                                         <div className="flex gap-3">
-                                            {(booking.status === 'confirmed' || booking.status === 'pending') ? (
+                                            {(booking.status === 'confirmed' || booking.status === 'pending' || booking.status === 'contacted') ? (
                                                 <>
                                                     {booking.status === 'confirmed' && (
                                                         <button
@@ -209,7 +210,12 @@ const MyBookings: React.FC = () => {
                                         )}
                                         {booking.status === 'pending' && (
                                             <div className="flex items-center gap-1 text-yellow-600 text-xs font-bold uppercase tracking-wider">
-                                                <Clock size={14} /> Payment Pending
+                                                <Clock size={14} /> Awaiting Team Confirmation
+                                            </div>
+                                        )}
+                                        {booking.status === 'contacted' && (
+                                            <div className="flex items-center gap-1 text-blue-600 text-xs font-bold uppercase tracking-wider">
+                                                <CheckCircle2 size={14} /> Team Contacted
                                             </div>
                                         )}
                                     </div>

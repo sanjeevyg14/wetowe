@@ -99,3 +99,15 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
 }
+
+.admin-panel input,
+.admin-panel textarea,
+.admin-panel select {
+  color: #111827;
+}
+
+.admin-panel input::placeholder,
+.admin-panel textarea::placeholder {
+  color: #6b7280;
+  opacity: 1;
+}

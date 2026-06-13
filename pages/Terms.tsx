@@ -40,15 +40,16 @@ const Terms: React.FC = () => {
                                 If you do not agree to these terms, please do not use our services.
                             </p>
 
-                            <h2 className="text-2xl font-bold text-brand-black font-serif mb-4">2. Booking and Payments</h2>
+                            <h2 className="text-2xl font-bold text-brand-black font-serif mb-4">2. Booking and Confirmation</h2>
                             <p className="text-brand-black/70 mb-4 leading-relaxed">
-                                All bookings are subject to availability. To confirm a booking, a deposit or full payment (as specified) must be made.
-                                The remaining balance, if any, must be paid before the trip start date as mentioned in the booking confirmation.
+                                All bookings are subject to availability and manual review by our team. We do not process online gateway payments on the website.
+                                Once you submit a booking enquiry, our team will contact you directly with confirmation and payment instructions.
                             </p>
                             <ul className="list-disc list-inside text-brand-black/70 mb-6 space-y-2">
-                                <li>Payments can be made via UPI, bank transfer, or credit/debit cards</li>
+                                <li>Booking enquiry acknowledgement is sent by email</li>
+                                <li>Our team manually confirms status and follows up with travelers</li>
                                 <li>All prices are in Indian Rupees (INR) unless otherwise stated</li>
-                                <li>Booking confirmation is sent via email and WhatsApp</li>
+                                <li>Final confirmation is shared after direct coordination with our team</li>
                                 <li>Group discounts are applicable only for bookings of 4 or more travelers</li>
                             </ul>
 

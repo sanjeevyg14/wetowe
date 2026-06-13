@@ -245,11 +245,13 @@ const Admin: React.FC = () => {
         }
     };
 
-    const handleRefund = async (bookingId: string) => {
-        if (confirm('Confirm refund for this booking? Status will change to Refunded.')) {
-            await api.processRefund(bookingId);
-            // Update local state
-            setAllBookings(allBookings.map(b => b.id === bookingId ? { ...b, status: 'refunded' } : b));
+    const handleBookingStatusUpdate = async (bookingId: string, status: 'pending' | 'contacted' | 'confirmed' | 'cancelled' | 'refunded' | 'failed' | 'expired') => {
+        try {
+            const updated = await api.updateBookingStatus(bookingId, status);
+            setAllBookings(allBookings.map(b => b.id === bookingId ? updated : b));
+        } catch (error) {
+            console.error('Failed to update booking status:', error);
+            alert('Failed to update booking status. Please try again.');
         }
     };
 
@@ -579,7 +581,7 @@ const Admin: React.FC = () => {
     if (!isAdmin) return <Navigate to="/" />;
 
     return (
-        <div className="min-h-screen bg-gray-100 font-sans">
+        <div className="min-h-screen bg-gray-100 font-sans admin-panel">
             <Navbar />
 
             <div className="flex max-w-7xl mx-auto px-4 py-8 gap-6">
@@ -606,7 +608,7 @@ const Admin: React.FC = () => {
                                 onClick={() => setActiveTab('bookings')}
                                 className={`flex items-center gap-3 w-full px-4 py-3 rounded-lg font-medium transition ${activeTab === 'bookings' ? 'bg-purple-50 text-brand-purple' : 'text-gray-600 hover:bg-gray-50'}`}
                             >
-                                <Users size={20} /> Bookings
+                                <Users size={20} /> Booking Enquiries
                             </button>
                             <button
                                 onClick={() => setActiveTab('enquiries')}
@@ -667,7 +669,7 @@ const Admin: React.FC = () => {
                                 {tab === 'reviews' && <Star size={16} />}
                                 {tab === 'ticker' && <Megaphone size={16} />}
                                 {tab === 'hero' && <ImageIcon size={16} />}
-                                {tab === 'hero' ? 'Hero Carousel' : tab.charAt(0).toUpperCase() + tab.slice(1)}
+                                {tab === 'bookings' ? 'Booking Enquiries' : tab === 'hero' ? 'Hero Carousel' : tab.charAt(0).toUpperCase() + tab.slice(1)}
                             </button>
                         ))}
                     </div>
@@ -676,7 +678,7 @@ const Admin: React.FC = () => {
                 {/* Main Content */}
                 <main className="flex-1">
                     <div className="flex justify-between items-center mb-6">
-                        <h1 className="text-2xl font-bold text-gray-800 capitalize">{activeTab}</h1>
+                        <h1 className="text-2xl font-bold text-gray-800 capitalize">{activeTab === 'bookings' ? 'Booking Enquiries' : activeTab}</h1>
                         {activeTab === 'trips' && (
                             <button
                                 onClick={openAddModal}
@@ -842,14 +844,14 @@ const Admin: React.FC = () => {
                                     {/* Header */}
                                     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex items-center justify-between">
                                         <div>
-                                            <h3 className="text-lg font-bold text-gray-900">Bookings by Trip</h3>
-                                            <p className="text-sm text-gray-500 mt-0.5">{allBookings.length} booking{allBookings.length !== 1 ? 's' : ''} across {Object.keys(bookingsByTrip).length} trip{Object.keys(bookingsByTrip).length !== 1 ? 's' : ''}</p>
+                                            <h3 className="text-lg font-bold text-gray-900">Booking Enquiries by Trip</h3>
+                                            <p className="text-sm text-gray-500 mt-0.5">{allBookings.length} {allBookings.length === 1 ? 'enquiry' : 'enquiries'} across {Object.keys(bookingsByTrip).length} trip{Object.keys(bookingsByTrip).length !== 1 ? 's' : ''}</p>
                                         </div>
                                     </div>
 
                                     {allBookings.length === 0 && (
                                         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center text-gray-400">
-                                            No bookings yet.
+                                            No booking enquiries yet.
                                         </div>
                                     )}
 
@@ -932,7 +934,7 @@ const Admin: React.FC = () => {
                                                                                 <table className="w-full text-left text-sm">
                                                                                     <thead className="bg-gray-50 text-gray-400 text-xs uppercase font-semibold">
                                                                                         <tr>
-                                                                                            <th className="px-6 py-3">Booking ID</th>
+                                                                                            <th className="px-6 py-3">Enquiry ID</th>
                                                                                             <th className="px-6 py-3">Customer</th>
                                                                                             <th className="px-6 py-3">Travelers</th>
                                                                                             <th className="px-6 py-3">Amount</th>
@@ -954,6 +956,7 @@ const Admin: React.FC = () => {
                                                                                                 <td className="px-6 py-3">
                                                                                                     <span className={`px-2 py-1 rounded-full text-xs font-bold uppercase ${
                                                                                                         booking.status === 'confirmed' ? 'bg-green-100 text-green-700' :
+                                                                                                        booking.status === 'contacted' ? 'bg-blue-100 text-blue-700' :
                                                                                                         booking.status === 'cancelled' ? 'bg-red-100 text-red-700' :
                                                                                                         booking.status === 'refunded' ? 'bg-gray-100 text-gray-600' :
                                                                                                         'bg-yellow-100 text-yellow-700'
@@ -973,11 +976,19 @@ const Admin: React.FC = () => {
                                                                                                             Ticket
                                                                                                         </button>
                                                                                                         {/* Status actions */}
-                                                                                                        {booking.status === 'cancelled' && (
-                                                                                                            <button onClick={() => handleRefund(booking.id)} className="text-brand-orange hover:bg-orange-50 px-3 py-1.5 rounded-lg text-xs font-medium border border-orange-200 transition">Refund</button>
-                                                                                                        )}
-                                                                                                        {booking.status === 'confirmed' && <span className="text-green-600 text-xs flex items-center gap-1"><CheckCircle size={13} /> Paid</span>}
-                                                                                                        {booking.status === 'refunded' && <span className="text-gray-400 text-xs flex items-center gap-1"><RefreshCcw size={13} /> Refunded</span>}
+                                                                                                        <select
+                                                                                                            className="text-xs border border-gray-300 rounded-lg px-2 py-1 bg-white"
+                                                                                                            value={booking.status}
+                                                                                                            onChange={(e) => handleBookingStatusUpdate(booking.id, e.target.value as 'pending' | 'contacted' | 'confirmed' | 'cancelled' | 'refunded' | 'failed' | 'expired')}
+                                                                                                        >
+                                                                                                            <option value="pending">Pending</option>
+                                                                                                            <option value="contacted">Contacted</option>
+                                                                                                            <option value="confirmed">Confirmed</option>
+                                                                                                            <option value="cancelled">Cancelled</option>
+                                                                                                            <option value="refunded">Refunded</option>
+                                                                                                            <option value="failed">Failed</option>
+                                                                                                            <option value="expired">Expired</option>
+                                                                                                        </select>
                                                                                                     </div>
                                                                                                 </td>
                                                                                             </tr>
