@@ -1,4 +1,232 @@
-import { Booking } from '../types';
+import { Booking, Trip } from '../types';
+
+/* ─────────────────────────────────────────────────────────────────────────────
+ *  html2pdf.js  – lazy CDN loader
+ * ─────────────────────────────────────────────────────────────────────────── */
+declare global {
+  interface Window {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    html2pdf?: any;
+  }
+}
+
+let html2pdfLoading: Promise<void> | null = null;
+
+function loadHtml2Pdf(): Promise<void> {
+  if (window.html2pdf) return Promise.resolve();
+  if (html2pdfLoading) return html2pdfLoading;
+
+  html2pdfLoading = new Promise<void>((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error('Failed to load html2pdf.js'));
+    document.head.appendChild(script);
+  });
+
+  return html2pdfLoading;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+ *  Itinerary PDF  – direct download, no print dialog
+ * ─────────────────────────────────────────────────────────────────────────── */
+export async function downloadItineraryPDF(trip: Trip): Promise<void> {
+  await loadHtml2Pdf();
+
+  const brandDark  = '#3A4D39';
+  const brandSage  = '#739072';
+  const brandCream = '#F9F5EB';
+  const brandBeige = '#ECE3CE';
+  const accent1    = '#D4A853'; // gold
+  const accent2    = '#5B8FA8'; // teal
+
+  /* ── Day rows HTML ── */
+  const dayColors = ['#4CAF50', '#2196F3', '#FF9800', '#E91E63', '#9C27B0', '#00BCD4', '#FF5722'];
+  const dayRows = (trip.itinerary ?? []).map((day, i) => {
+    const col = dayColors[i % dayColors.length];
+    const activities = (day.activities ?? [])
+      .map(a => `<li style="margin:4px 0 4px 0;padding-left:12px;border-left:2px solid ${col}40;font-size:12px;color:#333;">${escHtml(a)}</li>`)
+      .join('');
+    return `
+      <div style="margin-bottom:20px;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+        <div style="background:${col};padding:10px 18px;display:flex;align-items:center;gap:12px;">
+          <div style="background:white;color:${col};font-weight:900;font-size:16px;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${day.day}</div>
+          <span style="font-size:14px;font-weight:700;color:white;letter-spacing:0.5px;">${escHtml(day.title)}</span>
+        </div>
+        <div style="background:#fff;padding:14px 18px;">
+          <ul style="list-style:none;margin:0;padding:0;">${activities}</ul>
+        </div>
+      </div>`;
+  }).join('');
+
+  /* ── Inclusions / Exclusions ── */
+  const inclRows = (trip.inclusions ?? [])
+    .map(i => `<li style="display:flex;align-items:flex-start;gap:8px;margin-bottom:6px;font-size:12px;"><span style="color:#4CAF50;font-size:14px;flex-shrink:0;">✓</span>${escHtml(i)}</li>`)
+    .join('');
+  const exclRows = (trip.exclusions ?? [])
+    .map(i => `<li style="display:flex;align-items:flex-start;gap:8px;margin-bottom:6px;font-size:12px;"><span style="color:#f44336;font-size:14px;flex-shrink:0;">✗</span>${escHtml(i)}</li>`)
+    .join('');
+
+  /* ── Highlights ── */
+  const highlights = (trip.highlights ?? []).map(h =>
+    `<span style="display:inline-block;background:${brandSage}20;border:1px solid ${brandSage}40;border-radius:20px;padding:3px 12px;font-size:11px;color:${brandDark};margin:3px;">${escHtml(h)}</span>`
+  ).join('');
+
+  /* ── Pickup Points ── */
+  const pickups = (trip.pickupPoints ?? []).length > 0
+    ? `<div style="margin-top:24px;background:${brandDark};color:${brandCream};border-radius:8px;padding:18px 20px;">
+        <h4 style="font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;opacity:0.7;margin:0 0 12px;">🚌 Boarding Points</h4>
+        ${(trip.pickupPoints ?? []).map((p, i) =>
+          `<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+            <div style="width:8px;height:8px;border-radius:50%;background:${accent1};flex-shrink:0;"></div>
+            <span style="font-size:13px;">${escHtml(p)}</span>
+          </div>`
+        ).join('')}
+       </div>`
+    : '';
+
+  /* ── Dates ── */
+  const datesHtml = (trip.dates ?? []).length > 0
+    ? (trip.dates ?? []).map(d => `<span style="display:inline-block;background:${accent2}20;border:1px solid ${accent2}50;border-radius:4px;padding:3px 10px;font-size:11px;color:${accent2};font-weight:700;margin:3px;font-family:monospace;">${escHtml(d)}</span>`).join('')
+    : `<span style="font-size:12px;color:#888;">Contact us for upcoming dates</span>`;
+
+  const imageSection = trip.imageUrl
+    ? `<div style="height:240px;overflow:hidden;border-radius:0 0 8px 8px;margin-bottom:0;">
+         <img src="${escHtml(trip.imageUrl)}" alt="${escHtml(trip.title)}" style="width:100%;height:100%;object-fit:cover;" crossorigin="anonymous" />
+       </div>`
+    : '';
+
+  const htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Itinerary – ${escHtml(trip.title)}</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family: Arial, Helvetica, sans-serif; background: #f5f5f0; color: #222; }
+    ul { list-style: none; }
+    h1,h2,h3,h4 { font-family: Georgia, serif; }
+  </style>
+</head>
+<body>
+  <!-- Cover Header -->
+  <div style="background:${brandDark};color:${brandCream};padding:28px 32px 20px;position:relative;overflow:hidden;">
+    <div style="position:absolute;top:-20px;right:-20px;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,0.04);"></div>
+    <div style="position:absolute;bottom:-40px;left:40%;width:300px;height:300px;border-radius:50%;background:rgba(255,255,255,0.03);"></div>
+    <!-- Brand -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;position:relative;z-index:1;">
+      <div>
+        <div style="font-size:22px;font-weight:900;letter-spacing:2px;text-transform:uppercase;color:${brandCream};">🏕️ Wheels to Wilderness</div>
+        <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;opacity:0.5;margin-top:2px;">Let's Get Lost Together</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="background:${accent1};color:${brandDark};font-size:9px;font-weight:900;letter-spacing:2px;text-transform:uppercase;padding:4px 14px;border-radius:20px;">Itinerary</div>
+        <div style="font-size:9px;opacity:0.4;margin-top:4px;">Generated ${new Date().toLocaleDateString('en-IN', { dateStyle: 'medium' })}</div>
+      </div>
+    </div>
+    <!-- Trip Title -->
+    <div style="position:relative;z-index:1;">
+      <h1 style="font-size:28px;font-weight:900;color:${accent1};line-height:1.2;margin-bottom:8px;">${escHtml(trip.title)}</h1>
+      <div style="display:flex;gap:20px;flex-wrap:wrap;font-size:12px;opacity:0.75;">
+        <span>📍 ${escHtml(trip.location)}</span>
+        <span>⏱ ${escHtml(trip.duration)}</span>
+        <span>💰 ₹${(trip.price ?? 0).toLocaleString('en-IN')} / person</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cover Image -->
+  ${imageSection}
+
+  <!-- Main Content -->
+  <div style="padding:28px 32px;">
+
+    <!-- Description -->
+    <div style="background:white;border-radius:8px;padding:20px 24px;margin-bottom:24px;border-left:4px solid ${brandSage};box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+      <h2 style="font-size:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:${brandSage};margin-bottom:10px;">About This Trip</h2>
+      <p style="font-size:13px;line-height:1.8;color:#444;">${escHtml(trip.description ?? '')}</p>
+    </div>
+
+    <!-- Highlights -->
+    ${(trip.highlights ?? []).length > 0 ? `
+    <div style="margin-bottom:24px;">
+      <h2 style="font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:${brandDark};margin-bottom:12px;border-bottom:2px solid ${brandDark}20;padding-bottom:6px;">✨ Highlights</h2>
+      <div>${highlights}</div>
+    </div>` : ''}
+
+    <!-- Dates -->
+    <div style="background:white;border-radius:8px;padding:16px 20px;margin-bottom:24px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+      <h2 style="font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:${accent2};margin-bottom:10px;">📅 Available Dates</h2>
+      <div>${datesHtml}</div>
+    </div>
+
+    <!-- Day-by-Day Itinerary -->
+    ${(trip.itinerary ?? []).length > 0 ? `
+    <div style="margin-bottom:24px;">
+      <h2 style="font-size:15px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:${brandDark};margin-bottom:16px;border-bottom:2px solid ${brandDark}20;padding-bottom:8px;">🗓️ Day-by-Day Itinerary</h2>
+      ${dayRows}
+    </div>` : ''}
+
+    <!-- Inclusions / Exclusions -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;">
+      <div style="background:white;border-radius:8px;padding:16px 18px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+        <h3 style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#4CAF50;margin-bottom:12px;">✓ Included</h3>
+        <ul>${inclRows || '<li style="font-size:12px;color:#888;">Contact us for details</li>'}</ul>
+      </div>
+      <div style="background:white;border-radius:8px;padding:16px 18px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+        <h3 style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#f44336;margin-bottom:12px;">✗ Not Included</h3>
+        <ul>${exclRows || '<li style="font-size:12px;color:#888;">Contact us for details</li>'}</ul>
+      </div>
+    </div>
+
+    <!-- Boarding Points -->
+    ${pickups}
+
+    <!-- Price Box -->
+    <div style="background:linear-gradient(135deg,${brandDark} 0%,${brandSage} 100%);border-radius:8px;padding:20px 24px;margin-top:${pickups ? '24px' : '0'};color:white;display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;opacity:0.7;">Starting from</div>
+        <div style="font-size:30px;font-weight:900;font-family:monospace;">₹${(trip.price ?? 0).toLocaleString('en-IN')}</div>
+        <div style="font-size:10px;opacity:0.6;">per person + GST</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:10px;opacity:0.7;margin-bottom:4px;">wheelstowilderness.in</div>
+        <div style="font-size:11px;font-weight:700;">📞 +91 98765 43210</div>
+        <div style="font-size:11px;">📧 hello@wheelstowilderness.in</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <div style="background:${brandBeige};padding:14px 32px;text-align:center;border-top:1px solid ${brandDark}20;">
+    <div style="font-size:10px;color:${brandDark};opacity:0.5;letter-spacing:1px;">
+      Wheels to Wilderness • wheelstowilderness.in • Crafted with ❤️ for adventure seekers
+    </div>
+  </div>
+</body>
+</html>`;
+
+  /* ── Create a hidden container, inject HTML, then use html2pdf ── */
+  const container = document.createElement('div');
+  container.style.cssText = 'position:fixed;left:-9999px;top:0;width:210mm;background:white;';
+  container.innerHTML = htmlContent;
+  document.body.appendChild(container);
+
+  const opts = {
+    margin:      [0, 0, 0, 0],
+    filename:    `${trip.title.replace(/[^a-z0-9]/gi, '_')}_Itinerary.pdf`,
+    image:       { type: 'jpeg', quality: 0.92 },
+    html2canvas: { scale: 2, useCORS: true, logging: false },
+    jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' },
+  };
+
+  try {
+    await window.html2pdf().set(opts).from(container).save();
+  } finally {
+    document.body.removeChild(container);
+  }
+}
 
 const BRAND_DARK  = '#3A4D39';  // forest green – used for ticket main panel
 const BRAND_SAGE  = '#739072';  // medium green – accents (reserved for future use)

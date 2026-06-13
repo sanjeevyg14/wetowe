@@ -5,6 +5,8 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const mongoSanitize = require('express-mongo-sanitize');
 const connectDB = require('./lib/db.cjs');
+const fs = require('fs');
+const path = require('path');
 
 // Load environment variables
 dotenv.config();
@@ -135,6 +137,141 @@ app.get('/', (req, res) => {
 
 app.get('/api', (req, res) => {
   res.send('Wheel to Wilderness API is running...');
+});
+
+// ── Dynamic Open Graph injection for /trip/:id ──────────────────────────────
+// Crawlers (WhatsApp, Telegram, Twitter, Facebook, Google) need OG tags in
+// the server-rendered HTML.  React-Helmet-Async cannot help them because they
+// don't execute JavaScript.  We intercept the request here, fetch the trip
+// from MongoDB, patch index.html with the correct meta tags, and serve it.
+// Regular browsers also receive this HTML; React then hydrates normally.
+
+const CRAWLER_UA = /WhatsApp|Twitterbot|facebookexternalhit|LinkedInBot|Googlebot|Slackbot|Discordbot|TelegramBot|bingbot|Applebot/i;
+const SITE_URL = 'https://wheelstowilderness.in';
+const FALLBACK_IMAGE = `${SITE_URL}/og-image.jpg`;
+
+// Helper: build the patched <head> string
+function injectOgTags(html, { title, description, image, url }) {
+  const esc = (s) => String(s ?? '').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const safeTitle = esc(title);
+  const safeDesc = esc(description);
+  const safeImg = esc(image);
+  const safeUrl = esc(url);
+
+  const ogTags = [
+    `<meta property="og:type" content="website" />`,
+    `<meta property="og:url" content="${safeUrl}" />`,
+    `<meta property="og:title" content="${safeTitle}" />`,
+    `<meta property="og:description" content="${safeDesc}" />`,
+    `<meta property="og:image" content="${safeImg}" />`,
+    `<meta property="og:image:width" content="1200" />`,
+    `<meta property="og:image:height" content="630" />`,
+    `<meta property="og:site_name" content="Wheels to Wilderness" />`,
+    `<meta property="og:locale" content="en_IN" />`,
+    `<meta name="twitter:card" content="summary_large_image" />`,
+    `<meta name="twitter:url" content="${safeUrl}" />`,
+    `<meta name="twitter:title" content="${safeTitle}" />`,
+    `<meta name="twitter:description" content="${safeDesc}" />`,
+    `<meta name="twitter:image" content="${safeImg}" />`,
+    `<meta name="twitter:site" content="@wheelstowild" />`,
+    `<title>${safeTitle} | Wheels to Wilderness</title>`,
+    `<meta name="description" content="${safeDesc}" />`,
+    `<link rel="canonical" href="${safeUrl}" />`,
+  ].join('\n    ');
+
+  // Remove existing OG/Twitter/title/description tags so we don't duplicate
+  let patched = html
+    .replace(/<title>[^<]*<\/title>/gi, '')
+    .replace(/<meta\s+(?:property|name)="(?:og:|twitter:|description|title)[^"]*"[^>]*\/>/gi, '')
+    .replace(/<link\s+rel="canonical"[^>]*\/>/gi, '')
+    .replace('</head>', `    ${ogTags}\n  </head>`);
+
+  return patched;
+}
+
+// Read the built index.html (Vercel serves from /dist)
+function readIndexHtml() {
+  // In Vercel production the static build is at /var/task/dist/index.html
+  // In local dev it's at <project-root>/dist/index.html
+  const candidates = [
+    path.join(__dirname, '..', 'dist', 'index.html'),
+    path.join(__dirname, '..', 'index.html'),
+    path.join(process.cwd(), 'dist', 'index.html'),
+    path.join(process.cwd(), 'index.html'),
+  ];
+  for (const p of candidates) {
+    if (fs.existsSync(p)) return fs.readFileSync(p, 'utf8');
+  }
+  return null;
+}
+
+// GET /trip/:id  – dynamic OG injection
+app.get('/trip/:id', async (req, res, next) => {
+  try {
+    const ua = req.headers['user-agent'] || '';
+    const isCrawler = CRAWLER_UA.test(ua);
+
+    // Fetch the trip regardless (both crawlers and browsers benefit from
+    // correct meta tags for SEO)
+    const TripModel = require('./models/Trip.cjs');
+    const mongoose = require('mongoose');
+    await connectDB();
+
+    let trip = null;
+    const tripId = req.params.id;
+    if (mongoose.Types.ObjectId.isValid(tripId)) {
+      trip = await TripModel.findById(tripId).lean();
+    }
+    if (!trip) {
+      trip = await TripModel.findOne({ slug: tripId }).lean();
+    }
+
+    const tripUrl = `${SITE_URL}/trip/${tripId}`;
+
+    if (!trip) {
+      // If trip not found and it's a crawler, serve a minimal page
+      if (isCrawler) {
+        return res.status(404).send(`<html><head><title>Trip not found | Wheels to Wilderness</title></head><body>Trip not found.</body></html>`);
+      }
+      // For browsers, fall through to SPA
+      return next();
+    }
+
+    const meta = {
+      title: trip.title,
+      description: (trip.description || '').substring(0, 200),
+      image: trip.imageUrl || FALLBACK_IMAGE,
+      url: tripUrl,
+    };
+
+    const html = readIndexHtml();
+    if (!html) {
+      // index.html not built yet (local dev before `npm run build`)
+      // Just serve minimal OG-only page for crawlers, let SPA handle browsers
+      if (isCrawler) {
+        const esc = (s) => String(s ?? '').replace(/"/g, '&quot;');
+        return res.send(`<!DOCTYPE html><html><head>
+          <meta property="og:title" content="${esc(meta.title)}" />
+          <meta property="og:description" content="${esc(meta.description)}" />
+          <meta property="og:image" content="${esc(meta.image)}" />
+          <meta property="og:url" content="${esc(meta.url)}" />
+          <meta name="twitter:card" content="summary_large_image" />
+          <meta name="twitter:image" content="${esc(meta.image)}" />
+          <title>${esc(meta.title)} | Wheels to Wilderness</title>
+        </head><body></body></html>`);
+      }
+      return next();
+    }
+
+    const patched = injectOgTags(html, meta);
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    // Cache for 5 minutes on CDN, 60 seconds on browser
+    res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
+    return res.send(patched);
+  } catch (err) {
+    console.error('[OG injection error]', err.message);
+    next();
+  }
 });
 
 // 404 Handler

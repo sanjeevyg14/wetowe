@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { MapPin, Clock, Star, Check, X, Shield, Minus, Plus, ChevronLeft, ChevronRight, ArrowRight, Bus, Map as MapIcon, Info, Camera, Calendar, User as UserIcon } from 'lucide-react';
+import { MapPin, Clock, Star, Check, X, Shield, Minus, Plus, ChevronLeft, ChevronRight, ArrowRight, Bus, Map as MapIcon, Info, Camera, Calendar, User as UserIcon, Download, Share2 } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { api } from '../services/api';
 import { Trip } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import SEO from '../components/SEO';
+import { downloadItineraryPDF } from '../utils/pdfUtils';
 
 const TripDetails: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -36,6 +37,10 @@ const TripDetails: React.FC = () => {
     // Lightbox State
     const [lightboxOpen, setLightboxOpen] = useState(false);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+    // Share / Download State
+    const [shareStatus, setShareStatus] = useState<'idle' | 'copied' | 'shared'>('idle');
+    const [downloadingPDF, setDownloadingPDF] = useState(false);
 
     useEffect(() => {
         if (id) {
@@ -73,6 +78,40 @@ const TripDetails: React.FC = () => {
     const handleTravelerChange = (op: 'inc' | 'dec') => {
         if (op === 'dec' && travelers > 1) setTravelers(travelers - 1);
         if (op === 'inc' && travelers < 20 && travelers < availability.remaining) setTravelers(travelers + 1);
+    };
+
+    const handleShare = async () => {
+        const url = `https://wheelstowilderness.in/trip/${id}`;
+        const shareData = {
+            title: trip?.title ?? 'Check out this trip!',
+            text: `🏕️ ${trip?.title} – ${trip?.location}\n${trip?.description?.substring(0, 120)}...`,
+            url,
+        };
+        try {
+            if (navigator.share) {
+                await navigator.share(shareData);
+                setShareStatus('shared');
+            } else {
+                await navigator.clipboard.writeText(url);
+                setShareStatus('copied');
+            }
+        } catch {
+            // user cancelled or clipboard blocked – silent fail
+        }
+        setTimeout(() => setShareStatus('idle'), 2500);
+    };
+
+    const handleDownloadItinerary = async () => {
+        if (!trip || downloadingPDF) return;
+        setDownloadingPDF(true);
+        try {
+            await downloadItineraryPDF(trip);
+        } catch (err) {
+            console.error('PDF generation failed', err);
+            alert('Could not generate PDF. Please try again.');
+        } finally {
+            setDownloadingPDF(false);
+        }
     };
 
     const initiateBooking = () => {
@@ -267,6 +306,29 @@ const TripDetails: React.FC = () => {
                         <div className="flex flex-wrap gap-6 text-brand-olive/80 text-sm font-medium tracking-wide">
                             <span className="flex items-center gap-2"><MapPin size={18} className="text-brand-olive" /> {trip.location}</span>
                             <span className="flex items-center gap-2"><Clock size={18} className="text-brand-olive" /> {trip.duration}</span>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex flex-wrap gap-3 mt-5">
+                            <button
+                                id="btn-download-itinerary"
+                                onClick={handleDownloadItinerary}
+                                disabled={downloadingPDF}
+                                className="flex items-center gap-2 bg-brand-olive text-brand-black font-bold text-xs px-5 py-2.5 uppercase tracking-widest hover:bg-brand-beige transition disabled:opacity-60 disabled:cursor-not-allowed rounded-sm shadow-lg"
+                            >
+                                {downloadingPDF
+                                    ? <><span className="w-3.5 h-3.5 border-2 border-brand-black/30 border-t-brand-black rounded-full animate-spin"></span> Generating…</>
+                                    : <><Download size={14} /> Download Itinerary</>}
+                            </button>
+
+                            <button
+                                id="btn-share-trip"
+                                onClick={handleShare}
+                                className="flex items-center gap-2 bg-white/15 backdrop-blur-sm border border-brand-olive/50 text-brand-olive font-bold text-xs px-5 py-2.5 uppercase tracking-widest hover:bg-white/25 transition rounded-sm"
+                            >
+                                <Share2 size={14} />
+                                {shareStatus === 'copied' ? 'Link Copied!' : shareStatus === 'shared' ? 'Shared!' : 'Share Trip'}
+                            </button>
                         </div>
                     </div>
                 </div>
