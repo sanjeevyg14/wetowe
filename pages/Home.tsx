@@ -848,7 +848,7 @@ const Home: React.FC = () => {
                   </div>
                   <div>
                     <h4 className="font-bold text-lg text-brand-olive">Email Us</h4>
-                    <p className="text-brand-olive/50">hello@wheeltowilderness.com</p>
+                    <p className="text-brand-olive/50">experiences@wheelstowilderness.in</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-6 group cursor-pointer">
@@ -857,7 +857,7 @@ const Home: React.FC = () => {
                   </div>
                   <div>
                     <h4 className="font-bold text-lg text-brand-olive">Call Us</h4>
-                    <p className="text-brand-olive/50">+91 98765 43210</p>
+                    <p className="text-brand-olive/50">+91 96064 99422</p>
                   </div>
                 </div>
               </div>

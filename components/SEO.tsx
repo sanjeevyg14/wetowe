@@ -45,7 +45,7 @@ const SEO: React.FC<SEOProps> = ({
     ],
     contactPoint: {
       '@type': 'ContactPoint',
-      telephone: '+91-9876543210',
+      telephone: '+91-9606499422',
       contactType: 'customer service',
       availableLanguage: ['English', 'Hindi']
     },

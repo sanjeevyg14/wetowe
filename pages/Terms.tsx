@@ -117,8 +117,8 @@ const Terms: React.FC = () => {
                             </p>
                             <div className="bg-brand-olive/5 p-6 rounded-lg border border-brand-olive/20">
                                 <p className="text-brand-black/70">
-                                    <strong className="text-brand-black">Email:</strong> legal@wheeltowilderness.com<br />
-                                    <strong className="text-brand-black">Phone:</strong> +91 98765 43210<br />
+                                    <strong className="text-brand-black">Email:</strong> experiences@wheelstowilderness.in<br />
+                                    <strong className="text-brand-black">Phone:</strong> +91 96064 99422<br />
                                     <strong className="text-brand-black">Address:</strong> Bangalore, Karnataka, India
                                 </p>
                             </div>
