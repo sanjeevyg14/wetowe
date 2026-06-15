@@ -281,7 +281,8 @@ const TripDetails: React.FC = () => {
             <Navbar />
 
             {/* Hero Header - Immersive & Distinct */}
-            <div className="relative h-[65vh] w-full overflow-hidden">
+            <div className="w-full bg-brand-cream md:p-8 lg:p-12">
+                <div className="relative h-[65vh] md:h-auto md:aspect-[16/9] w-full max-w-7xl mx-auto overflow-hidden md:rounded-3xl shadow-xl">
                 <img
                     src={trip.imageUrl}
                     alt={trip.title}
@@ -331,6 +332,7 @@ const TripDetails: React.FC = () => {
                             </button>
                         </div>
                     </div>
+                </div>
                 </div>
             </div>
 
