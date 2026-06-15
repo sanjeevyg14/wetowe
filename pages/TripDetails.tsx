@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { MapPin, Clock, Star, Check, X, Shield, Minus, Plus, ChevronLeft, ChevronRight, ArrowRight, Bus, Map as MapIcon, Info, Camera, Calendar, User as UserIcon } from 'lucide-react';
+import { MapPin, Clock, Star, Check, X, Shield, Minus, Plus, ChevronLeft, ChevronRight, ArrowRight, Bus, Map as MapIcon, Info, Camera, Calendar, User as UserIcon, Download, Share2 } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { api } from '../services/api';
 import { Trip } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import SEO from '../components/SEO';
+import { downloadItineraryPDF } from '../utils/pdfUtils';
 
 const TripDetails: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -36,6 +37,10 @@ const TripDetails: React.FC = () => {
     // Lightbox State
     const [lightboxOpen, setLightboxOpen] = useState(false);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+    // Share / Download State
+    const [shareStatus, setShareStatus] = useState<'idle' | 'copied' | 'shared'>('idle');
+    const [downloadingPDF, setDownloadingPDF] = useState(false);
 
     useEffect(() => {
         if (id) {
@@ -73,6 +78,40 @@ const TripDetails: React.FC = () => {
     const handleTravelerChange = (op: 'inc' | 'dec') => {
         if (op === 'dec' && travelers > 1) setTravelers(travelers - 1);
         if (op === 'inc' && travelers < 20 && travelers < availability.remaining) setTravelers(travelers + 1);
+    };
+
+    const handleShare = async () => {
+        const url = `https://wheelstowilderness.in/trip/${id}`;
+        const shareData = {
+            title: trip?.title ?? 'Check out this trip!',
+            text: `🏕️ ${trip?.title} – ${trip?.location}\n${trip?.description?.substring(0, 120)}...`,
+            url,
+        };
+        try {
+            if (navigator.share) {
+                await navigator.share(shareData);
+                setShareStatus('shared');
+            } else {
+                await navigator.clipboard.writeText(url);
+                setShareStatus('copied');
+            }
+        } catch {
+            // user cancelled or clipboard blocked – silent fail
+        }
+        setTimeout(() => setShareStatus('idle'), 2500);
+    };
+
+    const handleDownloadItinerary = async () => {
+        if (!trip || downloadingPDF) return;
+        setDownloadingPDF(true);
+        try {
+            await downloadItineraryPDF(trip);
+        } catch (err) {
+            console.error('PDF generation failed:', err);
+            alert(`Could not generate PDF: ${err instanceof Error ? err.message : 'Unknown error'}. Please try again.`);
+        } finally {
+            setDownloadingPDF(false);
+        }
     };
 
     const initiateBooking = () => {
@@ -246,7 +285,7 @@ const TripDetails: React.FC = () => {
                 <img
                     src={trip.imageUrl}
                     alt={trip.title}
-                    className="w-full h-full object-cover grayscale-[20%]"
+                    className="w-full h-full object-cover"
                 />
                 {/* Gradient Overlay for Text Readability */}
                 <div className="absolute inset-0 bg-gradient-to-t from-brand-black/90 via-transparent to-black/20"></div>
@@ -268,6 +307,29 @@ const TripDetails: React.FC = () => {
                             <span className="flex items-center gap-2"><MapPin size={18} className="text-brand-olive" /> {trip.location}</span>
                             <span className="flex items-center gap-2"><Clock size={18} className="text-brand-olive" /> {trip.duration}</span>
                         </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex flex-wrap gap-3 mt-5">
+                            <button
+                                id="btn-download-itinerary"
+                                onClick={handleDownloadItinerary}
+                                disabled={downloadingPDF}
+                                className="flex items-center gap-2 bg-brand-olive text-brand-black font-bold text-xs px-5 py-2.5 uppercase tracking-widest hover:bg-brand-beige transition disabled:opacity-60 disabled:cursor-not-allowed rounded-sm shadow-lg"
+                            >
+                                {downloadingPDF
+                                    ? <><span className="w-3.5 h-3.5 border-2 border-brand-black/30 border-t-brand-black rounded-full animate-spin"></span> Generating…</>
+                                    : <><Download size={14} /> Download Itinerary</>}
+                            </button>
+
+                            <button
+                                id="btn-share-trip"
+                                onClick={handleShare}
+                                className="flex items-center gap-2 bg-white/15 backdrop-blur-sm border border-brand-olive/50 text-brand-olive font-bold text-xs px-5 py-2.5 uppercase tracking-widest hover:bg-white/25 transition rounded-sm"
+                            >
+                                <Share2 size={14} />
+                                {shareStatus === 'copied' ? 'Link Copied!' : shareStatus === 'shared' ? 'Shared!' : 'Share Trip'}
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -285,7 +347,7 @@ const TripDetails: React.FC = () => {
                                 <h2 className="text-2xl font-bold font-serif uppercase tracking-widest text-brand-cream">The Dispatch</h2>
                                 <div className="h-px bg-brand-black/20 flex-grow"></div>
                             </div>
-                            <p className="text-lg leading-loose font-light text-brand-black/90 first-letter:text-5xl first-letter:font-serif first-letter:font-bold first-letter:float-left first-letter:mr-3 first-letter:mt-[-5px]">
+                            <p className="text-lg leading-loose font-light text-brand-black/90">
                                 {trip.description}
                             </p>
 
@@ -374,7 +436,7 @@ const TripDetails: React.FC = () => {
                                     <ul className="space-y-2">
                                         {trip.inclusions && trip.inclusions.map((item, idx) => (
                                             <li key={idx} className="flex items-start gap-2 text-sm text-brand-black/80">
-                                                <Check size={14} className="text-brand-sage mt-1" /> {item}
+                                                <Check size={14} className="text-brand-sage mt-1 shrink-0" /> {item}
                                             </li>
                                         ))}
                                     </ul>
@@ -384,7 +446,7 @@ const TripDetails: React.FC = () => {
                                     <ul className="space-y-2">
                                         {trip.exclusions && trip.exclusions.map((item, idx) => (
                                             <li key={idx} className="flex items-start gap-2 text-sm text-brand-black/60">
-                                                <X size={14} className="text-red-400 mt-1" /> {item}
+                                                <X size={14} className="text-red-400 mt-1 shrink-0" /> {item}
                                             </li>
                                         ))}
                                     </ul>
@@ -531,8 +593,8 @@ const TripDetails: React.FC = () => {
                             <div className="mt-6 border border-brand-black/10 p-4 text-center bg-brand-beige">
                                 <p className="font-bold text-sm text-brand-black mb-1">Questions?</p>
                                 <p className="text-xs text-brand-black/60 mb-2">Our expedition leaders are here.</p>
-                                <a href="tel:+919876543210" className="text-brand-sage font-bold text-sm hover:underline">
-                                    +91 98765 43210
+                                <a href="tel:+919606499422" className="text-brand-sage font-bold text-sm hover:underline">
+                                    +91 96064 99422
                                 </a>
                             </div>
                         </div>

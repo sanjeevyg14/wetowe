@@ -68,7 +68,7 @@ const ContactUs: React.FC = () => {
                             </div>
                             <h3 className="font-bold text-brand-black text-lg mb-2">Call Us</h3>
                             <p className="text-brand-black/60 mb-4 text-sm">Mon-Sat, 9AM - 7PM IST</p>
-                            <a href="tel:+919876543210" className="text-brand-olive font-bold hover:underline">+91 98765 43210</a>
+                            <a href="tel:+919606499422" className="text-brand-olive font-bold hover:underline">+91 96064 99422</a>
                         </div>
                         <div className="bg-white p-8 rounded-xl shadow-lg border border-brand-olive/10 text-center hover:shadow-xl transition-all hover:-translate-y-1">
                             <div className="bg-brand-olive text-brand-cream w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -76,7 +76,7 @@ const ContactUs: React.FC = () => {
                             </div>
                             <h3 className="font-bold text-brand-black text-lg mb-2">Email Us</h3>
                             <p className="text-brand-black/60 mb-4 text-sm">We reply within 24 hours</p>
-                            <a href="mailto:hello@wheeltowilderness.com" className="text-brand-olive font-bold hover:underline">hello@wheeltowilderness.com</a>
+                            <a href="mailto:experiences@wheelstowilderness.in" className="text-brand-olive font-bold hover:underline">experiences@wheelstowilderness.in</a>
                         </div>
                         <div className="bg-white p-8 rounded-xl shadow-lg border border-brand-olive/10 text-center hover:shadow-xl transition-all hover:-translate-y-1">
                             <div className="bg-brand-olive text-brand-cream w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4">

@@ -47,7 +47,7 @@ const ArrayInput: React.FC<{
             <ul className="space-y-1 max-h-40 overflow-y-auto">
                 {items.map((item, i) => (
                     <li key={i} className="flex justify-between items-center bg-gray-50 px-3 py-1.5 rounded text-sm border border-gray-100">
-                        <span>{item}</span>
+                        <span className="text-gray-900 font-medium">{item}</span>
                         <button type="button" onClick={() => remove(i)} className="text-red-500 hover:text-red-700"><X size={14} /></button>
                     </li>
                 ))}
