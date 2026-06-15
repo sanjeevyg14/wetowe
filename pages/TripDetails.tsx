@@ -285,7 +285,7 @@ const TripDetails: React.FC = () => {
                 <img
                     src={trip.imageUrl}
                     alt={trip.title}
-                    className="w-full h-full object-contain"
+                    className="w-full h-full object-cover"
                 />
                 {/* Gradient Overlay for Text Readability */}
                 <div className="absolute inset-0 bg-gradient-to-t from-brand-black/90 via-transparent to-black/20"></div>
