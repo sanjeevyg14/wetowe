@@ -285,7 +285,7 @@ const TripDetails: React.FC = () => {
                 <img
                     src={trip.imageUrl}
                     alt={trip.title}
-                    className="w-full h-full object-cover grayscale-[20%]"
+                    className="w-full h-full object-contain"
                 />
                 {/* Gradient Overlay for Text Readability */}
                 <div className="absolute inset-0 bg-gradient-to-t from-brand-black/90 via-transparent to-black/20"></div>
@@ -347,7 +347,7 @@ const TripDetails: React.FC = () => {
                                 <h2 className="text-2xl font-bold font-serif uppercase tracking-widest text-brand-cream">The Dispatch</h2>
                                 <div className="h-px bg-brand-black/20 flex-grow"></div>
                             </div>
-                            <p className="text-lg leading-loose font-light text-brand-black/90 first-letter:text-5xl first-letter:font-serif first-letter:font-bold first-letter:float-left first-letter:mr-3 first-letter:mt-[-5px]">
+                            <p className="text-lg leading-loose font-light text-brand-black/90">
                                 {trip.description}
                             </p>
 
@@ -436,7 +436,7 @@ const TripDetails: React.FC = () => {
                                     <ul className="space-y-2">
                                         {trip.inclusions && trip.inclusions.map((item, idx) => (
                                             <li key={idx} className="flex items-start gap-2 text-sm text-brand-black/80">
-                                                <Check size={14} className="text-brand-sage mt-1" /> {item}
+                                                <Check size={14} className="text-brand-sage mt-1 shrink-0" /> {item}
                                             </li>
                                         ))}
                                     </ul>
@@ -446,7 +446,7 @@ const TripDetails: React.FC = () => {
                                     <ul className="space-y-2">
                                         {trip.exclusions && trip.exclusions.map((item, idx) => (
                                             <li key={idx} className="flex items-start gap-2 text-sm text-brand-black/60">
-                                                <X size={14} className="text-red-400 mt-1" /> {item}
+                                                <X size={14} className="text-red-400 mt-1 shrink-0" /> {item}
                                             </li>
                                         ))}
                                     </ul>
@@ -593,8 +593,8 @@ const TripDetails: React.FC = () => {
                             <div className="mt-6 border border-brand-black/10 p-4 text-center bg-brand-beige">
                                 <p className="font-bold text-sm text-brand-black mb-1">Questions?</p>
                                 <p className="text-xs text-brand-black/60 mb-2">Our expedition leaders are here.</p>
-                                <a href="tel:+919876543210" className="text-brand-sage font-bold text-sm hover:underline">
-                                    +91 98765 43210
+                                <a href="tel:+919606499422" className="text-brand-sage font-bold text-sm hover:underline">
+                                    +91 96064 99422
                                 </a>
                             </div>
                         </div>

@@ -219,8 +219,8 @@ export async function downloadItineraryPDF(trip: Trip): Promise<void> {
       </div>
       <div style="text-align:right;">
         <div style="font-size:10px;opacity:0.7;margin-bottom:4px;">wheelstowilderness.in</div>
-        <div style="font-size:11px;font-weight:700;">📞 +91 98765 43210</div>
-        <div style="font-size:11px;">📧 hello@wheelstowilderness.in</div>
+        <div style="font-size:11px;font-weight:700;">📞 +91 96064 99422</div>
+        <div style="font-size:11px;">📧 experiences@wheelstowilderness.in</div>
       </div>
     </div>
 
@@ -619,7 +619,7 @@ export function downloadTicketPDF(booking: Booking): void {
       </div>
 
       <div class="main-footer">
-        Present this pass at the rendezvous / boarding point &bull; Emergency: +91 98765 43210
+        Present this pass at the rendezvous / boarding point &bull; Emergency: +91 96064 99422
       </div>
     </div>
 

@@ -735,7 +735,7 @@ const Home: React.FC = () => {
                     <Star key={i} size={18} className={`${i < testimonials[testimonialIndex].rating ? 'text-brand-olive fill-brand-olive' : 'text-gray-200'}`} />
                   ))}
                 </div>
-                <p className="text-2xl md:text-3xl text-brand-black font-serif italic mb-8 leading-relaxed">"{testimonials[testimonialIndex].quote}"</p>
+                <p className="text-2xl md:text-3xl text-brand-black font-sans italic mb-8 leading-relaxed">"{testimonials[testimonialIndex].quote}"</p>
 
                 <div className="flex items-center gap-4">
                   <img

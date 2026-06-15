@@ -29,7 +29,7 @@ const Navbar: React.FC = () => {
                   className="h-35 w-20 rounded-md group-hover:rotate-3 transition-transform duration-300"
                 />
                 <div className="flex flex-col">
-                  <span className="font-bold text-lg md:text-xl tracking-tight text-brand-olive leading-none uppercase font-serif">
+                  <span className="font-bold text-lg md:text-xl tracking-tight text-brand-olive leading-none uppercase font-sans">
                     Wheels to Wilderness
                   </span>
                   <span className="text-[10px] font-medium text-brand-olive/60 tracking-widest uppercase mt-0.5">
