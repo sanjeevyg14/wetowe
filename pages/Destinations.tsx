@@ -96,7 +96,7 @@ const Destinations: React.FC = () => {
                                 <input
                                     type="text"
                                     placeholder="Search locations..."
-                                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-purple focus:border-transparent bg-gray-50"
+                                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-purple focus:border-transparent bg-gray-50 text-gray-900 placeholder-gray-500"
                                     value={searchTerm}
                                     onChange={(e) => updateSearch(e.target.value, searchDate)}
                                 />
@@ -105,7 +105,7 @@ const Destinations: React.FC = () => {
                             <div className="relative w-full sm:w-48">
                                 <input
                                     type="date"
-                                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-purple focus:border-transparent bg-gray-50 text-gray-600"
+                                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-purple focus:border-transparent bg-gray-50 text-gray-900"
                                     value={searchDate}
                                     onChange={(e) => updateSearch(searchTerm, e.target.value)}
                                 />

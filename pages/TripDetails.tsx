@@ -395,7 +395,7 @@ const TripDetails: React.FC = () => {
                                 {trip.itinerary && trip.itinerary.map((day, idx) => (
                                     <div key={idx} className="group">
                                         <div className="flex items-baseline gap-4 mb-2">
-                                            <span className="text-4xl font-black text-brand-olive/20 group-hover:text-brand-olive/40 transition">0{day.day}</span>
+                                            <span className="text-4xl font-black text-brand-sage group-hover:text-brand-sage/80 transition">0{day.day}</span>
                                             <h4 className="text-xl font-bold text-brand-black">{day.title}</h4>
                                         </div>
                                         <div className="ml-12 border-l border-dashed border-brand-black/20 pl-6 pb-2">

@@ -137,7 +137,7 @@ const ItineraryInput: React.FC<{
                                     addActivity(dayIndex, el.value);
                                     el.value = '';
                                 }}
-                                className="bg-gray-100 px-3 py-1 rounded text-sm hover:bg-gray-200"
+                                className="bg-brand-purple text-white px-3 py-1 rounded text-sm hover:bg-brand-darkPurple"
                             >
                                 Add
                             </button>

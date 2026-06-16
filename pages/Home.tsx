@@ -423,7 +423,7 @@ const Home: React.FC = () => {
                   <div className="flex-1 relative group">
                     <div
                       onClick={() => setIsTravellerPickerOpen(!isTravellerPickerOpen)}
-                      className="w-full h-full bg-gray-50 hover:bg-gray-100 transition rounded-xl py-3 pl-12 pr-4 outline-none text-brand-black font-medium cursor-pointer flex items-center select-none"
+                      className="w-full h-full bg-gray-50 hover:bg-gray-100 transition rounded-xl py-3 pl-12 pr-4 outline-none text-gray-900 font-bold cursor-pointer flex items-center select-none"
                     >
                       <span className="text-sm truncate">
                         {travellers} Traveler{travellers !== 1 ? 's' : ''}
