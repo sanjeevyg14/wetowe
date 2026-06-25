@@ -952,7 +952,7 @@ const Admin: React.FC = () => {
                                                                                                     <div className="text-xs text-gray-400">{booking.email}</div>
                                                                                                     {booking.phone && <div className="text-xs text-gray-400">{booking.phone}</div>}
                                                                                                 </td>
-                                                                                                <td className="px-6 py-3 text-gray-700">{booking.travelers}</td>
+                                                                                                <td className="px-6 py-3 text-gray-700">{booking.maleTravelers + booking.femaleTravelers}</td>
                                                                                                 <td className="px-6 py-3 font-medium text-gray-900">₹{booking.totalPrice?.toLocaleString('en-IN')}</td>
                                                                                                 <td className="px-6 py-3">
                                                                                                     <span className={`px-2 py-1 rounded-full text-xs font-bold uppercase ${
@@ -1041,7 +1041,7 @@ const Admin: React.FC = () => {
                                                             </div>
 
                                                             <div className="flex items-center gap-2 mt-1">
-                                                                <Users size={14} /> <span>{enquiry.Travellers ?? enquiry.Travellers ?? '1'} traveler{(enquiry.Travellers ?? enquiry.Travellers) > 1 ? 's' : ''}</span>
+                                                                <Users size={14} /> <span>{(enquiry.maleTravelers || 0) + (enquiry.femaleTravelers || 0)} traveler{((enquiry.maleTravelers || 0) + (enquiry.femaleTravelers || 0)) > 1 ? 's' : ''}</span>
                                                             </div>
 
                                                             <div className="flex items-center gap-2 mt-1">
@@ -2109,7 +2109,7 @@ const Admin: React.FC = () => {
                                     </div>
                                     <div>
                                         <label className="text-xs font-bold text-gray-500 uppercase">Number of Travelers</label>
-                                        <p className="text-gray-900 font-medium">{selectedEnquiry.Travellers ?? '—'}</p>
+                                        <p className="text-gray-900 font-medium">{(selectedEnquiry.maleTravelers || 0) + (selectedEnquiry.femaleTravelers || 0)}</p>
                                     </div>
                                 </div>
                             </div>

@@ -229,7 +229,7 @@ export const api = {
         return await response.json();
     },
 
-    checkAvailability: async (tripId: string, date: string): Promise<{ totalBooked: number, remaining: number, maxCapacity: number, isSoldOut: boolean }> => {
+    checkAvailability: async (tripId: string, date: string): Promise<{ totalBooked: number, totalMaleBooked: number, totalFemaleBooked: number, remaining: number, remainingMale: number, remainingFemale: number, maxCapacity: number, maxMaleCapacity: number, maxFemaleCapacity: number, isSoldOut: boolean }> => {
         const response = await fetch(`${API_URL}/bookings/check-availability?tripId=${tripId}&date=${encodeURIComponent(date)}`);
         if (!response.ok) throw new Error('Failed to check availability');
         return await response.json();
@@ -365,7 +365,7 @@ export const api = {
     },
 
     // --- ENQUIRIES ---
-    submitEnquiry: async (enquiryData: { name: string, Travellers: string, phone: string, traveldate: string, email: string, where: string, message: string }): Promise<void> => {
+    submitEnquiry: async (enquiryData: { name: string, maleTravelers: number, femaleTravelers: number, phone: string, traveldate: string, email: string, where: string, message: string }): Promise<void> => {
         const response = await fetch(`${API_URL}/enquiries`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

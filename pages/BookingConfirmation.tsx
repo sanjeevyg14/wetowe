@@ -35,7 +35,7 @@ const BookingConfirmation: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-brand-black/80">
                 <p><span className="font-semibold">Trip:</span> {booking.tripTitle || state.tripTitle}</p>
                 <p><span className="font-semibold">Date:</span> {booking.date}</p>
-                <p><span className="font-semibold">Travelers:</span> {booking.travelers}</p>
+                <p><span className="font-semibold">Travelers:</span> {booking.maleTravelers + booking.femaleTravelers}</p>
                 <p><span className="font-semibold">Status:</span> {booking.status}</p>
               </div>
             </div>
