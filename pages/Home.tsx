@@ -732,7 +732,7 @@ const Home: React.FC = () => {
               <div className="flex flex-col items-center text-center animate-fade-in" key={testimonialIndex}>
                 <div className="flex gap-1 mb-6">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} size={18} className={`${i < testimonials[testimonialIndex].rating ? 'text-brand-olive fill-brand-olive' : 'text-gray-200'}`} />
+                    <Star key={i} size={18} className={`${i < testimonials[testimonialIndex].rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-200'}`} />
                   ))}
                 </div>
                 <p className="text-2xl md:text-3xl text-brand-black font-sans italic mb-8 leading-relaxed">"{testimonials[testimonialIndex].quote}"</p>
@@ -983,12 +983,19 @@ const Home: React.FC = () => {
             <ChevronLeft size={40} />
           </button>
 
-          <img
-            src={galleryImages[currentImageIndex]?.imageUrl}
-            alt={galleryImages[currentImageIndex]?.caption || "Full screen"}
-            className="max-h-[85vh] max-w-[90vw] object-contain border-4 border-brand-cream shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          />
+          <div className="flex flex-col items-center" onClick={(e) => e.stopPropagation()}>
+            <img
+              src={galleryImages[currentImageIndex]?.imageUrl}
+              alt={galleryImages[currentImageIndex]?.caption || "Full screen"}
+              className="max-h-[75vh] max-w-[90vw] object-contain border-4 border-brand-cream shadow-2xl"
+            />
+            {galleryImages[currentImageIndex]?.caption && (
+              <div className="mt-4 flex items-center gap-2 text-brand-cream/90 bg-white/10 backdrop-blur-sm px-5 py-2.5 rounded-lg border border-white/10">
+                <MapPin size={16} className="text-yellow-400 flex-shrink-0" />
+                <span className="text-sm font-medium tracking-wide">{galleryImages[currentImageIndex].caption}</span>
+              </div>
+            )}
+          </div>
 
           <button className="absolute right-4 top-1/2 -translate-y-1/2 text-brand-cream hover:text-gray-300 p-2 bg-white/10 rounded-full hover:bg-white/20 transition focus:outline-none" onClick={nextImage}>
             <ChevronRight size={40} />
