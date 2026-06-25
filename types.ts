@@ -24,7 +24,9 @@ export interface Trip {
   pickupPoints: string[];
   itinerary: ItineraryItem[];
   dates: string[];
-  maxCapacity?: number; // Max travelers per date (default 12)
+  maxCapacity?: number; // Legacy: Max travelers per date (default 12)
+  maxMaleCapacity?: number;
+  maxFemaleCapacity?: number;
   isActive?: boolean; // Trip visibility status (default true)
   gstPercentage?: number; // GST tax percentage applied at checkout (default 5)
 }
@@ -62,7 +64,8 @@ export interface Booking {
   email: string;
   phone: string;
   date: string;
-  travelers: number;
+  maleTravelers: number;
+  femaleTravelers: number;
   pickupPoint?: string; // Selected boarding/pickup point for the trip
   totalPrice: number;
   status: 'pending' | 'contacted' | 'confirmed' | 'cancelled' | 'refunded' | 'failed' | 'expired';
@@ -76,7 +79,8 @@ export interface Enquiry {
   email: string;
   when: number;
   where: string;
-  Travellers: number;
+  maleTravelers: number;
+  femaleTravelers: number;
   traveldate: Date;
   phone: string;
   message: string;

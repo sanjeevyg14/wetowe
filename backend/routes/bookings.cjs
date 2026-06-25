@@ -27,13 +27,23 @@ router.post('/', async (req, res) => {
       email,
       phone,
       date,
-      travelers,
+      date,
+      maleTravelers,
+      femaleTravelers,
       pickupPoint,
       totalPrice
     } = req.body || {};
 
-    if (!tripId || !tripTitle || !customerName || !email || !phone || !date || !travelers || !totalPrice) {
+    if (!tripId || !tripTitle || !customerName || !email || !phone || !date || (maleTravelers === undefined && femaleTravelers === undefined) || !totalPrice) {
       return res.status(400).json({ message: 'Missing required booking fields' });
+    }
+
+    const mTrav = Number(maleTravelers) || 0;
+    const fTrav = Number(femaleTravelers) || 0;
+    const totalTrav = mTrav + fTrav;
+
+    if (totalTrav === 0) {
+      return res.status(400).json({ message: 'At least one traveler is required' });
     }
 
     if (!validator.isEmail(String(email))) {
@@ -51,8 +61,15 @@ router.post('/', async (req, res) => {
     if (!availability.success) {
       return res.status(400).json({ message: availability.error || 'Unable to verify availability' });
     }
-    if (Number(travelers) > availability.remaining) {
-      return res.status(400).json({ message: `Only ${availability.remaining} seat(s) available` });
+    
+    if (totalTrav > availability.remaining) {
+      return res.status(400).json({ message: `Only ${availability.remaining} total seat(s) available` });
+    }
+    if (mTrav > availability.remainingMale) {
+      return res.status(400).json({ message: `Only ${availability.remainingMale} male seat(s) available` });
+    }
+    if (fTrav > availability.remainingFemale) {
+      return res.status(400).json({ message: `Only ${availability.remainingFemale} female seat(s) available` });
     }
 
     const booking = new Booking({
@@ -64,7 +81,9 @@ router.post('/', async (req, res) => {
       email: String(email),
       phone: String(phone),
       date: String(date),
-      travelers: Number(travelers),
+      travelers: totalTrav,
+      maleTravelers: mTrav,
+      femaleTravelers: fTrav,
       pickupPoint: pickupPoint ? String(pickupPoint) : '',
       totalPrice: Number(totalPrice),
       transactionId: `MANUAL-${uuidv4().slice(-6).toUpperCase()}`,

@@ -24,7 +24,9 @@ const tripSchema = new mongoose.Schema({
   pickupPoints: [String],
   itinerary: [itinerarySchema],
   dates: [String], // Array of date strings for now
-  maxCapacity: { type: Number, default: 12 }, // Max travelers per date
+  maxCapacity: { type: Number, default: 12 }, // Legacy: Max travelers per date
+  maxMaleCapacity: { type: Number, default: 6 },
+  maxFemaleCapacity: { type: Number, default: 6 },
   isActive: { type: Boolean, default: true }, // Trip visibility status
   gstPercentage: { type: Number, default: 5 }, // GST tax percentage applied at checkout
 }, {

@@ -990,9 +990,9 @@ const Home: React.FC = () => {
               className="max-h-[75vh] max-w-[90vw] object-contain border-4 border-brand-cream shadow-2xl"
             />
             {galleryImages[currentImageIndex]?.caption && (
-              <div className="mt-4 flex items-center gap-2 text-brand-cream/90 bg-white/10 backdrop-blur-sm px-5 py-2.5 rounded-lg border border-white/10">
+              <div className="mt-4 flex items-center gap-2 text-white bg-black/60 backdrop-blur-md px-5 py-2.5 rounded-lg border border-white/20">
                 <MapPin size={16} className="text-yellow-400 flex-shrink-0" />
-                <span className="text-sm font-medium tracking-wide">{galleryImages[currentImageIndex].caption}</span>
+                <span className="text-base font-bold tracking-wide">{galleryImages[currentImageIndex].caption}</span>
               </div>
             )}
           </div>

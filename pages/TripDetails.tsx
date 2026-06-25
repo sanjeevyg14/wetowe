@@ -19,7 +19,8 @@ const TripDetails: React.FC = () => {
     // Booking State
     const [selectedDate, setSelectedDate] = useState<string | null>(null);
     const [selectedPickupPoint, setSelectedPickupPoint] = useState<string | null>(null);
-    const [travelers, setTravelers] = useState(1);
+    const [maleTravelers, setMaleTravelers] = useState(0);
+    const [femaleTravelers, setFemaleTravelers] = useState(0);
     const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
     const [bookingStep, setBookingStep] = useState<'form' | 'processing'>('form');
     const [bookingData, setBookingData] = useState({
@@ -29,7 +30,7 @@ const TripDetails: React.FC = () => {
     });
 
     // Availability State
-    const [availability, setAvailability] = useState({ totalBooked: 0, remaining: 12, isSoldOut: false });
+    const [availability, setAvailability] = useState({ totalBooked: 0, remaining: 12, remainingMale: 6, remainingFemale: 6, isSoldOut: false });
     const [checkingAvailability, setCheckingAvailability] = useState(false);
     const [enquiryStatus, setEnquiryStatus] = useState<'idle' | 'submitting' | 'success'>('idle');
     const [enquiryMsg, setEnquiryMsg] = useState('');
@@ -75,9 +76,14 @@ const TripDetails: React.FC = () => {
         }
     }, [trip, selectedDate]);
 
-    const handleTravelerChange = (op: 'inc' | 'dec') => {
-        if (op === 'dec' && travelers > 1) setTravelers(travelers - 1);
-        if (op === 'inc' && travelers < 20 && travelers < availability.remaining) setTravelers(travelers + 1);
+    const handleTravelerChange = (gender: 'male' | 'female', op: 'inc' | 'dec') => {
+        if (gender === 'male') {
+            if (op === 'dec' && maleTravelers > 0) setMaleTravelers(maleTravelers - 1);
+            if (op === 'inc' && (maleTravelers + femaleTravelers) < 20 && maleTravelers < (availability.remainingMale || 6)) setMaleTravelers(maleTravelers + 1);
+        } else {
+            if (op === 'dec' && femaleTravelers > 0) setFemaleTravelers(femaleTravelers - 1);
+            if (op === 'inc' && (maleTravelers + femaleTravelers) < 20 && femaleTravelers < (availability.remainingFemale || 6)) setFemaleTravelers(femaleTravelers + 1);
+        }
     };
 
     const handleShare = async () => {
@@ -141,7 +147,8 @@ const TripDetails: React.FC = () => {
                 email: bookingData.email,
                 phone: bookingData.phone,
                 date: selectedDate,
-                travelers: travelers,
+                maleTravelers,
+                femaleTravelers,
                 pickupPoint: selectedPickupPoint || undefined,
                 totalPrice: totalPrice
             });
@@ -174,7 +181,8 @@ const TripDetails: React.FC = () => {
                 email: bookingData.email || (user?.email ?? ''),
                 phone: bookingData.phone || '',
                 where: trip.location,
-                Travellers: travelers.toString(),
+                maleTravelers,
+                femaleTravelers,
                 traveldate: selectedDate,
                 message: `Waiting List Enquiry for ${trip.title} on ${selectedDate}. ${enquiryMsg}`
             });
@@ -233,7 +241,8 @@ const TripDetails: React.FC = () => {
         );
     }
 
-    const basePrice = trip.price * travelers;
+    const totalTravelers = maleTravelers + femaleTravelers;
+    const basePrice = trip.price * totalTravelers;
     const gstRate = trip.gstPercentage ?? 5;
     const gstAmount = Math.round(basePrice * gstRate / 100);
     const totalPrice = basePrice + gstAmount;
@@ -474,7 +483,7 @@ const TripDetails: React.FC = () => {
 
                                     <div className="flex justify-between items-end mb-6">
                                         <div>
-                                            <p className="text-xs text-brand-olive/60 uppercase">Base price ({travelers} × ₹{trip.price.toLocaleString()})</p>
+                                            <p className="text-xs text-brand-olive/60 uppercase">Base price ({totalTravelers} × ₹{trip.price.toLocaleString()})</p>
                                             <p className="text-3xl font-bold font-mono text-brand-olive">₹{basePrice.toLocaleString()}</p>
                                             {gstRate > 0 && (
                                                 <p className="text-xs text-brand-olive/60 mt-1">
@@ -483,8 +492,15 @@ const TripDetails: React.FC = () => {
                                                 </p>
                                             )}
                                         </div>
-                                        <div className={`px-2 py-1 border ${availability.isSoldOut ? 'border-red-500 text-red-500' : 'border-brand-olive text-brand-olive'} text-xs font-bold uppercase`}>
-                                            {availability.isSoldOut ? 'Sold Out' : `${availability.remaining} Seats Left`}
+                                        <div className={`px-2 py-1 flex flex-col gap-1 items-end text-xs font-bold uppercase`}>
+                                            {availability.isSoldOut ? (
+                                                <span className="border border-red-500 text-red-500 px-2 py-1">Sold Out</span>
+                                            ) : (
+                                                <>
+                                                    <span className="border border-brand-olive text-brand-olive px-2 py-1">M: {availability.remainingMale || 0} Left</span>
+                                                    <span className="border border-brand-olive text-brand-olive px-2 py-1">F: {availability.remainingFemale || 0} Left</span>
+                                                </>
+                                            )}
                                         </div>
                                     </div>
 
@@ -510,16 +526,34 @@ const TripDetails: React.FC = () => {
                                         </div>
 
                                         {!availability.isSoldOut && (
-                                            <div>
-                                                <label className="block text-xs font-bold uppercase tracking-widest text-brand-olive/60 mb-2">Travellers</label>
-                                                <div className="flex items-center justify-between border border-brand-olive/20 p-2">
-                                                    <button onClick={() => handleTravelerChange('dec')} className="p-1 hover:text-brand-olive disabled:opacity-30" disabled={travelers <= 1}>
-                                                        <Minus size={16} />
-                                                    </button>
-                                                    <span className="font-mono text-lg font-bold">{travelers}</span>
-                                                    <button onClick={() => handleTravelerChange('inc')} className="p-1 hover:text-brand-olive disabled:opacity-30" disabled={travelers >= 20 || travelers >= availability.remaining}>
-                                                        <Plus size={16} />
-                                                    </button>
+                                            <div className="space-y-4">
+                                                <div>
+                                                    <label className="block text-xs font-bold uppercase tracking-widest text-brand-olive/60 mb-2">
+                                                        Male Travellers (Available: {availability.remainingMale || 0})
+                                                    </label>
+                                                    <div className="flex items-center justify-between border border-brand-olive/20 p-2">
+                                                        <button onClick={() => handleTravelerChange('male', 'dec')} className="p-1 hover:text-brand-olive disabled:opacity-30" disabled={maleTravelers <= 0}>
+                                                            <Minus size={16} />
+                                                        </button>
+                                                        <span className="font-mono text-lg font-bold">{maleTravelers}</span>
+                                                        <button onClick={() => handleTravelerChange('male', 'inc')} className="p-1 hover:text-brand-olive disabled:opacity-30" disabled={(maleTravelers + femaleTravelers) >= 20 || maleTravelers >= (availability.remainingMale || 6)}>
+                                                            <Plus size={16} />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-xs font-bold uppercase tracking-widest text-brand-olive/60 mb-2">
+                                                        Female Travellers (Available: {availability.remainingFemale || 0})
+                                                    </label>
+                                                    <div className="flex items-center justify-between border border-brand-olive/20 p-2">
+                                                        <button onClick={() => handleTravelerChange('female', 'dec')} className="p-1 hover:text-brand-olive disabled:opacity-30" disabled={femaleTravelers <= 0}>
+                                                            <Minus size={16} />
+                                                        </button>
+                                                        <span className="font-mono text-lg font-bold">{femaleTravelers}</span>
+                                                        <button onClick={() => handleTravelerChange('female', 'inc')} className="p-1 hover:text-brand-olive disabled:opacity-30" disabled={(maleTravelers + femaleTravelers) >= 20 || femaleTravelers >= (availability.remainingFemale || 6)}>
+                                                            <Plus size={16} />
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         )}
@@ -690,7 +724,7 @@ const TripDetails: React.FC = () => {
                                             </div>
                                         )}
                                         <div className="flex justify-between items-center text-sm text-brand-black/70">
-                                            <span>Base price ({travelers} × ₹{trip.price.toLocaleString()})</span>
+                                            <span>Base price ({totalTravelers} × ₹{trip.price.toLocaleString()})</span>
                                             <span className="font-mono">₹{basePrice.toLocaleString()}</span>
                                         </div>
                                         {gstRate > 0 && (

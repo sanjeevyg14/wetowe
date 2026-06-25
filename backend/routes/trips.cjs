@@ -90,9 +90,14 @@ router.post('/', authMiddleware, adminMiddleware, async (req, res) => {
       return res.status(400).json({ message: 'Price must be a positive number' });
     }
 
-    // Validate maxCapacity (must be positive number, default to 12)
-    if (tripData.maxCapacity !== undefined && (typeof tripData.maxCapacity !== 'number' || tripData.maxCapacity <= 0)) {
-      return res.status(400).json({ message: 'Max capacity must be a positive number' });
+    // Validate maxMaleCapacity (must be positive number, default to 6)
+    if (tripData.maxMaleCapacity !== undefined && (typeof tripData.maxMaleCapacity !== 'number' || tripData.maxMaleCapacity < 0)) {
+      return res.status(400).json({ message: 'Max male capacity must be a positive number or zero' });
+    }
+
+    // Validate maxFemaleCapacity (must be positive number, default to 6)
+    if (tripData.maxFemaleCapacity !== undefined && (typeof tripData.maxFemaleCapacity !== 'number' || tripData.maxFemaleCapacity < 0)) {
+      return res.status(400).json({ message: 'Max female capacity must be a positive number or zero' });
     }
 
     // Validate description length

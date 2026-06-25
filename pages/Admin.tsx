@@ -447,7 +447,8 @@ const Admin: React.FC = () => {
             pickupPoints: [],
             itinerary: [],
             dates: [],
-            maxCapacity: 12,
+            maxMaleCapacity: 6,
+            maxFemaleCapacity: 6,
             gstPercentage: 5
         });
         setIsEditing(false);
@@ -1741,15 +1742,28 @@ const Admin: React.FC = () => {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-bold text-gray-700 mb-2">Max Capacity (Seats per date)</label>
+                                        <label className="block text-sm font-bold text-gray-700 mb-2">Max Male Capacity</label>
                                         <input
                                             type="number"
-                                            name="maxCapacity"
-                                            value={currentTrip.maxCapacity || 12}
+                                            name="maxMaleCapacity"
+                                            value={currentTrip.maxMaleCapacity || 6}
                                             onChange={handleInputChange}
                                             className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-brand-purple focus:outline-none"
-                                            placeholder="12"
-                                            min="1"
+                                            placeholder="6"
+                                            min="0"
+                                            max="100"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-bold text-gray-700 mb-2">Max Female Capacity</label>
+                                        <input
+                                            type="number"
+                                            name="maxFemaleCapacity"
+                                            value={currentTrip.maxFemaleCapacity || 6}
+                                            onChange={handleInputChange}
+                                            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-brand-purple focus:outline-none"
+                                            placeholder="6"
+                                            min="0"
                                             max="100"
                                         />
                                     </div>
