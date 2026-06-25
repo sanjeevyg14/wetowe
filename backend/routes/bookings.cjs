@@ -27,7 +27,6 @@ router.post('/', async (req, res) => {
       email,
       phone,
       date,
-      date,
       maleTravelers,
       femaleTravelers,
       pickupPoint,
@@ -161,8 +160,14 @@ router.get('/check-availability', async (req, res) => {
       tripId: availability.tripId,
       date: availability.date,
       totalBooked: availability.totalBooked,
+      totalMaleBooked: availability.totalMaleBooked,
+      totalFemaleBooked: availability.totalFemaleBooked,
       remaining: availability.remaining,
+      remainingMale: availability.remainingMale,
+      remainingFemale: availability.remainingFemale,
       maxCapacity: availability.maxCapacity,
+      maxMaleCapacity: availability.maxMaleCapacity,
+      maxFemaleCapacity: availability.maxFemaleCapacity,
       isSoldOut: availability.isSoldOut
     });
 
