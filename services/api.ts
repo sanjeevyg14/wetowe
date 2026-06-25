@@ -365,7 +365,7 @@ export const api = {
     },
 
     // --- ENQUIRIES ---
-    submitEnquiry: async (enquiryData: { name: string, maleTravelers: number, femaleTravelers: number, phone: string, traveldate: string, email: string, where: string, message: string }): Promise<void> => {
+    submitEnquiry: async (enquiryData: { name: string, Travellers?: string, maleTravelers?: number, femaleTravelers?: number, phone: string, traveldate: string, email: string, where: string, message: string }): Promise<void> => {
         const response = await fetch(`${API_URL}/enquiries`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

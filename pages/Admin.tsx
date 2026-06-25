@@ -860,7 +860,7 @@ const Admin: React.FC = () => {
                                     {Object.entries(bookingsByTrip).map(([tripId, { tripTitle, byDate }]) => {
                                         const tripBookings = Object.values(byDate).flat();
                                         const confirmedCount = tripBookings.filter(b => b.status === 'confirmed').length;
-                                        const totalTravelers = tripBookings.reduce((s, b) => s + b.travelers, 0);
+                                        const totalTravelers = tripBookings.reduce((s, b) => s + (b.maleTravelers || 0) + (b.femaleTravelers || 0), 0);
                                         const totalRevenue = tripBookings.filter(b => b.status === 'confirmed').reduce((s, b) => s + (b.totalPrice || 0), 0);
                                         const isOpen = expandedTrips.has(tripId);
 
@@ -900,7 +900,7 @@ const Admin: React.FC = () => {
                                                                 const dateKey = `${tripId}__${date}`;
                                                                 const isDateOpen = expandedDates.has(dateKey);
                                                                 const dateConfirmed = dateBookings.filter(b => b.status === 'confirmed').length;
-                                                                const dateTravelers = dateBookings.reduce((s, b) => s + b.travelers, 0);
+                                                                const dateTravelers = dateBookings.reduce((s, b) => s + (b.maleTravelers || 0) + (b.femaleTravelers || 0), 0);
 
                                                                 return (
                                                                     <div key={date} className="border-b border-gray-50 last:border-b-0">
