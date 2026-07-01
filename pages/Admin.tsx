@@ -1766,7 +1766,7 @@ const Admin: React.FC = () => {
                                                             alert('Home Stats updated!');
                                                         }}>
                                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                                                {currentStats.map((stat, i) => (
+                                                                {currentStats.map((stat: any, i: number) => (
                                                                     <div key={i} className="border p-3 rounded bg-white">
                                                                         <h5 className="font-bold mb-2 text-sm text-gray-600">Stat {i+1}</h5>
                                                                         <div className="grid grid-cols-2 gap-2">
