@@ -177,6 +177,11 @@ const Admin: React.FC = () => {
     const [enquiryModalOpen, setEnquiryModalOpen] = useState(false);
     const [selectedEnquiry, setSelectedEnquiry] = useState<Enquiry | null>(null);
 
+    // Team Modal State
+    const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);
+    const [isEditingTeam, setIsEditingTeam] = useState(false);
+    const [currentTeamMember, setCurrentTeamMember] = useState<Partial<TeamMember>>({});
+
     // Refs for file inputs
     const mainImageInputRef = useRef<HTMLInputElement>(null);
     const cardImageInputRef = useRef<HTMLInputElement>(null);
@@ -590,6 +595,56 @@ const Admin: React.FC = () => {
         } catch (error) {
             console.error('Failed to delete ticker item:', error);
             alert('Failed to delete ticker item');
+        }
+    };
+
+    // --- Team Member Handlers ---
+    const handleAddTeam = () => {
+        setCurrentTeamMember({
+            name: '',
+            role: '',
+            imageUrl: '',
+            bio: '',
+            linkedin: '',
+            instagram: '',
+            order: 0,
+            isActive: true
+        });
+        setIsEditingTeam(false);
+        setIsTeamModalOpen(true);
+    };
+
+    const handleEditTeam = (member: TeamMember) => {
+        setCurrentTeamMember(member);
+        setIsEditingTeam(true);
+        setIsTeamModalOpen(true);
+    };
+
+    const handleDeleteTeam = async (id: string) => {
+        if (!confirm('Are you sure you want to delete this team member?')) return;
+        try {
+            await api.deleteTeamMember(id);
+            setTeamMembers(teamMembers.filter(m => m._id !== id));
+        } catch (error) {
+            console.error('Failed to delete team member', error);
+            alert('Failed to delete team member');
+        }
+    };
+
+    const handleTeamSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            if (isEditingTeam && currentTeamMember._id) {
+                const updated = await api.updateTeamMember(currentTeamMember._id, currentTeamMember as TeamMember);
+                setTeamMembers(teamMembers.map(m => m._id === updated._id ? updated : m));
+            } else {
+                const added = await api.addTeamMember(currentTeamMember as Omit<TeamMember, '_id'>);
+                setTeamMembers([added, ...teamMembers]);
+            }
+            setIsTeamModalOpen(false);
+        } catch (error) {
+            console.error('Failed to save team member', error);
+            alert('Failed to save team member');
         }
     };
 
@@ -1700,12 +1755,17 @@ const Admin: React.FC = () => {
                                                         <h4 className="font-bold text-gray-800">{member.name}</h4>
                                                         <p className="text-sm text-gray-500">{member.role}</p>
                                                     </div>
-                                                    <button onClick={() => alert('Full edit UI coming soon!')} className="text-brand-purple p-2 hover:bg-purple-50 rounded">
-                                                        <Edit size={16} />
-                                                    </button>
+                                                    <div className="flex gap-2">
+                                                        <button onClick={() => handleEditTeam(member)} className="text-brand-purple p-2 hover:bg-purple-50 rounded">
+                                                            <Edit size={16} />
+                                                        </button>
+                                                        <button onClick={() => handleDeleteTeam(member._id)} className="text-red-500 p-2 hover:bg-red-50 rounded">
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             ))}
-                                            <button onClick={() => alert('Full add UI coming soon!')} className="border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center text-gray-500 hover:text-brand-purple hover:border-brand-purple transition min-h-[100px]">
+                                            <button onClick={handleAddTeam} className="border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center text-gray-500 hover:text-brand-purple hover:border-brand-purple transition min-h-[100px]">
                                                 <PlusCircle size={24} className="mb-2" />
                                                 <span className="font-bold">Add Member</span>
                                             </button>
@@ -2375,6 +2435,52 @@ const Admin: React.FC = () => {
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Team Member Modal */}
+            {isTeamModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                        <div className="sticky top-0 bg-white border-b border-gray-100 p-6 flex justify-between items-center z-10">
+                            <h3 className="text-xl font-bold text-gray-900">{isEditingTeam ? 'Edit Team Member' : 'Add Team Member'}</h3>
+                            <button onClick={() => setIsTeamModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+                                <X size={24} />
+                            </button>
+                        </div>
+                        <form onSubmit={handleTeamSubmit} className="p-6 space-y-4">
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-2">Name</label>
+                                <input type="text" required value={currentTeamMember.name || ''} onChange={e => setCurrentTeamMember({...currentTeamMember, name: e.target.value})} className="w-full px-4 py-2 border rounded-lg" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-2">Role</label>
+                                <input type="text" required value={currentTeamMember.role || ''} onChange={e => setCurrentTeamMember({...currentTeamMember, role: e.target.value})} className="w-full px-4 py-2 border rounded-lg" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-2">Image URL</label>
+                                <input type="text" required value={currentTeamMember.imageUrl || ''} onChange={e => setCurrentTeamMember({...currentTeamMember, imageUrl: e.target.value})} className="w-full px-4 py-2 border rounded-lg" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-2">Bio</label>
+                                <textarea required value={currentTeamMember.bio || ''} onChange={e => setCurrentTeamMember({...currentTeamMember, bio: e.target.value})} className="w-full px-4 py-2 border rounded-lg h-24" />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-2">LinkedIn (Optional)</label>
+                                    <input type="text" value={currentTeamMember.linkedin || ''} onChange={e => setCurrentTeamMember({...currentTeamMember, linkedin: e.target.value})} className="w-full px-4 py-2 border rounded-lg" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-2">Instagram (Optional)</label>
+                                    <input type="text" value={currentTeamMember.instagram || ''} onChange={e => setCurrentTeamMember({...currentTeamMember, instagram: e.target.value})} className="w-full px-4 py-2 border rounded-lg" />
+                                </div>
+                            </div>
+                            <div className="pt-4 flex justify-end gap-2">
+                                <button type="button" onClick={() => setIsTeamModalOpen(false)} className="px-4 py-2 text-gray-500 font-bold">Cancel</button>
+                                <button type="submit" className="bg-brand-purple text-white px-6 py-2 rounded-lg font-bold">Save Member</button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}

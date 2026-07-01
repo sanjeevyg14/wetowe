@@ -50,7 +50,7 @@ const Team: React.FC = () => {
                 </div>
                 <div className="relative z-10 max-w-5xl mx-auto px-4 text-center">
                     <h1 className="text-5xl md:text-7xl font-black font-serif mb-6">MEET THE TEAM</h1>
-                    <p className="text-xl text-brand-cream/70 max-w-2xl mx-auto leading-relaxed">
+                    <p className="text-xl text-white max-w-2xl mx-auto leading-relaxed">
                         The passionate explorers behind every adventure.
                     </p>
                 </div>
@@ -82,7 +82,7 @@ const Team: React.FC = () => {
                                             <h3 className="text-2xl font-bold text-brand-black font-serif mb-1">{member.name}</h3>
                                             <p className="text-brand-olive text-sm font-bold uppercase tracking-wider mb-4">{member.role}</p>
                                         </div>
-                                        <p className="text-brand-black/70 text-sm leading-relaxed mb-6">{member.bio}</p>
+                                        <p className="text-gray-700 text-sm leading-relaxed mb-6">{member.bio}</p>
                                         <div className="flex gap-3">
                                             {member.linkedin && (
                                                 <a
@@ -116,7 +116,7 @@ const Team: React.FC = () => {
                     <blockquote className="text-2xl md:text-3xl text-brand-cream font-serif italic mb-6">
                         "We don't just plan trips. We create stories that last a lifetime."
                     </blockquote>
-                    <p className="text-brand-cream/70 font-bold uppercase tracking-wider text-sm">— The WtoW Team</p>
+                    <p className="text-white font-bold uppercase tracking-wider text-sm">— The WtoW Team</p>
                 </div>
             </section>
 
@@ -124,7 +124,7 @@ const Team: React.FC = () => {
             <section className="py-16 bg-brand-cream">
                 <div className="max-w-3xl mx-auto px-4 text-center">
                     <h2 className="text-3xl font-bold text-brand-black font-serif mb-4">Join Our Team</h2>
-                    <p className="text-brand-black/60 mb-8">
+                    <p className="text-gray-700 mb-8">
                         Are you passionate about travel and adventure? We're always looking for like-minded explorers to join our journey.
                     </p>
                     <a

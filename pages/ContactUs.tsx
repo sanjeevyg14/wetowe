@@ -68,7 +68,7 @@ const ContactUs: React.FC = () => {
                 </div>
                 <div className="relative z-10 max-w-5xl mx-auto px-4 text-center">
                     <h1 className="text-5xl md:text-7xl font-black font-serif mb-6">CONTACT US</h1>
-                    <p className="text-xl text-brand-cream/70 max-w-2xl mx-auto leading-relaxed">
+                    <p className="text-xl text-white max-w-2xl mx-auto leading-relaxed">
                         Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible.
                     </p>
                 </div>
@@ -114,7 +114,7 @@ const ContactUs: React.FC = () => {
                         {/* Left Side - Info */}
                         <div>
                             <h2 className="text-4xl font-bold text-brand-black font-serif mb-6">Let's Plan Your Next Adventure</h2>
-                            <p className="text-brand-black/60 mb-8 leading-relaxed">
+                            <p className="text-gray-700 mb-8 leading-relaxed">
                                 Whether you're planning a solo trek, a group getaway, or have questions about our trips,
                                 fill out the form and our travel experts will get back to you shortly.
                             </p>
@@ -126,7 +126,7 @@ const ContactUs: React.FC = () => {
                                     </div>
                                     <div>
                                         <h4 className="font-bold text-brand-black mb-1">Response Time</h4>
-                                        <p className="text-sm text-brand-black/60">We typically respond within 2-4 hours during business hours</p>
+                                        <p className="text-sm text-gray-700">We typically respond within 2-4 hours during business hours</p>
                                     </div>
                                 </div>
                                 <div className="flex items-start gap-4">
@@ -135,7 +135,7 @@ const ContactUs: React.FC = () => {
                                     </div>
                                     <div>
                                         <h4 className="font-bold text-brand-black mb-1">WhatsApp Support</h4>
-                                        <p className="text-sm text-brand-black/60">Quick queries? Message us directly on WhatsApp</p>
+                                        <p className="text-sm text-gray-700">Quick queries? Message us directly on WhatsApp</p>
                                     </div>
                                 </div>
                             </div>

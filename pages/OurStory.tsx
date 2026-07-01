@@ -73,7 +73,7 @@ const OurStory: React.FC = () => {
                         <Compass size={14} /> About Us
                     </span>
                     <h1 className="text-5xl md:text-7xl font-black font-serif mb-6">{storyContent.heading}</h1>
-                    <p className="text-xl text-brand-cream/70 max-w-2xl mx-auto leading-relaxed">
+                    <p className="text-xl text-white max-w-2xl mx-auto leading-relaxed">
                         {storyContent.subHeading}
                     </p>
                 </div>
@@ -85,10 +85,10 @@ const OurStory: React.FC = () => {
                     <div className="prose prose-lg max-w-none">
                         <div className="bg-white p-10 rounded-2xl shadow-sm border border-brand-olive/10 mb-12">
                             <h2 className="text-3xl font-bold text-brand-black font-serif mb-6">{storyContent.section1Title}</h2>
-                            <p className="text-brand-black/70 leading-relaxed mb-6">
+                            <p className="text-gray-700 leading-relaxed mb-6">
                                 {storyContent.section1Text1}
                             </p>
-                            <p className="text-brand-black/70 leading-relaxed">
+                            <p className="text-gray-700 leading-relaxed">
                                 {storyContent.section1Text2}
                             </p>
                         </div>
@@ -99,27 +99,27 @@ const OurStory: React.FC = () => {
                                     <Mountain size={24} />
                                 </div>
                                 <h3 className="font-bold text-brand-black mb-2">150+ Trips</h3>
-                                <p className="text-sm text-brand-black/60">Successfully completed adventures</p>
+                                <p className="text-sm text-gray-600">Successfully completed adventures</p>
                             </div>
                             <div className="bg-brand-olive/5 p-6 rounded-xl text-center border border-brand-olive/10">
                                 <div className="bg-brand-olive text-brand-cream w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4">
                                     <Users size={24} />
                                 </div>
                                 <h3 className="font-bold text-brand-black mb-2">5000+ Travelers</h3>
-                                <p className="text-sm text-brand-black/60">Happy adventurers and counting</p>
+                                <p className="text-sm text-gray-600">Happy adventurers and counting</p>
                             </div>
                             <div className="bg-brand-olive/5 p-6 rounded-xl text-center border border-brand-olive/10">
                                 <div className="bg-brand-olive text-brand-cream w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4">
                                     <Star size={24} />
                                 </div>
                                 <h3 className="font-bold text-brand-black mb-2">4.9 Rating</h3>
-                                <p className="text-sm text-brand-black/60">Average customer satisfaction</p>
+                                <p className="text-sm text-gray-600">Average customer satisfaction</p>
                             </div>
                         </div>
 
                         <div className="bg-white p-10 rounded-2xl shadow-sm border border-brand-olive/10 mb-12">
                             <h2 className="text-3xl font-bold text-brand-black font-serif mb-6">{storyContent.section2Title}</h2>
-                            <p className="text-brand-black/70 leading-relaxed mb-6">
+                            <p className="text-gray-700 leading-relaxed mb-6">
                                 {storyContent.section2Text}
                             </p>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -129,7 +129,7 @@ const OurStory: React.FC = () => {
                                     </div>
                                     <div>
                                         <h4 className="font-bold text-brand-black mb-1">Sustainable Travel</h4>
-                                        <p className="text-sm text-brand-black/60">Leave no trace, support local economies</p>
+                                        <p className="text-sm text-gray-600">Leave no trace, support local economies</p>
                                     </div>
                                 </div>
                                 <div className="flex items-start gap-4">
@@ -138,7 +138,7 @@ const OurStory: React.FC = () => {
                                     </div>
                                     <div>
                                         <h4 className="font-bold text-brand-black mb-1">Authentic Experiences</h4>
-                                        <p className="text-sm text-brand-black/60">Beyond tourist spots, into real cultures</p>
+                                        <p className="text-sm text-gray-600">Beyond tourist spots, into real cultures</p>
                                     </div>
                                 </div>
                             </div>
