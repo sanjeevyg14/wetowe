@@ -87,3 +87,21 @@ export interface Enquiry {
   status: 'new' | 'contacted' | 'resolved';
   createdAt: string;
 }
+
+export interface TeamMember {
+  _id: string;
+  name: string;
+  role: string;
+  imageUrl: string;
+  bio: string;
+  linkedin?: string;
+  instagram?: string;
+  isActive: boolean;
+  order: number;
+}
+
+export interface SiteSetting {
+  key: string;
+  value: any;
+  description?: string;
+}

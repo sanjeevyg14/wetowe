@@ -7,6 +7,7 @@ import { api } from '../services/api';
 
 const ContactUs: React.FC = () => {
     const [enquiryStatus, setEnquiryStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
+    const [contactContent, setContactContent] = useState<any>(null);
     const [enquiryData, setEnquiryData] = useState({
         name: '',
         Travellers: '',
@@ -16,6 +17,21 @@ const ContactUs: React.FC = () => {
         where: '',
         message: ''
     });
+
+    React.useEffect(() => {
+        api.getSetting('contact_us_content').then(res => {
+            if (res?.value) setContactContent(res.value);
+        }).catch(console.error);
+    }, []);
+
+    const content = contactContent || {
+        phone: "+91 96064 99422",
+        phoneDesc: "Mon-Sat, 9AM - 7PM IST",
+        email: "experiences@wheelstowilderness.in",
+        emailDesc: "We reply within 24 hours",
+        address: "Bangalore, Karnataka",
+        addressDesc: "By appointment only"
+    };
 
     const handleEnquirySubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -67,24 +83,24 @@ const ContactUs: React.FC = () => {
                                 <Phone size={24} />
                             </div>
                             <h3 className="font-bold text-brand-black text-lg mb-2">Call Us</h3>
-                            <p className="text-brand-black/60 mb-4 text-sm">Mon-Sat, 9AM - 7PM IST</p>
-                            <a href="tel:+919606499422" className="text-brand-olive font-bold hover:underline">+91 96064 99422</a>
+                            <p className="text-brand-black/60 mb-4 text-sm">{content.phoneDesc}</p>
+                            <a href={`tel:${content.phone.replace(/[^0-9+]/g, '')}`} className="text-brand-olive font-bold hover:underline">{content.phone}</a>
                         </div>
                         <div className="bg-white p-8 rounded-xl shadow-lg border border-brand-olive/10 text-center hover:shadow-xl transition-all hover:-translate-y-1">
                             <div className="bg-brand-olive text-brand-cream w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <Mail size={24} />
                             </div>
                             <h3 className="font-bold text-brand-black text-lg mb-2">Email Us</h3>
-                            <p className="text-brand-black/60 mb-4 text-sm">We reply within 24 hours</p>
-                            <a href="mailto:experiences@wheelstowilderness.in" className="text-brand-olive font-bold hover:underline">experiences@wheelstowilderness.in</a>
+                            <p className="text-brand-black/60 mb-4 text-sm">{content.emailDesc}</p>
+                            <a href={`mailto:${content.email}`} className="text-brand-olive font-bold hover:underline">{content.email}</a>
                         </div>
                         <div className="bg-white p-8 rounded-xl shadow-lg border border-brand-olive/10 text-center hover:shadow-xl transition-all hover:-translate-y-1">
                             <div className="bg-brand-olive text-brand-cream w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <MapPin size={24} />
                             </div>
                             <h3 className="font-bold text-brand-black text-lg mb-2">Visit Us</h3>
-                            <p className="text-brand-black/60 mb-4 text-sm">By appointment only</p>
-                            <p className="text-brand-olive font-bold">Bangalore, Karnataka</p>
+                            <p className="text-brand-black/60 mb-4 text-sm">{content.addressDesc}</p>
+                            <p className="text-brand-olive font-bold">{content.address}</p>
                         </div>
                     </div>
                 </div>

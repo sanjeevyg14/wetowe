@@ -1,4 +1,4 @@
-import { Trip, BookingStats, Testimonial, Booking, Enquiry, User } from '../types';
+import { Trip, BookingStats, Testimonial, Booking, Enquiry, User, TeamMember, SiteSetting } from '../types';
 
 const API_URL = (import.meta as any)?.env?.VITE_API_URL || '/api';
 
@@ -432,5 +432,68 @@ export const api = {
             headers: getAuthHeaders()
         });
         if (!response.ok) throw new Error('Failed to delete hero image');
+    },
+
+    // --- TEAM ---
+    getTeamMembers: async (): Promise<TeamMember[]> => {
+        const response = await fetch(`${API_URL}/team`);
+        if (!response.ok) throw new Error('Failed to fetch team members');
+        return await response.json();
+    },
+
+    getAdminTeamMembers: async (): Promise<TeamMember[]> => {
+        const response = await fetch(`${API_URL}/team/admin`, {
+            headers: getAuthHeaders()
+        });
+        if (!response.ok) throw new Error('Failed to fetch team members');
+        return await response.json();
+    },
+
+    addTeamMember: async (data: Omit<TeamMember, '_id'>): Promise<TeamMember> => {
+        const response = await fetch(`${API_URL}/team`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(data)
+        });
+        if (!response.ok) throw new Error('Failed to add team member');
+        return await response.json();
+    },
+
+    updateTeamMember: async (id: string, data: Partial<TeamMember>): Promise<TeamMember> => {
+        const response = await fetch(`${API_URL}/team/${id}`, {
+            method: 'PUT',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(data)
+        });
+        if (!response.ok) throw new Error('Failed to update team member');
+        return await response.json();
+    },
+
+    deleteTeamMember: async (id: string): Promise<void> => {
+        const response = await fetch(`${API_URL}/team/${id}`, {
+            method: 'DELETE',
+            headers: getAuthHeaders()
+        });
+        if (!response.ok) throw new Error('Failed to delete team member');
+    },
+
+    // --- SITE SETTINGS ---
+    getSetting: async (key: string): Promise<SiteSetting> => {
+        const response = await fetch(`${API_URL}/settings/${key}`);
+        if (!response.ok) {
+            if (response.status === 404) return { key, value: null };
+            throw new Error('Failed to fetch setting');
+        }
+        return await response.json();
+    },
+
+    updateSetting: async (key: string, data: { value: any, description?: string }): Promise<SiteSetting> => {
+        const response = await fetch(`${API_URL}/settings/${key}`, {
+            method: 'PUT',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(data)
+        });
+        if (!response.ok) throw new Error('Failed to update setting');
+        return await response.json();
     }
 };

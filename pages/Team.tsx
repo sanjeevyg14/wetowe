@@ -3,51 +3,38 @@ import { Linkedin, Instagram, Mail, Quote } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
-interface TeamMember {
-    name: string;
-    role: string;
-    image: string;
-    bio: string;
-    linkedin?: string;
-    instagram?: string;
-}
-
-const teamMembers: TeamMember[] = [
-    {
-        name: "Sanjeev Kumar",
-        role: "Founder & Lead Explorer",
-        image: "https://i.pravatar.cc/300?img=11",
-        bio: "A passionate traveler with over 10 years of experience exploring offbeat destinations across India. Founded WtoW to share authentic travel experiences.",
-        linkedin: "#",
-        instagram: "#"
-    },
-    {
-        name: "Priya Sharma",
-        role: "Trip Curator",
-        image: "https://i.pravatar.cc/300?img=5",
-        bio: "Former travel journalist turned trip designer. Priya meticulously crafts each itinerary to ensure the perfect balance of adventure and comfort.",
-        linkedin: "#",
-        instagram: "#"
-    },
-    {
-        name: "Rahul Menon",
-        role: "Community Manager",
-        image: "https://i.pravatar.cc/300?img=12",
-        bio: "The voice behind our social media and the connector of our travel community. Rahul ensures every traveler feels like part of the family.",
-        linkedin: "#",
-        instagram: "#"
-    },
-    {
-        name: "Ananya Reddy",
-        role: "Operations Head",
-        image: "https://i.pravatar.cc/300?img=9",
-        bio: "With a background in hospitality, Ananya handles all the logistics to ensure every trip runs smoothly from start to finish.",
-        linkedin: "#",
-        instagram: "#"
-    }
-];
+import { TeamMember } from '../types';
+import { api } from '../services/api';
 
 const Team: React.FC = () => {
+    const [teamMembers, setTeamMembers] = React.useState<TeamMember[]>([]);
+    const [loading, setLoading] = React.useState(true);
+
+    React.useEffect(() => {
+        const fetchTeam = async () => {
+            try {
+                const members = await api.getTeamMembers();
+                setTeamMembers(members);
+            } catch (err) {
+                console.error("Failed to fetch team members", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchTeam();
+    }, []);
+
+    if (loading) {
+        return (
+            <div className="min-h-screen flex flex-col bg-brand-cream">
+                <Navbar />
+                <div className="flex-1 flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-olive"></div>
+                </div>
+                <Footer />
+            </div>
+        );
+    }
     return (
         <div className="min-h-screen flex flex-col bg-brand-cream">
             <Navbar />
@@ -81,7 +68,7 @@ const Team: React.FC = () => {
                                 <div className="flex flex-col md:flex-row">
                                     <div className="md:w-2/5 relative overflow-hidden">
                                         <img
-                                            src={member.image}
+                                            src={member.imageUrl || member.image}
                                             alt={member.name}
                                             className="w-full h-64 md:h-full object-cover group-hover:scale-105 transition-transform duration-700"
                                         />

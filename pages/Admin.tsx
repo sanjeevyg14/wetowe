@@ -8,6 +8,7 @@ import { Trip, BookingStats, Booking, Enquiry, ItineraryItem, Testimonial } from
 import Navbar from '../components/Navbar';
 import { useAuth } from '../contexts/AuthContext';
 import { Navigate, Link } from 'react-router-dom';
+import { TeamMember, SiteSetting } from '../types';
 
 // -- Helper Components for List Management --
 
@@ -160,8 +161,10 @@ const Admin: React.FC = () => {
     const [reviews, setReviews] = useState<Testimonial[]>([]);
     const [tickerItems, setTickerItems] = useState<{ _id: string; text: string; icon: string; isActive: boolean; order: number }[]>([]);
     const [heroImages, setHeroImages] = useState<{ id: string; imageUrl: string; caption: string; order: number; isActive: boolean }[]>([]);
+    const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+    const [siteSettings, setSiteSettings] = useState<SiteSetting[]>([]);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState<'overview' | 'trips' | 'bookings' | 'enquiries' | 'gallery' | 'reviews' | 'ticker' | 'hero'>('overview');
+    const [activeTab, setActiveTab] = useState<'overview' | 'trips' | 'bookings' | 'enquiries' | 'gallery' | 'reviews' | 'ticker' | 'hero' | 'team' | 'settings'>('overview');
     const { user, isAdmin, loading: authLoading } = useAuth();
 
     // Modal State
@@ -193,7 +196,14 @@ const Admin: React.FC = () => {
                 api.getAdminGallery(),
                 api.getAdminTestimonials(),
                 api.getAdminMarqueeItems(),
-                api.getAdminHeroImages()
+                api.getAdminHeroImages(),
+                api.getAdminTeamMembers(),
+                Promise.all([
+                    api.getSetting('home_stats'),
+                    api.getSetting('home_quick_tags'),
+                    api.getSetting('our_story_content'),
+                    api.getSetting('contact_us_content')
+                ])
             ]);
 
             if (results[0].status === 'fulfilled') setTrips(results[0].value);
@@ -219,6 +229,12 @@ const Admin: React.FC = () => {
 
             if (results[7].status === 'fulfilled') setHeroImages(results[7].value);
             else console.error("Failed to fetch hero images:", results[7].reason);
+
+            if (results[8].status === 'fulfilled') setTeamMembers(results[8].value);
+            else console.error("Failed to fetch team members:", results[8].reason);
+
+            if (results[9].status === 'fulfilled') setSiteSettings(results[9].value.filter(Boolean));
+            else console.error("Failed to fetch settings:", results[9].reason);
 
         } catch (error) {
             console.error("Failed to fetch admin data", error);
@@ -646,6 +662,18 @@ const Admin: React.FC = () => {
                             >
                                 <ImageIcon size={20} /> Hero Carousel
                             </button>
+                            <button
+                                onClick={() => setActiveTab('team')}
+                                className={`flex items-center gap-3 w-full px-4 py-3 rounded-lg font-medium transition ${activeTab === 'team' ? 'bg-purple-50 text-brand-purple' : 'text-gray-600 hover:bg-gray-50'}`}
+                            >
+                                <Users size={20} /> Team Members
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('settings')}
+                                className={`flex items-center gap-3 w-full px-4 py-3 rounded-lg font-medium transition ${activeTab === 'settings' ? 'bg-purple-50 text-brand-purple' : 'text-gray-600 hover:bg-gray-50'}`}
+                            >
+                                <Settings size={20} /> Site Settings
+                            </button>
                         </nav>
                     </div>
                 </aside>
@@ -653,7 +681,7 @@ const Admin: React.FC = () => {
                 {/* Mobile Tab Navigation */}
                 <div className="lg:hidden w-full mb-4 overflow-x-auto">
                     <div className="flex gap-2 min-w-max px-1 pb-2">
-                        {(['overview', 'trips', 'bookings', 'enquiries', 'gallery', 'reviews', 'ticker', 'hero'] as const).map(tab => (
+                        {(['overview', 'trips', 'bookings', 'enquiries', 'gallery', 'reviews', 'ticker', 'hero', 'team', 'settings'] as const).map(tab => (
                             <button
                                 key={tab}
                                 onClick={() => setActiveTab(tab)}
@@ -1652,6 +1680,85 @@ const Admin: React.FC = () => {
                                                 ))}
                                             </div>
                                         )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeTab === 'team' && (
+                                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                                    <div className="p-6 border-b border-gray-100">
+                                        <h3 className="text-lg font-bold text-gray-800">Team Members</h3>
+                                        <p className="text-sm text-gray-500 mt-1">Manage team members displayed on the Team page.</p>
+                                    </div>
+                                    <div className="p-6">
+                                        <p className="text-gray-500 mb-4">You can add, edit, or remove team members here.</p>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                            {teamMembers.map((member) => (
+                                                <div key={member._id} className="border border-gray-200 rounded-lg p-4 flex gap-4 items-center">
+                                                    <img src={member.imageUrl} alt={member.name} className="w-16 h-16 rounded-full object-cover" />
+                                                    <div className="flex-1">
+                                                        <h4 className="font-bold text-gray-800">{member.name}</h4>
+                                                        <p className="text-sm text-gray-500">{member.role}</p>
+                                                    </div>
+                                                    <button onClick={() => alert('Full edit UI coming soon!')} className="text-brand-purple p-2 hover:bg-purple-50 rounded">
+                                                        <Edit size={16} />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                            <button onClick={() => alert('Full add UI coming soon!')} className="border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center text-gray-500 hover:text-brand-purple hover:border-brand-purple transition min-h-[100px]">
+                                                <PlusCircle size={24} className="mb-2" />
+                                                <span className="font-bold">Add Member</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeTab === 'settings' && (
+                                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                                    <div className="p-6 border-b border-gray-100">
+                                        <h3 className="text-lg font-bold text-gray-800">Site Settings</h3>
+                                        <p className="text-sm text-gray-500 mt-1">Manage dynamic content for Home, Our Story, and Contact Us pages.</p>
+                                    </div>
+                                    <div className="p-6 space-y-8">
+                                        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                            <h4 className="font-bold text-gray-800 mb-2">Home Page Quick Tags</h4>
+                                            <p className="text-sm text-gray-500 mb-4">Edit the 4 locations shown in the search bar.</p>
+                                            <div className="flex gap-2">
+                                                <input 
+                                                    type="text" 
+                                                    defaultValue={siteSettings.find(s => s.key === 'home_quick_tags')?.value?.join(', ') || 'Hampi, Gokarna, Wayanad, Pondicherry'}
+                                                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg"
+                                                    id="quick-tags-input"
+                                                />
+                                                <button onClick={async () => {
+                                                    const val = (document.getElementById('quick-tags-input') as HTMLInputElement).value;
+                                                    await api.updateSetting('home_quick_tags', { value: val.split(',').map(s => s.trim()) });
+                                                    alert('Updated Quick Tags!');
+                                                }} className="bg-brand-purple text-white px-4 py-2 rounded-lg font-bold">Save</button>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                            <h4 className="font-bold text-gray-800 mb-2">JSON Configuration Editor</h4>
+                                            <p className="text-sm text-gray-500 mb-4">Advanced: Edit other settings via JSON (e.g., home_stats, our_story_content).</p>
+                                            <textarea 
+                                                className="w-full h-64 p-4 font-mono text-sm border border-gray-300 rounded-lg"
+                                                defaultValue={JSON.stringify(siteSettings.reduce((acc, s) => ({...acc, [s.key]: s.value}), {}), null, 2)}
+                                                id="settings-json"
+                                            ></textarea>
+                                            <button onClick={async () => {
+                                                try {
+                                                    const data = JSON.parse((document.getElementById('settings-json') as HTMLTextAreaElement).value);
+                                                    for (const key of Object.keys(data)) {
+                                                        await api.updateSetting(key, { value: data[key] });
+                                                    }
+                                                    alert('Settings updated successfully!');
+                                                } catch (e) {
+                                                    alert('Invalid JSON');
+                                                }
+                                            }} className="mt-4 bg-brand-purple text-white px-6 py-2 rounded-lg font-bold w-full">Save All JSON Settings</button>
+                                        </div>
                                     </div>
                                 </div>
                             )}

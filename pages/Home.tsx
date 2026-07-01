@@ -95,6 +95,8 @@ const Home: React.FC = () => {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [loading, setLoading] = useState(true);
+  const [homeStats, setHomeStats] = useState<any[]>([]);
+  const [quickTags, setQuickTags] = useState<string[]>(['Hampi', 'Gokarna', 'Wayanad', 'Pondicherry']);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDuration, setSelectedDuration] = useState('All');
@@ -129,15 +131,27 @@ const Home: React.FC = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [tripsData, testimonialsData, galleryData, marqueeData, heroData] = await Promise.all([
+        const [tripsData, testimonialsData, galleryData, marqueeData, heroData, statsData, tagsData] = await Promise.all([
           api.getTrips(),
           api.getTestimonials(),
           api.getGalleryImages(),
           api.getMarqueeItems(),
-          api.getHeroImages()
+          api.getHeroImages(),
+          api.getSetting('home_stats').catch(() => ({ value: null })),
+          api.getSetting('home_quick_tags').catch(() => ({ value: null }))
         ]);
         setTrips(tripsData);
         setTestimonials(testimonialsData);
+        
+        if (statsData?.value) setHomeStats(statsData.value);
+        else setHomeStats([
+          { end: 150, suffix: '+', label: 'Trips Done', iconName: 'Trophy' },
+          { end: 5000, suffix: '+', label: 'Travelers', iconName: 'Users' },
+          { end: 25, suffix: '+', label: 'Spots', iconName: 'Map' },
+          { end: 40, suffix: '%', label: 'Solo Women', iconName: 'Heart' }
+        ]);
+
+        if (tagsData?.value) setQuickTags(tagsData.value);
         // Set gallery with fallback to default images
         if (galleryData && galleryData.length > 0) {
           setGalleryImages(galleryData);
@@ -470,7 +484,7 @@ const Home: React.FC = () => {
 
                 {/* Quick Tags underneath */}
                 <div className="mt-3 flex gap-2 px-2 overflow-x-auto no-scrollbar">
-                  {['Hampi', 'Gokarna', 'Wayanad', 'Pondicherry'].map(tag => (
+                  {quickTags.map(tag => (
                     <button key={tag} onClick={() => setSearchTerm(tag)} className="text-[10px] font-bold uppercase tracking-wider text-brand-black/40 hover:text-brand-olive transition border border-brand-black/10 px-2 py-1 rounded-md whitespace-nowrap bg-gray-50">
                       {tag}
                     </button>
@@ -776,18 +790,16 @@ const Home: React.FC = () => {
 
           {/* Stats Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-20">
-            <ScrollReveal delay={0} className="h-full">
-              <StatCounter end={150} suffix="+" label="Trips Done" icon={<Trophy size={28} />} />
-            </ScrollReveal>
-            <ScrollReveal delay={100} className="h-full">
-              <StatCounter end={5000} suffix="+" label="Travelers" icon={<Users size={28} />} />
-            </ScrollReveal>
-            <ScrollReveal delay={200} className="h-full">
-              <StatCounter end={25} suffix="+" label="Spots" icon={<Map size={28} />} />
-            </ScrollReveal>
-            <ScrollReveal delay={300} className="h-full">
-              <StatCounter end={40} suffix="%" label="Solo Women" icon={<Heart size={28} />} />
-            </ScrollReveal>
+            {homeStats.map((stat, index) => (
+              <ScrollReveal delay={index * 100} className="h-full" key={index}>
+                <StatCounter 
+                  end={stat.end} 
+                  suffix={stat.suffix} 
+                  label={stat.label} 
+                  icon={getMarqueeIcon(stat.iconName || 'Star')} 
+                />
+              </ScrollReveal>
+            ))}
           </div>
 
           {/* Detailed Features Grid */}
