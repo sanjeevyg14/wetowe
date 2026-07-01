@@ -68,7 +68,7 @@ const Team: React.FC = () => {
                                 <div className="flex flex-col md:flex-row">
                                     <div className="md:w-2/5 relative overflow-hidden">
                                         <img
-                                            src={member.imageUrl || member.image}
+                                            src={member.imageUrl}
                                             alt={member.name}
                                             className="w-full h-64 md:h-full object-cover group-hover:scale-105 transition-transform duration-700"
                                         />
