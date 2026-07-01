@@ -633,6 +633,10 @@ const Admin: React.FC = () => {
 
     const handleTeamSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!currentTeamMember.imageUrl) {
+            alert('Please upload a photo for the team member.');
+            return;
+        }
         try {
             if (isEditingTeam && currentTeamMember._id) {
                 const updated = await api.updateTeamMember(currentTeamMember._id, currentTeamMember as TeamMember);
@@ -2459,8 +2463,40 @@ const Admin: React.FC = () => {
                                 <input type="text" required value={currentTeamMember.role || ''} onChange={e => setCurrentTeamMember({...currentTeamMember, role: e.target.value})} className="w-full px-4 py-2 border rounded-lg" />
                             </div>
                             <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-2">Image URL</label>
-                                <input type="text" required value={currentTeamMember.imageUrl || ''} onChange={e => setCurrentTeamMember({...currentTeamMember, imageUrl: e.target.value})} className="w-full px-4 py-2 border rounded-lg" />
+                                <label className="block text-sm font-bold text-gray-700 mb-2">Photo</label>
+                                {currentTeamMember.imageUrl && (
+                                    <div className="mb-3">
+                                        <img src={currentTeamMember.imageUrl} alt="Preview" className="w-24 h-24 rounded-full object-cover border-2 border-gray-200" />
+                                    </div>
+                                )}
+                                <div className="flex items-center gap-3">
+                                    <label className="cursor-pointer bg-brand-purple text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-brand-darkPurple transition flex items-center gap-2">
+                                        <Upload size={16} />
+                                        {isUploading ? 'Uploading...' : 'Upload Image'}
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            className="hidden"
+                                            disabled={isUploading}
+                                            onChange={async (e) => {
+                                                if (e.target.files && e.target.files[0]) {
+                                                    setIsUploading(true);
+                                                    try {
+                                                        const url = await uploadToCloudinary(e.target.files[0]);
+                                                        setCurrentTeamMember(prev => ({ ...prev, imageUrl: url }));
+                                                    } catch (err: any) {
+                                                        alert(err.message || 'Upload failed');
+                                                    } finally {
+                                                        setIsUploading(false);
+                                                        e.target.value = '';
+                                                    }
+                                                }
+                                            }}
+                                        />
+                                    </label>
+                                    {isUploading && <Loader size={20} className="animate-spin text-brand-purple" />}
+                                </div>
+                                {!currentTeamMember.imageUrl && <p className="text-xs text-red-500 mt-1">* Photo is required</p>}
                             </div>
                             <div>
                                 <label className="block text-sm font-bold text-gray-700 mb-2">Bio</label>

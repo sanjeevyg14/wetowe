@@ -40,7 +40,7 @@ const Team: React.FC = () => {
             <Navbar />
 
             {/* Hero Section */}
-            <section className="relative bg-brand-black text-brand-cream py-24 overflow-hidden">
+            <section className="relative bg-brand-black text-white py-24 overflow-hidden">
                 <div className="absolute inset-0 opacity-20">
                     <img
                         src="https://picsum.photos/id/1074/1920/800"
@@ -63,7 +63,7 @@ const Team: React.FC = () => {
                         {teamMembers.map((member, index) => (
                             <div
                                 key={member.name}
-                                className="bg-white rounded-2xl overflow-hidden shadow-sm border border-brand-olive/10 hover:shadow-xl transition-all duration-500 group"
+                                className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-200 hover:shadow-xl transition-all duration-500 group"
                             >
                                 <div className="flex flex-col md:flex-row">
                                     <div className="md:w-2/5 relative overflow-hidden">
@@ -73,21 +73,21 @@ const Team: React.FC = () => {
                                             className="w-full h-64 md:h-full object-cover group-hover:scale-105 transition-transform duration-700"
                                         />
                                         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-brand-black/80 to-transparent p-4 md:hidden">
-                                            <h3 className="text-xl font-bold text-brand-cream font-serif">{member.name}</h3>
-                                            <p className="text-brand-olive text-sm font-bold uppercase tracking-wider">{member.role}</p>
+                                            <h3 className="text-xl font-bold text-white font-serif">{member.name}</h3>
+                                            <p className="text-brand-sage text-sm font-bold uppercase tracking-wider">{member.role}</p>
                                         </div>
                                     </div>
                                     <div className="md:w-3/5 p-6 md:p-8 flex flex-col justify-center">
                                         <div className="hidden md:block">
                                             <h3 className="text-2xl font-bold text-brand-black font-serif mb-1">{member.name}</h3>
-                                            <p className="text-brand-olive text-sm font-bold uppercase tracking-wider mb-4">{member.role}</p>
+                                            <p className="text-brand-sage text-sm font-bold uppercase tracking-wider mb-4">{member.role}</p>
                                         </div>
                                         <p className="text-gray-700 text-sm leading-relaxed mb-6">{member.bio}</p>
                                         <div className="flex gap-3">
                                             {member.linkedin && (
                                                 <a
                                                     href={member.linkedin}
-                                                    className="p-2 bg-brand-olive/10 rounded-full text-brand-olive hover:bg-brand-olive hover:text-brand-cream transition"
+                                                    className="p-2 bg-brand-sage/10 rounded-full text-brand-sage hover:bg-brand-sage hover:text-white transition"
                                                 >
                                                     <Linkedin size={18} />
                                                 </a>
@@ -95,7 +95,7 @@ const Team: React.FC = () => {
                                             {member.instagram && (
                                                 <a
                                                     href={member.instagram}
-                                                    className="p-2 bg-brand-olive/10 rounded-full text-brand-olive hover:bg-brand-olive hover:text-brand-cream transition"
+                                                    className="p-2 bg-brand-sage/10 rounded-full text-brand-sage hover:bg-brand-sage hover:text-white transition"
                                                 >
                                                     <Instagram size={18} />
                                                 </a>
@@ -110,26 +110,26 @@ const Team: React.FC = () => {
             </section>
 
             {/* Quote Section */}
-            <section className="bg-brand-olive py-16">
+            <section className="bg-brand-sage py-16">
                 <div className="max-w-4xl mx-auto px-4 text-center">
-                    <Quote size={40} className="text-brand-cream/30 mx-auto mb-6" />
-                    <blockquote className="text-2xl md:text-3xl text-brand-cream font-serif italic mb-6">
+                    <Quote size={40} className="text-white/30 mx-auto mb-6" />
+                    <blockquote className="text-2xl md:text-3xl text-white font-serif italic mb-6">
                         "We don't just plan trips. We create stories that last a lifetime."
                     </blockquote>
-                    <p className="text-white font-bold uppercase tracking-wider text-sm">— The WtoW Team</p>
+                    <p className="text-white/80 font-bold uppercase tracking-wider text-sm">— The WtoW Team</p>
                 </div>
             </section>
 
             {/* Join Us CTA */}
-            <section className="py-16 bg-brand-cream">
+            <section className="py-16 bg-white">
                 <div className="max-w-3xl mx-auto px-4 text-center">
                     <h2 className="text-3xl font-bold text-brand-black font-serif mb-4">Join Our Team</h2>
-                    <p className="text-gray-700 mb-8">
+                    <p className="text-gray-600 mb-8">
                         Are you passionate about travel and adventure? We're always looking for like-minded explorers to join our journey.
                     </p>
                     <a
                         href="mailto:careers@wheeltowilderness.com"
-                        className="inline-flex items-center gap-2 bg-brand-black text-brand-cream px-8 py-4 rounded-lg font-bold hover:bg-brand-olive transition uppercase tracking-wider text-sm"
+                        className="inline-flex items-center gap-2 bg-brand-sage text-white px-8 py-4 rounded-lg font-bold hover:bg-brand-black transition uppercase tracking-wider text-sm"
                     >
                         <Mail size={18} /> careers@wheeltowilderness.com
                     </a>

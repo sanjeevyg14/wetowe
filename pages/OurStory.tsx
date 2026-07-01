@@ -60,7 +60,7 @@ const OurStory: React.FC = () => {
             <Navbar />
 
             {/* Hero Section */}
-            <section className="relative bg-brand-black text-brand-cream py-24 overflow-hidden">
+            <section className="relative bg-brand-black text-white py-24 overflow-hidden">
                 <div className="absolute inset-0 opacity-20">
                     <img
                         src={storyContent.heroImage}
@@ -69,7 +69,7 @@ const OurStory: React.FC = () => {
                     />
                 </div>
                 <div className="relative z-10 max-w-5xl mx-auto px-4 text-center">
-                    <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-olive/20 text-brand-olive text-xs font-bold uppercase tracking-widest mb-6 border border-brand-olive/30">
+                    <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-sage/20 text-brand-sage text-xs font-bold uppercase tracking-widest mb-6 border border-brand-sage/30">
                         <Compass size={14} /> About Us
                     </span>
                     <h1 className="text-5xl md:text-7xl font-black font-serif mb-6">{storyContent.heading}</h1>
@@ -83,7 +83,7 @@ const OurStory: React.FC = () => {
             <section className="py-20">
                 <div className="max-w-4xl mx-auto px-4">
                     <div className="prose prose-lg max-w-none">
-                        <div className="bg-white p-10 rounded-2xl shadow-sm border border-brand-olive/10 mb-12">
+                        <div className="bg-white p-10 rounded-2xl shadow-sm border border-gray-200 mb-12">
                             <h2 className="text-3xl font-bold text-brand-black font-serif mb-6">{storyContent.section1Title}</h2>
                             <p className="text-gray-700 leading-relaxed mb-6">
                                 {storyContent.section1Text1}
@@ -94,22 +94,22 @@ const OurStory: React.FC = () => {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-                            <div className="bg-brand-olive/5 p-6 rounded-xl text-center border border-brand-olive/10">
-                                <div className="bg-brand-olive text-brand-cream w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <div className="bg-brand-sage/10 p-6 rounded-xl text-center border border-brand-sage/20">
+                                <div className="bg-brand-sage text-white w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4">
                                     <Mountain size={24} />
                                 </div>
                                 <h3 className="font-bold text-brand-black mb-2">150+ Trips</h3>
                                 <p className="text-sm text-gray-600">Successfully completed adventures</p>
                             </div>
-                            <div className="bg-brand-olive/5 p-6 rounded-xl text-center border border-brand-olive/10">
-                                <div className="bg-brand-olive text-brand-cream w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <div className="bg-brand-sage/10 p-6 rounded-xl text-center border border-brand-sage/20">
+                                <div className="bg-brand-sage text-white w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4">
                                     <Users size={24} />
                                 </div>
                                 <h3 className="font-bold text-brand-black mb-2">5000+ Travelers</h3>
                                 <p className="text-sm text-gray-600">Happy adventurers and counting</p>
                             </div>
-                            <div className="bg-brand-olive/5 p-6 rounded-xl text-center border border-brand-olive/10">
-                                <div className="bg-brand-olive text-brand-cream w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <div className="bg-brand-sage/10 p-6 rounded-xl text-center border border-brand-sage/20">
+                                <div className="bg-brand-sage text-white w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4">
                                     <Star size={24} />
                                 </div>
                                 <h3 className="font-bold text-brand-black mb-2">4.9 Rating</h3>
@@ -117,14 +117,14 @@ const OurStory: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="bg-white p-10 rounded-2xl shadow-sm border border-brand-olive/10 mb-12">
+                        <div className="bg-white p-10 rounded-2xl shadow-sm border border-gray-200 mb-12">
                             <h2 className="text-3xl font-bold text-brand-black font-serif mb-6">{storyContent.section2Title}</h2>
                             <p className="text-gray-700 leading-relaxed mb-6">
                                 {storyContent.section2Text}
                             </p>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="flex items-start gap-4">
-                                    <div className="bg-brand-olive/10 p-3 rounded-lg text-brand-olive">
+                                    <div className="bg-brand-sage/10 p-3 rounded-lg text-brand-sage">
                                         <Leaf size={20} />
                                     </div>
                                     <div>
@@ -133,7 +133,7 @@ const OurStory: React.FC = () => {
                                     </div>
                                 </div>
                                 <div className="flex items-start gap-4">
-                                    <div className="bg-brand-olive/10 p-3 rounded-lg text-brand-olive">
+                                    <div className="bg-brand-sage/10 p-3 rounded-lg text-brand-sage">
                                         <Heart size={20} />
                                     </div>
                                     <div>
@@ -147,7 +147,7 @@ const OurStory: React.FC = () => {
                         <div className="text-center">
                             <Link
                                 to="/contact"
-                                className="inline-flex items-center gap-2 bg-brand-olive text-brand-cream px-8 py-4 rounded-lg font-bold hover:bg-brand-black transition uppercase tracking-wider text-sm"
+                                className="inline-flex items-center gap-2 bg-brand-sage text-white px-8 py-4 rounded-lg font-bold hover:bg-brand-black transition uppercase tracking-wider text-sm"
                             >
                                 Get in Touch <ArrowRight size={18} />
                             </Link>
