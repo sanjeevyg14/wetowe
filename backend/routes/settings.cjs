@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const SiteSetting = require('../models/SiteSetting.cjs');
-const { requireAuth, requireAdmin } = require('../middleware/auth.cjs');
+const { authMiddleware, adminMiddleware } = require('../middleware/auth.cjs');
 
 // Public route: Get setting by key
 router.get('/:key', async (req, res) => {
@@ -17,7 +17,7 @@ router.get('/:key', async (req, res) => {
 });
 
 // Admin route: Update or Create setting by key
-router.put('/:key', requireAuth, requireAdmin, async (req, res) => {
+router.put('/:key', authMiddleware, adminMiddleware, async (req, res) => {
     try {
         const { value, description } = req.body;
         

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const TeamMember = require('../models/TeamMember.cjs');
-const { requireAuth, requireAdmin } = require('../middleware/auth.cjs');
+const { authMiddleware, adminMiddleware } = require('../middleware/auth.cjs');
 
 // Public route: Get all active team members, sorted by order
 router.get('/', async (req, res) => {
@@ -14,7 +14,7 @@ router.get('/', async (req, res) => {
 });
 
 // Admin route: Get all team members
-router.get('/admin', requireAuth, requireAdmin, async (req, res) => {
+router.get('/admin', authMiddleware, adminMiddleware, async (req, res) => {
     try {
         const team = await TeamMember.find().sort({ order: 1, createdAt: -1 });
         res.json(team);
@@ -24,7 +24,7 @@ router.get('/admin', requireAuth, requireAdmin, async (req, res) => {
 });
 
 // Admin route: Create a team member
-router.post('/', requireAuth, requireAdmin, async (req, res) => {
+router.post('/', authMiddleware, adminMiddleware, async (req, res) => {
     try {
         const newMember = new TeamMember(req.body);
         const savedMember = await newMember.save();
@@ -35,7 +35,7 @@ router.post('/', requireAuth, requireAdmin, async (req, res) => {
 });
 
 // Admin route: Update a team member
-router.put('/:id', requireAuth, requireAdmin, async (req, res) => {
+router.put('/:id', authMiddleware, adminMiddleware, async (req, res) => {
     try {
         const updatedMember = await TeamMember.findByIdAndUpdate(
             req.params.id,
@@ -52,7 +52,7 @@ router.put('/:id', requireAuth, requireAdmin, async (req, res) => {
 });
 
 // Admin route: Delete a team member
-router.delete('/:id', requireAuth, requireAdmin, async (req, res) => {
+router.delete('/:id', authMiddleware, adminMiddleware, async (req, res) => {
     try {
         const member = await TeamMember.findByIdAndDelete(req.params.id);
         if (!member) {
