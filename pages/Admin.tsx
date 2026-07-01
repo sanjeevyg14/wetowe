@@ -1738,28 +1738,142 @@ const Admin: React.FC = () => {
                                                 }} className="bg-brand-purple text-white px-4 py-2 rounded-lg font-bold">Save</button>
                                             </div>
                                         </div>
+
+                                        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                            <h4 className="font-bold text-gray-800 mb-4">Home Page Stats</h4>
+                                            <div className="space-y-4">
+                                                {(() => {
+                                                    const currentStats = siteSettings.find(s => s.key === 'home_stats')?.value || [
+                                                        { end: 150, suffix: '+', label: 'Trips Done', iconName: 'Trophy' },
+                                                        { end: 5000, suffix: '+', label: 'Travelers', iconName: 'Users' },
+                                                        { end: 25, suffix: '+', label: 'Spots', iconName: 'Map' },
+                                                        { end: 40, suffix: '%', label: 'Solo Women', iconName: 'Heart' }
+                                                    ];
+                                                    return (
+                                                        <form onSubmit={async (e) => {
+                                                            e.preventDefault();
+                                                            const formData = new FormData(e.target as HTMLFormElement);
+                                                            const newStats = [];
+                                                            for(let i=0; i<4; i++) {
+                                                                newStats.push({
+                                                                    end: parseInt(formData.get(`stat_${i}_end`) as string) || 0,
+                                                                    suffix: formData.get(`stat_${i}_suffix`),
+                                                                    label: formData.get(`stat_${i}_label`),
+                                                                    iconName: formData.get(`stat_${i}_iconName`)
+                                                                });
+                                                            }
+                                                            await api.updateSetting('home_stats', { value: newStats });
+                                                            alert('Home Stats updated!');
+                                                        }}>
+                                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                                                {currentStats.map((stat, i) => (
+                                                                    <div key={i} className="border p-3 rounded bg-white">
+                                                                        <h5 className="font-bold mb-2 text-sm text-gray-600">Stat {i+1}</h5>
+                                                                        <div className="grid grid-cols-2 gap-2">
+                                                                            <input type="number" name={`stat_${i}_end`} defaultValue={stat.end} placeholder="Number (e.g. 150)" className="w-full px-2 py-1 border rounded" required />
+                                                                            <input type="text" name={`stat_${i}_suffix`} defaultValue={stat.suffix} placeholder="Suffix (e.g. +)" className="w-full px-2 py-1 border rounded" />
+                                                                            <input type="text" name={`stat_${i}_label`} defaultValue={stat.label} placeholder="Label (e.g. Trips)" className="w-full px-2 py-1 border rounded" required />
+                                                                            <select name={`stat_${i}_iconName`} defaultValue={stat.iconName} className="w-full px-2 py-1 border rounded">
+                                                                                <option value="Trophy">Trophy</option>
+                                                                                <option value="Users">Users</option>
+                                                                                <option value="Map">Map</option>
+                                                                                <option value="Heart">Heart</option>
+                                                                                <option value="Star">Star</option>
+                                                                                <option value="Zap">Zap</option>
+                                                                            </select>
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                            <button type="submit" className="bg-brand-purple text-white px-4 py-2 rounded-lg font-bold">Save Home Stats</button>
+                                                        </form>
+                                                    );
+                                                })()}
+                                            </div>
+                                        </div>
                                         
                                         <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                                            <h4 className="font-bold text-gray-800 mb-2">JSON Configuration Editor</h4>
-                                            <p className="text-sm text-gray-500 mb-4">Advanced: Edit other settings via JSON (e.g., home_stats, our_story_content).</p>
-                                            <textarea 
-                                                className="w-full h-64 p-4 font-mono text-sm border border-gray-300 rounded-lg"
-                                                defaultValue={JSON.stringify(siteSettings.reduce((acc, s) => ({...acc, [s.key]: s.value}), {}), null, 2)}
-                                                id="settings-json"
-                                            ></textarea>
-                                            <button onClick={async () => {
-                                                try {
-                                                    const data = JSON.parse((document.getElementById('settings-json') as HTMLTextAreaElement).value);
-                                                    for (const key of Object.keys(data)) {
-                                                        await api.updateSetting(key, { value: data[key] });
-                                                    }
-                                                    alert('Settings updated successfully!');
-                                                } catch (e) {
-                                                    alert('Invalid JSON');
-                                                }
-                                            }} className="mt-4 bg-brand-purple text-white px-6 py-2 rounded-lg font-bold w-full">Save All JSON Settings</button>
+                                            <h4 className="font-bold text-gray-800 mb-4">Our Story Content</h4>
+                                            <div className="space-y-4">
+                                                {(() => {
+                                                    const currentStory = siteSettings.find(s => s.key === 'our_story_content')?.value || {
+                                                        heading: "OUR STORY",
+                                                        subHeading: "Born from a passion for the wild and a love for authentic adventures.",
+                                                        section1Title: "The Beginning",
+                                                        section1Text1: "Wheel to Wilderness started in 2019...",
+                                                        section2Title: "Our Mission",
+                                                        section2Text: "We believe that travel has the power to transform lives..."
+                                                    };
+                                                    return (
+                                                        <form onSubmit={async (e) => {
+                                                            e.preventDefault();
+                                                            const formData = new FormData(e.target as HTMLFormElement);
+                                                            const data = {
+                                                                heading: formData.get('heading'),
+                                                                subHeading: formData.get('subHeading'),
+                                                                section1Title: formData.get('section1Title'),
+                                                                section1Text1: formData.get('section1Text1'),
+                                                                section2Title: formData.get('section2Title'),
+                                                                section2Text: formData.get('section2Text'),
+                                                                heroImage: currentStory.heroImage || "https://picsum.photos/id/1036/1920/800"
+                                                            };
+                                                            await api.updateSetting('our_story_content', { value: data });
+                                                            alert('Our Story updated!');
+                                                        }}>
+                                                            <input type="text" name="heading" defaultValue={currentStory.heading} placeholder="Heading" className="w-full px-4 py-2 border rounded-lg mb-2" />
+                                                            <input type="text" name="subHeading" defaultValue={currentStory.subHeading} placeholder="Sub Heading" className="w-full px-4 py-2 border rounded-lg mb-2" />
+                                                            <input type="text" name="section1Title" defaultValue={currentStory.section1Title} placeholder="Section 1 Title" className="w-full px-4 py-2 border rounded-lg mb-2" />
+                                                            <textarea name="section1Text1" defaultValue={currentStory.section1Text1} placeholder="Section 1 Text" className="w-full px-4 py-2 border rounded-lg mb-2 h-24"></textarea>
+                                                            <input type="text" name="section2Title" defaultValue={currentStory.section2Title} placeholder="Section 2 Title" className="w-full px-4 py-2 border rounded-lg mb-2" />
+                                                            <textarea name="section2Text" defaultValue={currentStory.section2Text} placeholder="Section 2 Text" className="w-full px-4 py-2 border rounded-lg mb-2 h-24"></textarea>
+                                                            <button type="submit" className="bg-brand-purple text-white px-4 py-2 rounded-lg font-bold">Save Our Story</button>
+                                                        </form>
+                                                    );
+                                                })()}
+                                            </div>
                                         </div>
-                                    </div>
+
+                                        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                            <h4 className="font-bold text-gray-800 mb-4">Contact Us Content</h4>
+                                            <div className="space-y-4">
+                                                {(() => {
+                                                    const currentContact = siteSettings.find(s => s.key === 'contact_us_content')?.value || {
+                                                        phone: "+91 96064 99422",
+                                                        phoneDesc: "Mon-Sat, 9AM - 7PM IST",
+                                                        email: "experiences@wheelstowilderness.in",
+                                                        emailDesc: "We reply within 24 hours",
+                                                        address: "Bangalore, Karnataka",
+                                                        addressDesc: "By appointment only"
+                                                    };
+                                                    return (
+                                                        <form onSubmit={async (e) => {
+                                                            e.preventDefault();
+                                                            const formData = new FormData(e.target as HTMLFormElement);
+                                                            const data = {
+                                                                phone: formData.get('phone'),
+                                                                phoneDesc: formData.get('phoneDesc'),
+                                                                email: formData.get('email'),
+                                                                emailDesc: formData.get('emailDesc'),
+                                                                address: formData.get('address'),
+                                                                addressDesc: formData.get('addressDesc'),
+                                                            };
+                                                            await api.updateSetting('contact_us_content', { value: data });
+                                                            alert('Contact Us updated!');
+                                                        }}>
+                                                            <div className="grid grid-cols-2 gap-4 mb-2">
+                                                                <input type="text" name="phone" defaultValue={currentContact.phone} placeholder="Phone" className="w-full px-4 py-2 border rounded-lg" />
+                                                                <input type="text" name="phoneDesc" defaultValue={currentContact.phoneDesc} placeholder="Phone Description" className="w-full px-4 py-2 border rounded-lg" />
+                                                                <input type="text" name="email" defaultValue={currentContact.email} placeholder="Email" className="w-full px-4 py-2 border rounded-lg" />
+                                                                <input type="text" name="emailDesc" defaultValue={currentContact.emailDesc} placeholder="Email Description" className="w-full px-4 py-2 border rounded-lg" />
+                                                                <input type="text" name="address" defaultValue={currentContact.address} placeholder="Address" className="w-full px-4 py-2 border rounded-lg" />
+                                                                <input type="text" name="addressDesc" defaultValue={currentContact.addressDesc} placeholder="Address Description" className="w-full px-4 py-2 border rounded-lg" />
+                                                            </div>
+                                                            <button type="submit" className="bg-brand-purple text-white px-4 py-2 rounded-lg font-bold">Save Contact Info</button>
+                                                        </form>
+                                                    );
+                                                })()}
+                                            </div>
+                                        </div>
                                 </div>
                             )}
                         </>
