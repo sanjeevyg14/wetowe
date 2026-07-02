@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Compass, Map, Tent, Mountain, ArrowRight, Lock } from 'lucide-react';
+import { Compass, Map, Tent, Mountain, ArrowRight, Rocket } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import SEO from '../components/SEO';
 
@@ -36,7 +36,7 @@ const Launch: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-brand-black text-white relative overflow-hidden flex flex-col items-center justify-center font-sans selection:bg-brand-sage selection:text-white">
-            <SEO title="Exclusive Launch | Wheels to Wilderness" description="Private access to our next big adventure." url="/launch" />
+            <SEO title="Official Launch | Wheels to Wilderness" description="Welcome to the official launch of Wheels to Wilderness." url="/launch" />
 
             {/* Background Layer with Parallax */}
             <motion.div 
@@ -75,19 +75,19 @@ const Launch: React.FC = () => {
                 animate="visible"
             >
                 <motion.div variants={itemVariants} className="mb-8 flex items-center gap-3 bg-white/5 border border-white/10 px-5 py-2.5 rounded-full backdrop-blur-md shadow-2xl">
-                    <Lock size={14} className="text-brand-sage" />
-                    <span className="text-xs font-bold uppercase tracking-[0.3em] text-gray-300 mt-[2px]">Private Access</span>
+                    <Rocket size={14} className="text-brand-sage" />
+                    <span className="text-xs font-bold uppercase tracking-[0.3em] text-gray-300 mt-[2px]">We Are Live</span>
                 </motion.div>
 
-                <motion.h1 variants={itemVariants} className="text-6xl md:text-8xl font-black font-serif mb-6 leading-tight tracking-tight drop-shadow-2xl">
-                    THE WILD <br /> 
+                <motion.h1 variants={itemVariants} className="text-5xl md:text-8xl font-black font-serif mb-6 leading-tight tracking-tight drop-shadow-2xl">
+                    WHEELS TO <br /> 
                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-sage via-[#a8c3a7] to-white">
-                        AWAITS
+                        WILDERNESS
                     </span>
                 </motion.h1>
 
                 <motion.p variants={itemVariants} className="text-xl md:text-2xl text-gray-400 mb-14 max-w-2xl leading-relaxed font-light drop-shadow-md">
-                    Something extraordinary is on the horizon. A new way to experience the world, built exclusively for true explorers.
+                    Welcome to our official launch! A new way to experience the world, built for true explorers. The journey begins now.
                 </motion.p>
 
                 <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-6 w-full max-w-md justify-center relative">
@@ -95,7 +95,7 @@ const Launch: React.FC = () => {
                     <div className="absolute inset-0 bg-brand-sage/30 blur-3xl rounded-full scale-110"></div>
                     
                     <Link to="/" className="relative z-10 group flex items-center justify-center gap-3 w-full bg-brand-sage text-white font-bold px-8 py-5 rounded-2xl overflow-hidden transition-all duration-300 hover:scale-105 hover:bg-[#628061] shadow-[0_0_40px_rgba(115,144,114,0.3)] hover:shadow-[0_0_60px_rgba(115,144,114,0.6)]">
-                        <span className="relative z-10 uppercase tracking-[0.2em] text-sm mt-[2px]">Enter the Portal</span>
+                        <span className="relative z-10 uppercase tracking-[0.2em] text-sm mt-[2px]">Explore Now</span>
                         <ArrowRight size={18} className="relative z-10 group-hover:translate-x-1.5 transition-transform duration-300" />
                         
                         {/* Sweeping glow hover effect */}
