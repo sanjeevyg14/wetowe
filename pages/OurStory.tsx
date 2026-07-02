@@ -1,20 +1,48 @@
 import React from 'react';
-import { Compass, Heart, Users, Mountain, Leaf, Star, ArrowRight } from 'lucide-react';
+import { Compass, Heart, Users, Mountain, Leaf, Star, ArrowRight, Trophy, Map, Flame, Zap, MapPin, Gift, Percent, Tag, Clock } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import SEO from '../components/SEO';
 import { Link } from 'react-router-dom';
 import { api } from '../services/api';
 
+const ICON_MAP: Record<string, React.ReactNode> = {
+    Trophy: <Trophy size={24} />,
+    Users: <Users size={24} />,
+    Map: <Map size={24} />,
+    Heart: <Heart size={24} />,
+    Mountain: <Mountain size={24} />,
+    Star: <Star size={24} />,
+    Flame: <Flame size={24} />,
+    Zap: <Zap size={24} />,
+    MapPin: <MapPin size={24} />,
+    Gift: <Gift size={24} />,
+    Percent: <Percent size={24} />,
+    Tag: <Tag size={24} />,
+    Clock: <Clock size={24} />,
+};
+
+const DEFAULT_STATS = [
+    { end: 150, suffix: '+', label: 'Trips Done', iconName: 'Trophy' },
+    { end: 5000, suffix: '+', label: 'Travelers', iconName: 'Users' },
+    { end: 25, suffix: '+', label: 'Destinations', iconName: 'Map' },
+    { end: 40, suffix: '%', label: 'Solo Women', iconName: 'Heart' },
+];
+
 const OurStory: React.FC = () => {
     const [content, setContent] = React.useState<any>(null);
+    const [homeStats, setHomeStats] = React.useState<any[]>(DEFAULT_STATS);
     const [loading, setLoading] = React.useState(true);
 
     React.useEffect(() => {
         const load = async () => {
             try {
-                const setting = await api.getSetting('our_story_content');
-                if (setting?.value) setContent(setting.value);
+                const [storySetting, statsSetting] = await Promise.all([
+                    api.getSetting('our_story_content').catch(() => null),
+                    api.getSetting('home_stats').catch(() => null),
+                ]);
+                if (storySetting?.value) setContent(storySetting.value);
+                if (statsSetting?.value) setHomeStats(statsSetting.value);
             } catch (e) {
                 console.error(e);
             } finally {
@@ -93,28 +121,18 @@ const OurStory: React.FC = () => {
                             </p>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-                            <div className="bg-brand-sage/10 p-6 rounded-xl text-center border border-brand-sage/20">
-                                <div className="bg-brand-sage text-white w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <Mountain size={24} />
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
+                            {homeStats.map((stat: any, i: number) => (
+                                <div key={i} className="bg-brand-sage/10 p-6 rounded-xl text-center border border-brand-sage/20">
+                                    <div className="bg-brand-sage text-white w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        {ICON_MAP[stat.iconName] || <Trophy size={24} />}
+                                    </div>
+                                    <h3 className="font-bold text-gray-900 text-xl mb-1">
+                                        {stat.end}{stat.suffix}
+                                    </h3>
+                                    <p className="text-sm text-gray-500 leading-snug">{stat.label}</p>
                                 </div>
-                                <h3 className="font-bold text-brand-black mb-2">150+ Trips</h3>
-                                <p className="text-sm text-gray-600">Successfully completed adventures</p>
-                            </div>
-                            <div className="bg-brand-sage/10 p-6 rounded-xl text-center border border-brand-sage/20">
-                                <div className="bg-brand-sage text-white w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <Users size={24} />
-                                </div>
-                                <h3 className="font-bold text-brand-black mb-2">5000+ Travelers</h3>
-                                <p className="text-sm text-gray-600">Happy adventurers and counting</p>
-                            </div>
-                            <div className="bg-brand-sage/10 p-6 rounded-xl text-center border border-brand-sage/20">
-                                <div className="bg-brand-sage text-white w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <Star size={24} />
-                                </div>
-                                <h3 className="font-bold text-brand-black mb-2">4.9 Rating</h3>
-                                <p className="text-sm text-gray-600">Average customer satisfaction</p>
-                            </div>
+                            ))}
                         </div>
 
                         <div className="bg-white p-10 rounded-2xl shadow-sm border border-gray-200 mb-12">
