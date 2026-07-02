@@ -702,7 +702,7 @@ const Home: React.FC = () => {
             </a>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-1 h-[600px] md:h-[500px]">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-4 auto-rows-[200px] md:auto-rows-[300px]">
             {galleryImages.map((img, idx) => (
               <div
                 key={idx}
