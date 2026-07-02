@@ -47,7 +47,7 @@ const ContactUs: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen flex flex-col bg-brand-cream">
+        <div className="min-h-screen flex flex-col bg-white">
             <SEO
                 title="Contact Us"
                 description="Get in touch with Wheels to Wilderness. Plan your next adventure, ask questions, or send an enquiry. We're here to help you explore!"
@@ -113,8 +113,8 @@ const ContactUs: React.FC = () => {
 
                         {/* Left Side - Info */}
                         <div>
-                            <h2 className="text-4xl font-bold text-brand-olive font-serif mb-6">Let's Plan Your Next Adventure</h2>
-                            <p className="text-brand-olive/80 mb-8 leading-relaxed">
+                            <h2 className="text-4xl font-bold text-gray-900 font-serif mb-6">Let's Plan Your Next Adventure</h2>
+                            <p className="text-gray-600 mb-8 leading-relaxed">
                                 Whether you're planning a solo trek, a group getaway, or have questions about our trips,
                                 fill out the form and our travel experts will get back to you shortly.
                             </p>
@@ -125,7 +125,7 @@ const ContactUs: React.FC = () => {
                                         <Clock size={20} />
                                     </div>
                                     <div>
-                                        <h4 className="font-bold text-brand-black mb-1">Response Time</h4>
+                                        <h4 className="font-bold text-gray-900 mb-1">Response Time</h4>
                                         <p className="text-sm text-gray-600">We typically respond within 2-4 hours during business hours</p>
                                     </div>
                                 </div>
@@ -134,7 +134,7 @@ const ContactUs: React.FC = () => {
                                         <MessageCircle size={20} />
                                     </div>
                                     <div>
-                                        <h4 className="font-bold text-brand-black mb-1">WhatsApp Support</h4>
+                                        <h4 className="font-bold text-gray-900 mb-1">WhatsApp Support</h4>
                                         <p className="text-sm text-gray-600">Quick queries? Message us directly on WhatsApp</p>
                                     </div>
                                 </div>
@@ -142,7 +142,7 @@ const ContactUs: React.FC = () => {
 
                             {/* Social Links */}
                             <div>
-                                <h4 className="font-bold text-brand-olive mb-4 uppercase tracking-wider text-sm">Follow Us</h4>
+                                <h4 className="font-bold text-gray-900 mb-4 uppercase tracking-wider text-sm">Follow Us</h4>
                                 <div className="flex gap-3">
                                     <a href="https://instagram.com/wheelstowilderness" target="_blank" rel="noopener noreferrer" className="p-3 bg-brand-sage/10 rounded-lg text-brand-sage hover:bg-brand-sage hover:text-white transition">
                                         <Instagram size={20} />

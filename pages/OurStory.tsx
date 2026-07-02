@@ -113,12 +113,14 @@ const OurStory: React.FC = () => {
                     <div className="prose prose-lg max-w-none">
                         <div className="bg-white p-10 rounded-2xl shadow-sm border border-gray-200 mb-12">
                             <h2 className="text-3xl font-bold text-brand-black font-serif mb-6">{storyContent.section1Title}</h2>
-                            <p className="text-gray-700 leading-relaxed mb-6">
+                            <p className="text-gray-700 leading-relaxed mb-6 whitespace-pre-wrap">
                                 {storyContent.section1Text1}
                             </p>
-                            <p className="text-gray-700 leading-relaxed">
-                                {storyContent.section1Text2}
-                            </p>
+                            {storyContent.section1Text2 && (
+                                <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                                    {storyContent.section1Text2}
+                                </p>
+                            )}
                         </div>
 
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
@@ -127,7 +129,7 @@ const OurStory: React.FC = () => {
                                     <div className="bg-brand-sage text-white w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4">
                                         {ICON_MAP[stat.iconName] || <Trophy size={24} />}
                                     </div>
-                                    <h3 className="font-bold text-gray-900 text-xl mb-1">
+                                    <h3 className="font-bold text-white text-xl mb-1">
                                         {stat.end}{stat.suffix}
                                     </h3>
                                     <p className="text-sm text-gray-500 leading-snug">{stat.label}</p>
@@ -137,7 +139,7 @@ const OurStory: React.FC = () => {
 
                         <div className="bg-white p-10 rounded-2xl shadow-sm border border-gray-200 mb-12">
                             <h2 className="text-3xl font-bold text-brand-black font-serif mb-6">{storyContent.section2Title}</h2>
-                            <p className="text-gray-700 leading-relaxed mb-6">
+                            <p className="text-gray-700 leading-relaxed mb-6 whitespace-pre-wrap">
                                 {storyContent.section2Text}
                             </p>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
