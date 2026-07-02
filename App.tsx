@@ -14,6 +14,7 @@ import ContactUs from './pages/ContactUs';
 import Terms from './pages/Terms';
 import CancellationPolicy from './pages/CancellationPolicy';
 import BookingConfirmation from './pages/BookingConfirmation';
+import Launch from './pages/Launch';
 import { AuthProvider } from './contexts/AuthContext';
 
 const App: React.FC = () => {
@@ -35,6 +36,7 @@ const App: React.FC = () => {
             <Route path="/terms" element={<Terms />} />
             <Route path="/cancellation-policy" element={<CancellationPolicy />} />
             <Route path="/booking-confirmation" element={<BookingConfirmation />} />
+            <Route path="/launch" element={<Launch />} />
           </Routes>
         </Router>
       </AuthProvider>
