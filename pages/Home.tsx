@@ -684,47 +684,7 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* Gallery Section - Darker Theme */}
-      <section className="bg-brand-black py-20 text-brand-cream">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between mb-10">
-            <div>
-              <h2 className="text-3xl font-extrabold text-brand-cream font-serif uppercase tracking-wide">Visual Log</h2>
-              <p className="text-brand-cream/60 mt-2 uppercase text-xs tracking-widest">Captured by our community</p>
-            </div>
-            <a
-              href="https://instagram.com/wheelstowilderness"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hidden md:flex items-center gap-2 text-brand-olive font-bold hover:text-brand-sage transition"
-            >
-              <Camera size={20} /> @wheelstowilderness
-            </a>
-          </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-4 auto-rows-[200px] md:auto-rows-[300px]">
-            {galleryImages.map((img, idx) => (
-              <div
-                key={idx}
-                className={`
-                            relative overflow-hidden cursor-pointer group opacity-90 hover:opacity-100 transition-opacity
-                            ${idx === 0 ? 'col-span-2 row-span-2' : ''}
-                        `}
-                onClick={() => openLightbox(idx)}
-              >
-                <img
-                  src={img.imageUrl}
-                  alt={img.caption || `Gallery ${idx}`}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-brand-olive/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <span className="text-brand-cream border border-brand-cream px-4 py-2 uppercase text-xs font-bold tracking-widest hover:bg-brand-cream hover:text-brand-black transition">View</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* Testimonials */}
       <section className="bg-brand-cream py-24 border-b border-brand-olive/10">
@@ -980,6 +940,48 @@ const Home: React.FC = () => {
               )}
             </div>
 
+          </div>
+        </div>
+      </section>
+
+      {/* Gallery Section - Darker Theme */}
+      <section className="bg-brand-black py-20 text-brand-cream">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between mb-10">
+            <div>
+              <h2 className="text-3xl font-extrabold text-brand-cream font-serif uppercase tracking-wide">Visual Log</h2>
+              <p className="text-brand-cream/60 mt-2 uppercase text-xs tracking-widest">Captured by our community</p>
+            </div>
+            <a
+              href="https://instagram.com/wheelstowilderness"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden md:flex items-center gap-2 text-brand-olive font-bold hover:text-brand-sage transition"
+            >
+              <Camera size={20} /> @wheelstowilderness
+            </a>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-4 auto-rows-[200px] md:auto-rows-[300px]">
+            {galleryImages.map((img, idx) => (
+              <div
+                key={idx}
+                className={`
+                            relative overflow-hidden cursor-pointer group opacity-90 hover:opacity-100 transition-opacity
+                            ${idx === 0 ? 'col-span-2 row-span-2' : ''}
+                        `}
+                onClick={() => openLightbox(idx)}
+              >
+                <img
+                  src={img.imageUrl}
+                  alt={img.caption || `Gallery ${idx}`}
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-brand-olive/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <span className="text-brand-cream border border-brand-cream px-4 py-2 uppercase text-xs font-bold tracking-widest hover:bg-brand-cream hover:text-brand-black transition">View</span>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>

@@ -4,6 +4,36 @@ import { Compass, Map, Tent, Mountain, ArrowRight, Rocket } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import SEO from '../components/SEO';
 
+const ConfettiBurst = () => {
+    return (
+        <div className="absolute inset-0 pointer-events-none overflow-hidden z-[100]">
+            {Array.from({ length: 150 }).map((_, i) => (
+                <motion.div
+                    key={i}
+                    initial={{
+                        x: "50vw",
+                        y: "110vh",
+                        scale: 0,
+                    }}
+                    animate={{
+                        x: `${Math.random() * 100}vw`,
+                        y: `${Math.random() * 100}vh`,
+                        scale: Math.random() * 1.5 + 0.5,
+                        rotate: Math.random() * 720 - 360,
+                        opacity: [1, 1, 0]
+                    }}
+                    transition={{
+                        duration: Math.random() * 3 + 2,
+                        ease: "easeOut",
+                        delay: Math.random() * 0.2
+                    }}
+                    className={`absolute w-3 h-3 rounded-sm ${['bg-brand-sage', 'bg-[#D4A373]', 'bg-[#ECE3CE]', 'bg-white'][Math.floor(Math.random() * 4)]}`}
+                />
+            ))}
+        </div>
+    );
+};
+
 const Launch: React.FC = () => {
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
@@ -37,6 +67,9 @@ const Launch: React.FC = () => {
     return (
         <div className="min-h-screen bg-brand-black text-white relative overflow-hidden flex flex-col items-center justify-center font-sans selection:bg-brand-sage selection:text-white">
             <SEO title="Official Launch | Wheels to Wilderness" description="Welcome to the official launch of Wheels to Wilderness." url="/launch" />
+
+            {/* Custom Confetti Burst */}
+            <ConfettiBurst />
 
             {/* Background Layer with Parallax */}
             <motion.div 
