@@ -11,7 +11,7 @@
  */
 
 const express = require('express');
-const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
+const { S3Client, PutObjectCommand, ListObjectsV2Command } = require('@aws-sdk/client-s3');
 const https = require('https');
 const http = require('http');
 const path = require('path');
@@ -370,6 +370,130 @@ router.post('/recover', authMiddleware, adminMiddleware, async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: 'Recovery error', error: error.message });
+  }
+});
+
+// ─── POST /api/admin/migrate/sync ───────────────────────────────────────────
+// Syncs MongoDB with the actual unique files in the R2 bucket.
+// It fetches all files from the bucket, builds a map of original filenames to actual R2 URLs,
+// and updates the MongoDB documents to match what's currently in the bucket.
+router.post('/sync', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    if (!process.env.R2_ACCOUNT_ID || !process.env.R2_ACCESS_KEY_ID || !process.env.R2_SECRET_ACCESS_KEY || !process.env.R2_BUCKET_NAME || !process.env.R2_PUBLIC_URL) {
+      return res.status(500).json({ message: 'R2 environment variables are not configured on the server.' });
+    }
+
+    const publicUrl = (process.env.R2_PUBLIC_URL || '').replace(/\/$/, '');
+    const s3 = getS3Client();
+    let isTruncated = true;
+    let continuationToken;
+    const bucketFiles = [];
+
+    // 1. Fetch ALL files from the R2 bucket
+    while (isTruncated) {
+      const command = new ListObjectsV2Command({
+        Bucket: process.env.R2_BUCKET_NAME,
+        ContinuationToken: continuationToken,
+      });
+      const response = await s3.send(command);
+      if (response.Contents) {
+        bucketFiles.push(...response.Contents);
+      }
+      isTruncated = response.IsTruncated;
+      continuationToken = response.NextContinuationToken;
+    }
+
+    if (bucketFiles.length === 0) {
+      return res.json({ message: 'The R2 bucket is entirely empty.' });
+    }
+
+    // 2. Build a map of: originalFilename => actual R2 URL
+    // R2 keys are like "trip/1720176000000-originalname.jpg"
+    const fileMap = {};
+    for (const file of bucketFiles) {
+      const key = file.Key;
+      const filename = key.split('/').pop();
+      // Extract the part after the timestamp prefix (e.g., "1720176000000-")
+      const match = filename.match(/^\d+-(.+)$/);
+      const originalFilename = match ? match[1] : filename;
+      
+      // If multiple timestamps exist for the same original file, this keeps the LAST one in the bucket
+      // Since the user deleted duplicates and kept 1 unique file, this will map perfectly to the kept file.
+      fileMap[originalFilename] = `${publicUrl}/${key}?v=2`;
+    }
+
+    // 3. Scan all collections and update URLs that have a matching file in the bucket map
+    let syncCount = 0;
+    const results = [];
+
+    for (const col of COLLECTIONS) {
+      const docs = await col.Model.find({});
+      for (const doc of docs) {
+        let modified = false;
+
+        for (const field of col.fields) {
+          if (field.type === 'string') {
+            const url = doc[field.name];
+            if (url) {
+              // Extract the original filename from the database URL (Cloudinary or broken R2 URL)
+              const filename = url.split('/').pop().split('?')[0];
+              const match = filename.match(/^\d+-(.+)$/);
+              const originalFilename = match ? match[1] : filename;
+
+              const actualR2Url = fileMap[originalFilename];
+              
+              // If the current URL is not exactly the actual R2 URL, update it!
+              if (actualR2Url && url !== actualR2Url) {
+                doc[field.name] = actualR2Url;
+                doc.markModified(field.name);
+                modified = true;
+                syncCount++;
+                results.push({ model: col.name, field: field.name, old: url, new: actualR2Url });
+              }
+            }
+          } else if (field.type === 'array') {
+            const arr = doc[field.name] || [];
+            let arrayModified = false;
+            
+            for (let i = 0; i < arr.length; i++) {
+              const url = arr[i];
+              if (url) {
+                const filename = url.split('/').pop().split('?')[0];
+                const match = filename.match(/^\d+-(.+)$/);
+                const originalFilename = match ? match[1] : filename;
+
+                const actualR2Url = fileMap[originalFilename];
+                
+                if (actualR2Url && url !== actualR2Url) {
+                  arr[i] = actualR2Url;
+                  arrayModified = true;
+                  syncCount++;
+                  results.push({ model: col.name, field: field.name, old: url, new: actualR2Url });
+                }
+              }
+            }
+            if (arrayModified) {
+              doc[field.name] = arr;
+              doc.markModified(field.name);
+              modified = true;
+            }
+          }
+        }
+        
+        if (modified) {
+          await doc.save();
+        }
+      }
+    }
+
+    res.json({
+      message: 'Sync complete!',
+      filesInBucket: bucketFiles.length,
+      databaseUrlsUpdated: syncCount,
+      results
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Sync error', error: error.message });
   }
 });
 
