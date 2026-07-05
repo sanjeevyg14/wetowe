@@ -49,11 +49,13 @@ const CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME || 'dtqm2zymh';
 
 function isCloudinaryUrl(url) {
   if (!url || typeof url !== 'string') return false;
+  if (url.includes('unrecoverable=true')) return false;
   return url.includes('res.cloudinary.com') || url.includes('cloudinary.com');
 }
 
 function isR2Url(url) {
   if (!url || typeof url !== 'string') return false;
+  if (url.includes('unrecoverable=true')) return false;
   const publicUrl = (process.env.R2_PUBLIC_URL || '').replace(/\/$/, '');
   return publicUrl && url.startsWith(publicUrl);
 }
@@ -296,16 +298,18 @@ router.post('/', authMiddleware, adminMiddleware, async (req, res) => {
           oldUrl: item.url.substring(0, 60), newUrl: newUrl.substring(0, 60)
         });
       } catch (err) {
-        results.push({ model: item.model, field: item.fieldName, status: 'failed', error: err.message, url: item.url });
+        const fallbackUrl = item.url + (item.url.includes('?') ? '&' : '?') + 'unrecoverable=true';
+        await updateDocField(item, fallbackUrl);
+        results.push({ model: item.model, field: item.fieldName, status: 'failed_skipped', error: err.message, url: item.url });
       }
     }
 
     const remaining = cloudinaryUrls.length - batch.length;
     res.json({
-      done: remaining === 0,
+      done: remaining <= 0,
       migrated: results.filter(r => r.status === 'migrated').length,
-      failed: results.filter(r => r.status === 'failed').length,
-      remaining,
+      failed: results.filter(r => r.status === 'failed_skipped').length,
+      remaining: Math.max(0, remaining),
       results,
     });
   } catch (error) {
@@ -341,22 +345,26 @@ router.post('/recover', authMiddleware, adminMiddleware, async (req, res) => {
             oldUrl: item.url.substring(0, 60), newUrl: newUrl.substring(0, 60)
           });
         } else {
+          const fallbackUrl = item.url + (item.url.includes('?') ? '&' : '?') + 'unrecoverable=true';
+          await updateDocField(item, fallbackUrl);
           results.push({
-            model: item.model, field: item.fieldName, status: 'failed',
+            model: item.model, field: item.fieldName, status: 'failed_skipped',
             error: 'Could not find original file on Cloudinary', url: item.url
           });
         }
       } catch (err) {
-        results.push({ model: item.model, field: item.fieldName, status: 'failed', error: err.message, url: item.url });
+        const fallbackUrl = item.url + (item.url.includes('?') ? '&' : '?') + 'unrecoverable=true';
+        await updateDocField(item, fallbackUrl);
+        results.push({ model: item.model, field: item.fieldName, status: 'failed_skipped', error: err.message, url: item.url });
       }
     }
 
     const remaining = brokenR2Urls.length - batch.length;
     res.json({
-      done: remaining === 0,
+      done: remaining <= 0,
       recovered: results.filter(r => r.status === 'recovered').length,
-      failed: results.filter(r => r.status === 'failed').length,
-      remaining,
+      failed: results.filter(r => r.status === 'failed_skipped').length,
+      remaining: Math.max(0, remaining),
       results,
     });
   } catch (error) {
