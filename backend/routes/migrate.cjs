@@ -56,6 +56,7 @@ function isCloudinaryUrl(url) {
 function isR2Url(url) {
   if (!url || typeof url !== 'string') return false;
   if (url.includes('unrecoverable=true')) return false;
+  if (url.includes('v=2')) return false; // Ignore freshly recovered/migrated R2 URLs
   const publicUrl = (process.env.R2_PUBLIC_URL || '').replace(/\/$/, '');
   return publicUrl && url.startsWith(publicUrl);
 }
@@ -134,7 +135,7 @@ async function uploadToR2(buffer, key, contentType) {
   });
   await getS3Client().send(command);
   const publicUrl = (process.env.R2_PUBLIC_URL || '').replace(/\/$/, '');
-  return `${publicUrl}/${key}`;
+  return `${publicUrl}/${key}?v=2`;
 }
 
 async function migrateOneUrl(oldUrl, prefix) {
