@@ -93,6 +93,7 @@ const seoRoutes = require('./routes/seo.cjs');
 const heroRoutes = require('./routes/hero.cjs');
 const teamRoutes = require('./routes/team.cjs');
 const settingsRoutes = require('./routes/settings.cjs');
+const migrateRoutes = require('./routes/migrate.cjs');
 const { cleanupExpiredBookings } = require('./lib/bookingUtils.cjs');
 
 // Connect to Database (Serverless optimized)
@@ -133,6 +134,7 @@ app.use('/api/seo', seoRoutes);
 app.use('/api/hero', heroRoutes);
 app.use('/api/team', teamRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/admin/migrate', migrateRoutes);
 
 // Base Route
 app.get('/', (req, res) => {
