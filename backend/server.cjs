@@ -40,7 +40,7 @@ app.use(helmet({
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // limit each IP to 100 requests per windowMs
-  skip: (req) => req.url.startsWith('/api/admin/migrate'), // Skip rate limit for migration
+  skip: (req) => req.originalUrl && req.originalUrl.includes('/api/admin/migrate'), // Skip rate limit for migration
   message: { message: 'Too many requests, please try again later.' },
   standardHeaders: true,
   legacyHeaders: false,
