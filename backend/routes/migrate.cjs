@@ -1,14 +1,13 @@
 /**
  * migrate.cjs — Admin-only API route for migrating images from Cloudinary to R2
  * 
- * Designed for Vercel serverless (10s execution limit on free tier).
- * Each call processes a small batch of images (default: 3) and returns progress.
- * Call repeatedly until { done: true }.
+ * FIXED: Added doc.markModified() for Mongoose to detect array changes.
+ * ADDED: Recovery mode to handle broken R2 URLs (from deleted bucket).
  * 
- * Usage:
- *   POST /api/admin/migrate        — migrate next batch (3 images)
- *   POST /api/admin/migrate?batch=5 — migrate next batch (5 images)
- *   GET  /api/admin/migrate/status  — check how many Cloudinary URLs remain
+ * Endpoints:
+ *   POST /api/admin/migrate          — migrate next batch of Cloudinary URLs
+ *   POST /api/admin/migrate/recover  — recover broken R2 URLs by re-downloading from Cloudinary
+ *   GET  /api/admin/migrate/status   — check remaining Cloudinary + broken R2 URLs
  */
 
 const express = require('express');
@@ -28,7 +27,7 @@ const HeroImage = require('../models/HeroImage.cjs');
 const TeamMember = require('../models/TeamMember.cjs');
 const Testimonial = require('../models/Testimonial.cjs');
 
-// --- R2 Client (lazy init to avoid crash if env vars missing) ---
+// --- R2 Client (lazy init) ---
 let _s3Client = null;
 function getS3Client() {
   if (!_s3Client) {
@@ -46,15 +45,54 @@ function getS3Client() {
 
 // --- Helpers ---
 
+const CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME || 'dtqm2zymh';
+
 function isCloudinaryUrl(url) {
   if (!url || typeof url !== 'string') return false;
   return url.includes('res.cloudinary.com') || url.includes('cloudinary.com');
 }
 
+function isR2Url(url) {
+  if (!url || typeof url !== 'string') return false;
+  const publicUrl = (process.env.R2_PUBLIC_URL || '').replace(/\/$/, '');
+  return publicUrl && url.startsWith(publicUrl);
+}
+
+/**
+ * Given a broken R2 URL like:
+ *   https://pub-xxx.r2.dev/trip/1720176000000-originalname.jpg
+ * Extract the original filename: "originalname.jpg"
+ * Then try to find it on Cloudinary at the known upload folder.
+ */
+function extractOriginalFilename(r2Url) {
+  try {
+    const urlPath = new URL(r2Url).pathname; // e.g., /trip/1720176000000-originalname.jpg
+    const filename = urlPath.split('/').pop(); // e.g., 1720176000000-originalname.jpg
+    // Remove the timestamp prefix: "1720176000000-"
+    const match = filename.match(/^\d+-(.+)$/);
+    return match ? match[1] : filename;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Try to reconstruct possible Cloudinary URLs for a given original filename.
+ * Cloudinary stores files in various paths, so we try the most common ones.
+ */
+function buildCloudinarySearchUrls(originalFilename) {
+  const base = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/image/upload`;
+  return [
+    `${base}/wheel-to-wilderness/${originalFilename}`,
+    `${base}/v1/${originalFilename}`,
+    `${base}/${originalFilename}`,
+  ];
+}
+
 function downloadImage(url) {
   return new Promise((resolve, reject) => {
     const client = url.startsWith('https') ? https : http;
-    client.get(url, (response) => {
+    const req = client.get(url, (response) => {
       if (response.statusCode >= 300 && response.statusCode < 400 && response.headers.location) {
         return downloadImage(response.headers.location).then(resolve).catch(reject);
       }
@@ -65,7 +103,13 @@ function downloadImage(url) {
       response.on('data', (chunk) => chunks.push(chunk));
       response.on('end', () => resolve(Buffer.concat(chunks)));
       response.on('error', reject);
-    }).on('error', reject);
+    });
+    req.on('error', reject);
+    // Timeout after 15 seconds
+    req.setTimeout(15000, () => {
+      req.destroy();
+      reject(new Error('Download timeout'));
+    });
   });
 }
 
@@ -101,6 +145,31 @@ async function migrateOneUrl(oldUrl, prefix) {
   return newUrl;
 }
 
+/**
+ * Try to recover a broken R2 URL by re-downloading from Cloudinary.
+ * Returns the new R2 URL, or null if recovery failed.
+ */
+async function recoverOneUrl(brokenR2Url, prefix) {
+  const originalFilename = extractOriginalFilename(brokenR2Url);
+  if (!originalFilename) return null;
+
+  const candidates = buildCloudinarySearchUrls(originalFilename);
+  
+  for (const candidateUrl of candidates) {
+    try {
+      const buffer = await downloadImage(candidateUrl);
+      const uniqueKey = `${prefix}/${Date.now()}-${originalFilename}`;
+      const contentType = getContentType(originalFilename);
+      const newUrl = await uploadToR2(buffer, uniqueKey, contentType);
+      return newUrl;
+    } catch {
+      // Try next candidate URL
+      continue;
+    }
+  }
+  return null; // All candidates failed
+}
+
 // --- Define all collections and their image fields ---
 const COLLECTIONS = [
   { Model: Trip, name: 'Trip', fields: [
@@ -127,11 +196,13 @@ const COLLECTIONS = [
 ];
 
 /**
- * Scan all collections and return a flat list of { doc, model, fieldName, fieldType, url, arrayIndex }
- * for every Cloudinary URL found.
+ * Scan all collections and return URLs that need migration.
+ * Finds both Cloudinary URLs AND broken R2 URLs (from deleted bucket).
  */
-async function findAllCloudinaryUrls() {
-  const results = [];
+async function findUrlsToMigrate() {
+  const cloudinaryUrls = [];
+  const brokenR2Urls = [];
+
   for (const col of COLLECTIONS) {
     const docs = await col.Model.find({});
     for (const doc of docs) {
@@ -139,29 +210,59 @@ async function findAllCloudinaryUrls() {
         if (field.type === 'string') {
           const url = doc[field.name];
           if (isCloudinaryUrl(url)) {
-            results.push({ docId: doc._id, model: col.name, fieldName: field.name, fieldType: 'string', url });
+            cloudinaryUrls.push({ docId: doc._id, model: col.name, fieldName: field.name, fieldType: 'string', url });
+          } else if (isR2Url(url)) {
+            brokenR2Urls.push({ docId: doc._id, model: col.name, fieldName: field.name, fieldType: 'string', url });
           }
         } else if (field.type === 'array') {
           const arr = doc[field.name] || [];
           for (let i = 0; i < arr.length; i++) {
             if (isCloudinaryUrl(arr[i])) {
-              results.push({ docId: doc._id, model: col.name, fieldName: field.name, fieldType: 'array', url: arr[i], arrayIndex: i });
+              cloudinaryUrls.push({ docId: doc._id, model: col.name, fieldName: field.name, fieldType: 'array', url: arr[i], arrayIndex: i });
+            } else if (isR2Url(arr[i])) {
+              brokenR2Urls.push({ docId: doc._id, model: col.name, fieldName: field.name, fieldType: 'array', url: arr[i], arrayIndex: i });
             }
           }
         }
       }
     }
   }
-  return results;
+  return { cloudinaryUrls, brokenR2Urls };
+}
+
+// Helper to update a document field
+async function updateDocField(item, newUrl) {
+  const col = COLLECTIONS.find(c => c.name === item.model);
+  const doc = await col.Model.findById(item.docId);
+  if (!doc) return false;
+
+  if (item.fieldType === 'string') {
+    doc[item.fieldName] = newUrl;
+    doc.markModified(item.fieldName);
+  } else if (item.fieldType === 'array') {
+    const arr = doc[item.fieldName] || [];
+    const idx = arr.indexOf(item.url);
+    if (idx !== -1) {
+      arr[idx] = newUrl;
+      doc[item.fieldName] = arr;
+      doc.markModified(item.fieldName);
+    }
+  }
+
+  await doc.save();
+  return true;
 }
 
 // ─── GET /api/admin/migrate/status ──────────────────────────────────────────
 router.get('/status', authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const urls = await findAllCloudinaryUrls();
+    const { cloudinaryUrls, brokenR2Urls } = await findUrlsToMigrate();
     res.json({
-      remainingCloudinaryUrls: urls.length,
-      details: urls.map(u => ({ model: u.model, field: u.fieldName, url: u.url.substring(0, 80) + '...' })),
+      cloudinaryUrlsRemaining: cloudinaryUrls.length,
+      brokenR2UrlsRemaining: brokenR2Urls.length,
+      totalRemaining: cloudinaryUrls.length + brokenR2Urls.length,
+      cloudinaryDetails: cloudinaryUrls.map(u => ({ model: u.model, field: u.fieldName, url: u.url.substring(0, 80) })),
+      brokenR2Details: brokenR2Urls.map(u => ({ model: u.model, field: u.fieldName, url: u.url.substring(0, 80) })),
     });
   } catch (error) {
     res.status(500).json({ message: 'Error checking status', error: error.message });
@@ -169,55 +270,37 @@ router.get('/status', authMiddleware, adminMiddleware, async (req, res) => {
 });
 
 // ─── POST /api/admin/migrate ────────────────────────────────────────────────
+// Migrates Cloudinary URLs → R2
 router.post('/', authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    // Validate R2 config
     if (!process.env.R2_ACCOUNT_ID || !process.env.R2_ACCESS_KEY_ID || !process.env.R2_SECRET_ACCESS_KEY || !process.env.R2_BUCKET_NAME || !process.env.R2_PUBLIC_URL) {
       return res.status(500).json({ message: 'R2 environment variables are not configured on the server.' });
     }
 
-    const batchSize = Math.min(parseInt(req.query.batch) || 3, 10); // max 10 per call
-    const allUrls = await findAllCloudinaryUrls();
+    const batchSize = Math.min(parseInt(req.query.batch) || 3, 10);
+    const { cloudinaryUrls } = await findUrlsToMigrate();
 
-    if (allUrls.length === 0) {
-      return res.json({ done: true, message: 'All images have already been migrated!', remaining: 0 });
+    if (cloudinaryUrls.length === 0) {
+      return res.json({ done: true, message: 'No Cloudinary URLs left to migrate!', remaining: 0 });
     }
 
-    const batch = allUrls.slice(0, batchSize);
+    const batch = cloudinaryUrls.slice(0, batchSize);
     const results = [];
 
     for (const item of batch) {
       try {
         const newUrl = await migrateOneUrl(item.url, item.model.toLowerCase());
-
-        // Find the model class
-        const col = COLLECTIONS.find(c => c.name === item.model);
-        const doc = await col.Model.findById(item.docId);
-        if (!doc) {
-          results.push({ model: item.model, field: item.fieldName, status: 'skipped', reason: 'document not found' });
-          continue;
-        }
-
-        if (item.fieldType === 'string') {
-          doc[item.fieldName] = newUrl;
-        } else if (item.fieldType === 'array') {
-          // Re-find the exact URL in the array (index may have shifted)
-          const arr = doc[item.fieldName] || [];
-          const idx = arr.indexOf(item.url);
-          if (idx !== -1) {
-            arr[idx] = newUrl;
-            doc[item.fieldName] = arr;
-          }
-        }
-
-        await doc.save();
-        results.push({ model: item.model, field: item.fieldName, status: 'migrated', oldUrl: item.url.substring(0, 60), newUrl: newUrl.substring(0, 60) });
+        const saved = await updateDocField(item, newUrl);
+        results.push({
+          model: item.model, field: item.fieldName, status: saved ? 'migrated' : 'skipped',
+          oldUrl: item.url.substring(0, 60), newUrl: newUrl.substring(0, 60)
+        });
       } catch (err) {
         results.push({ model: item.model, field: item.fieldName, status: 'failed', error: err.message, url: item.url });
       }
     }
 
-    const remaining = allUrls.length - batch.length;
+    const remaining = cloudinaryUrls.length - batch.length;
     res.json({
       done: remaining === 0,
       migrated: results.filter(r => r.status === 'migrated').length,
@@ -227,6 +310,57 @@ router.post('/', authMiddleware, adminMiddleware, async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: 'Migration error', error: error.message });
+  }
+});
+
+// ─── POST /api/admin/migrate/recover ────────────────────────────────────────
+// Recovers broken R2 URLs by re-downloading from Cloudinary using the original filename
+router.post('/recover', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    if (!process.env.R2_ACCOUNT_ID || !process.env.R2_ACCESS_KEY_ID || !process.env.R2_SECRET_ACCESS_KEY || !process.env.R2_BUCKET_NAME || !process.env.R2_PUBLIC_URL) {
+      return res.status(500).json({ message: 'R2 environment variables are not configured on the server.' });
+    }
+
+    const batchSize = Math.min(parseInt(req.query.batch) || 3, 10);
+    const { brokenR2Urls } = await findUrlsToMigrate();
+
+    if (brokenR2Urls.length === 0) {
+      return res.json({ done: true, message: 'No broken R2 URLs to recover!', remaining: 0 });
+    }
+
+    const batch = brokenR2Urls.slice(0, batchSize);
+    const results = [];
+
+    for (const item of batch) {
+      try {
+        const newUrl = await recoverOneUrl(item.url, item.model.toLowerCase());
+        if (newUrl) {
+          const saved = await updateDocField(item, newUrl);
+          results.push({
+            model: item.model, field: item.fieldName, status: saved ? 'recovered' : 'skipped',
+            oldUrl: item.url.substring(0, 60), newUrl: newUrl.substring(0, 60)
+          });
+        } else {
+          results.push({
+            model: item.model, field: item.fieldName, status: 'failed',
+            error: 'Could not find original file on Cloudinary', url: item.url
+          });
+        }
+      } catch (err) {
+        results.push({ model: item.model, field: item.fieldName, status: 'failed', error: err.message, url: item.url });
+      }
+    }
+
+    const remaining = brokenR2Urls.length - batch.length;
+    res.json({
+      done: remaining === 0,
+      recovered: results.filter(r => r.status === 'recovered').length,
+      failed: results.filter(r => r.status === 'failed').length,
+      remaining,
+      results,
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Recovery error', error: error.message });
   }
 });
 
