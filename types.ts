@@ -8,6 +8,7 @@ export interface Trip {
   id: string;
   slug?: string; // SEO friendly URL
   title: string;
+  category?: string; // Section grouping on Home page
   location: string;
   price: number;
   duration: string;

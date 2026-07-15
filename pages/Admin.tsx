@@ -452,6 +452,7 @@ const Admin: React.FC = () => {
     const openAddModal = () => {
         setCurrentTrip({
             title: '',
+            category: 'Trending Expeditions',
             slug: '',
             location: '',
             price: 0,
@@ -479,6 +480,7 @@ const Admin: React.FC = () => {
     const openEditModal = (trip: Trip) => {
         setCurrentTrip({
             ...trip,
+            category: trip.category || 'Trending Expeditions',
             gallery: trip.gallery || [],
             highlights: trip.highlights || [],
             inclusions: trip.inclusions || [],
@@ -1971,6 +1973,18 @@ const Admin: React.FC = () => {
                                             onChange={handleInputChange}
                                             className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-brand-purple focus:outline-none"
                                             placeholder="e.g. Weekend at Hampi"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="md:col-span-2">
+                                        <label className="block text-sm font-bold text-gray-700 mb-2">Category (Home Page Section)</label>
+                                        <input
+                                            type="text"
+                                            name="category"
+                                            value={currentTrip.category}
+                                            onChange={handleInputChange}
+                                            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-brand-purple focus:outline-none"
+                                            placeholder="e.g. Trending Expeditions, Independence Day Special"
                                             required
                                         />
                                     </div>

@@ -91,6 +91,92 @@ const StatCounter: React.FC<{ end: number; duration?: number; label: string; suf
   );
 };
 
+// Extracted Trip Carousel component for dynamic categories
+const TripCarousel: React.FC<{ category: string, categoryTrips: Trip[], loading: boolean }> = ({ category, categoryTrips, loading }) => {
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const [isTripHovered, setIsTripHovered] = useState(false);
+  
+  const infiniteTrips = categoryTrips.length > 0 ? [...categoryTrips, ...categoryTrips] : [];
+  
+  const scrollCarousel = (direction: 'left' | 'right') => {
+    if (carouselRef.current) {
+      const scrollAmount = 320;
+      carouselRef.current.scrollBy({
+        left: direction === 'right' ? scrollAmount : -scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (isTripHovered || loading || categoryTrips.length === 0) return;
+    const interval = setInterval(() => {
+      if (carouselRef.current) {
+        const { scrollLeft, scrollWidth } = carouselRef.current;
+        const maxScroll = scrollWidth / 2;
+        if (scrollLeft >= maxScroll) {
+          carouselRef.current.scrollTo({ left: scrollLeft - maxScroll, behavior: 'auto' });
+          carouselRef.current.scrollBy({ left: 1, behavior: 'smooth' });
+        } else {
+          carouselRef.current.scrollBy({ left: 320, behavior: 'smooth' });
+        }
+        if (carouselRef.current.scrollLeft >= maxScroll) {
+          carouselRef.current.scrollTo({ left: 0, behavior: 'auto' });
+        }
+      }
+    }, 2500);
+    return () => clearInterval(interval);
+  }, [isTripHovered, loading, categoryTrips.length]);
+
+  return (
+    <section
+        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-10 border-b border-brand-olive/10 last:border-0"
+        onMouseEnter={() => setIsTripHovered(true)}
+        onMouseLeave={() => setIsTripHovered(false)}
+      >
+        <div className="flex items-end justify-between mb-10 pb-6">
+          <div>
+            <h2 className="text-3xl font-extrabold text-brand-olive font-serif uppercase tracking-wide">{category}</h2>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => scrollCarousel('left')}
+              className="p-3 rounded-md border border-brand-olive/20 hover:bg-brand-olive hover:text-brand-cream transition"
+            >
+              <ChevronLeft size={20} />
+            </button>
+            <button
+              onClick={() => scrollCarousel('right')}
+              className="p-3 rounded-md border border-brand-olive/20 hover:bg-brand-olive hover:text-brand-cream transition"
+            >
+              <ChevronRight size={20} />
+            </button>
+          </div>
+        </div>
+
+        {loading ? (
+          <div className="flex gap-4 overflow-hidden">
+            {[1, 2, 3, 4].map(i => (
+              <div key={i} className="min-w-[300px] h-[400px] bg-brand-beige rounded-md animate-pulse"></div>
+            ))}
+          </div>
+        ) : (
+          <div
+            ref={carouselRef}
+            className="flex overflow-x-auto gap-6 pb-4 no-scrollbar scroll-smooth"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
+            {infiniteTrips.map((trip, index) => (
+              <div key={`${trip.id}-${index}`} className="min-w-[300px] sm:min-w-[350px] h-full flex-shrink-0">
+                <TripCard trip={trip} />
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+  );
+};
+
 const Home: React.FC = () => {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
@@ -122,10 +208,8 @@ const Home: React.FC = () => {
   const [heroIndex, setHeroIndex] = useState(0);
 
   // Autoplay pause states
-  const [isTripHovered, setIsTripHovered] = useState(false);
   const [isTestimonialHovered, setIsTestimonialHovered] = useState(false);
 
-  const carouselRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -189,8 +273,13 @@ const Home: React.FC = () => {
     loadData();
   }, []);
 
-  // Duplicate trips for infinite loop illusion
-  const infiniteTrips = trips.length > 0 ? [...trips, ...trips] : [];
+  // Group trips by category
+  const groupedTrips = trips.reduce((acc, trip) => {
+    const cat = trip.category || 'Trending Expeditions';
+    if (!acc[cat]) acc[cat] = [];
+    acc[cat].push(trip);
+    return acc;
+  }, {} as Record<string, Trip[]>);
 
   const durations = ['All', '2 Days', '3 Days', 'Longer'];
 
@@ -236,16 +325,6 @@ const Home: React.FC = () => {
     }
   };
 
-  const scrollCarousel = (direction: 'left' | 'right') => {
-    if (carouselRef.current) {
-      const scrollAmount = 320; // Width of a card + gap
-      carouselRef.current.scrollBy({
-        left: direction === 'right' ? scrollAmount : -scrollAmount,
-        behavior: 'smooth'
-      });
-    }
-  };
-
   const nextTestimonial = () => {
     if (testimonials.length > 0)
       setTestimonialIndex((prev) => (prev + 1) % testimonials.length);
@@ -274,35 +353,6 @@ const Home: React.FC = () => {
     e.stopPropagation();
     setCurrentImageIndex((prev) => (prev - 1 + galleryImages.length) % galleryImages.length);
   };
-
-  // Trip Carousel Infinite Loop Logic
-  useEffect(() => {
-    if (isTripHovered || loading || trips.length === 0) return;
-
-    const interval = setInterval(() => {
-      if (carouselRef.current) {
-        const { scrollLeft, scrollWidth, clientWidth } = carouselRef.current;
-        const maxScroll = scrollWidth / 2; // Since we duplicated the list
-
-        // If we've scrolled past the first set, seamlessly jump back to start
-        if (scrollLeft >= maxScroll) {
-          carouselRef.current.scrollTo({ left: scrollLeft - maxScroll, behavior: 'auto' });
-          // Then scroll forward
-          carouselRef.current.scrollBy({ left: 1, behavior: 'smooth' });
-        } else {
-          // Basic smooth auto scroll
-          carouselRef.current.scrollBy({ left: 320, behavior: 'smooth' });
-        }
-
-        // Check bounds again after scroll to reset if needed
-        if (carouselRef.current.scrollLeft >= maxScroll) {
-          carouselRef.current.scrollTo({ left: 0, behavior: 'auto' });
-        }
-      }
-    }, 2500);
-
-    return () => clearInterval(interval);
-  }, [isTripHovered, loading, trips.length]);
 
   // Testimonial Autoplay
   useEffect(() => {
@@ -572,55 +622,14 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* Trending Trips Carousel (Autoplay Infinite Loop) */}
-      <section
-        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-10"
-        onMouseEnter={() => setIsTripHovered(true)}
-        onMouseLeave={() => setIsTripHovered(false)}
-      >
-        <div className="flex items-end justify-between mb-10 border-b border-brand-olive/10 pb-6">
-          <div>
-            <h2 className="text-3xl font-extrabold text-brand-olive font-serif uppercase tracking-wide">Trending Expeditions</h2>
-            <p className="text-brand-olive/60 mt-1 uppercase text-xs tracking-widest">Top-rated trips happening this month</p>
-          </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => scrollCarousel('left')}
-              className="p-3 rounded-md border border-brand-olive/20 hover:bg-brand-olive hover:text-brand-cream transition"
-            >
-              <ChevronLeft size={20} />
-            </button>
-            <button
-              onClick={() => scrollCarousel('right')}
-              className="p-3 rounded-md border border-brand-olive/20 hover:bg-brand-olive hover:text-brand-cream transition"
-            >
-              <ChevronRight size={20} />
-            </button>
-          </div>
-        </div>
-
-        {loading ? (
-          <div className="flex gap-4">
-            {[1, 2, 3, 4].map(i => (
-              <div key={i} className="min-w-[300px] h-[400px] bg-brand-beige rounded-md animate-pulse"></div>
-            ))}
-          </div>
-        ) : (
-          <div
-            ref={carouselRef}
-            className="flex overflow-x-auto gap-6 pb-4 no-scrollbar scroll-smooth"
-            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-          >
-            {/* Render duplicated list for infinite loop illusion */}
-            {infiniteTrips.map((trip, index) => (
-              <div key={`${trip.id}-${index}`} className="min-w-[300px] sm:min-w-[350px] h-full flex-shrink-0">
-                <TripCard trip={trip} />
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
-
+      {/* Dynamic Trip Category Carousels */}
+      {Object.keys(groupedTrips).length === 0 && loading ? (
+        <TripCarousel category="Trending Expeditions" categoryTrips={[]} loading={true} />
+      ) : (
+        Object.entries(groupedTrips).map(([category, categoryTrips]) => (
+          <TripCarousel key={category} category={category} categoryTrips={categoryTrips} loading={false} />
+        ))
+      )}
 
       {/* Main Filtered Grid Section */}
       <section className="bg-brand-beige py-20 w-full relative z-10 border-y border-brand-olive/10">
