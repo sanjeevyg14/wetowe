@@ -96,7 +96,7 @@ const TripCarousel: React.FC<{ category: string, categoryTrips: Trip[], loading:
   const carouselRef = useRef<HTMLDivElement>(null);
   const [isTripHovered, setIsTripHovered] = useState(false);
   
-  const infiniteTrips = categoryTrips.length > 0 ? [...categoryTrips, ...categoryTrips] : [];
+  const infiniteTrips = categoryTrips;
   
   const scrollCarousel = (direction: 'left' | 'right') => {
     if (carouselRef.current) {
@@ -109,22 +109,18 @@ const TripCarousel: React.FC<{ category: string, categoryTrips: Trip[], loading:
   };
 
   useEffect(() => {
-    if (isTripHovered || loading || categoryTrips.length === 0) return;
+    if (isTripHovered || loading || categoryTrips.length <= 1) return; // Don't auto-scroll if only 1 trip
     const interval = setInterval(() => {
       if (carouselRef.current) {
-        const { scrollLeft, scrollWidth } = carouselRef.current;
-        const maxScroll = scrollWidth / 2;
-        if (scrollLeft >= maxScroll) {
-          carouselRef.current.scrollTo({ left: scrollLeft - maxScroll, behavior: 'auto' });
-          carouselRef.current.scrollBy({ left: 1, behavior: 'smooth' });
+        const { scrollLeft, scrollWidth, clientWidth } = carouselRef.current;
+        // If we reached the end, scroll back to start
+        if (scrollLeft + clientWidth >= scrollWidth - 10) {
+          carouselRef.current.scrollTo({ left: 0, behavior: 'smooth' });
         } else {
           carouselRef.current.scrollBy({ left: 320, behavior: 'smooth' });
         }
-        if (carouselRef.current.scrollLeft >= maxScroll) {
-          carouselRef.current.scrollTo({ left: 0, behavior: 'auto' });
-        }
       }
-    }, 2500);
+    }, 3500); // Slightly slower for better reading
     return () => clearInterval(interval);
   }, [isTripHovered, loading, categoryTrips.length]);
 
