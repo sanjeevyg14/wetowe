@@ -14,21 +14,27 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Trust first proxy (Vercel/CDN) so rate-limiter uses real client IP from X-Forwarded-For
+app.set('trust proxy', 1);
+
 // Security Middleware
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://aistudiocdn.com"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://fonts.cdnfonts.com"],
       imgSrc: ["'self'", "data:", "https:", "http:"],
-      connectSrc: ["'self'"],
-      fontSrc: ["'self'", "data:"],
+      connectSrc: ["'self'", process.env.FRONTEND_URL || "*", "https://*.vercel.app"],
+      fontSrc: ["'self'", "data:", "https://fonts.gstatic.com", "https://fonts.cdnfonts.com", "https://fonts.googleapis.com"],
       objectSrc: ["'none'"],
       mediaSrc: ["'self'"],
       frameSrc: ["'none'"],
     },
   },
+  // Disable CSP entirely for API-only responses (JSON)
+  // The frontend SPA serves its own CSP via the static HTML
+  crossOriginResourcePolicy: { policy: "cross-origin" },
   hsts: {
     maxAge: 31536000, // 1 year in seconds
     includeSubDomains: true,
@@ -36,11 +42,24 @@ app.use(helmet({
   }
 }));
 
-// Rate limiting - General API
+// Rate limiting - General API (generous for content-heavy travel site)
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-  skip: (req) => req.originalUrl && req.originalUrl.includes('/api/admin/migrate'), // Skip rate limit for migration
+  max: 500, // limit each IP to 500 requests per windowMs
+  skip: (req) => {
+    // Skip rate limit for migration routes
+    if (req.originalUrl && req.originalUrl.includes('/api/admin/migrate')) return true;
+    // Skip rate limit for authenticated admin requests
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+    if (token) {
+      try {
+        const jwt = require('jsonwebtoken');
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        if (decoded && decoded.role === 'admin') return true;
+      } catch (e) { /* token invalid, don't skip */ }
+    }
+    return false;
+  },
   message: { message: 'Too many requests, please try again later.' },
   standardHeaders: true,
   legacyHeaders: false,
@@ -49,7 +68,7 @@ const generalLimiter = rateLimit({
 // Rate limiting - Auth endpoints (more strict)
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // limit each IP to 10 auth requests per windowMs
+  max: 20, // limit each IP to 20 auth requests per windowMs
   message: { message: 'Too many authentication attempts, please try again later.' },
   standardHeaders: true,
   legacyHeaders: false,
