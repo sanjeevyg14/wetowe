@@ -81,8 +81,16 @@ router.post('/', authMiddleware, adminMiddleware, async (req, res) => {
     const tripData = req.body;
 
     // Validate required fields
-    if (!tripData.title || !tripData.location || !tripData.price || !tripData.duration || !tripData.imageUrl || !tripData.description) {
-      return res.status(400).json({ message: 'Missing required fields: title, location, price, duration, imageUrl, description' });
+    const missingFields = [];
+    if (!tripData.title) missingFields.push('title');
+    if (!tripData.location) missingFields.push('location');
+    if (!tripData.price) missingFields.push('price');
+    if (!tripData.duration) missingFields.push('duration');
+    if (!tripData.imageUrl) missingFields.push('imageUrl (Cover/Hero Image)');
+    if (!tripData.description) missingFields.push('description');
+
+    if (missingFields.length > 0) {
+      return res.status(400).json({ message: `Missing required fields: ${missingFields.join(', ')}` });
     }
 
     // Validate price (must be positive number)

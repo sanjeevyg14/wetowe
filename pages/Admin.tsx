@@ -2189,6 +2189,7 @@ const Admin: React.FC = () => {
                                                     onChange={handleInputChange}
                                                     className="flex-1 px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-brand-purple focus:outline-none text-sm"
                                                     placeholder="Or paste image URL"
+                                                    required
                                                 />
                                             </div>
                                             <p className="text-xs text-gray-500">Used on trip detail page hero section. Supported formats: JPG, PNG, WEBP. Max size: 5MB.</p>
@@ -2289,6 +2290,9 @@ const Admin: React.FC = () => {
                                         onChange={handleInputChange}
                                         className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-brand-purple focus:outline-none h-32"
                                         placeholder="Describe the adventure..."
+                                        required
+                                        minLength={50}
+                                        maxLength={5000}
                                     ></textarea>
                                 </div>
                             </div>
