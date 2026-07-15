@@ -1,11 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const TeamMember = require('../models/TeamMember.cjs');
+const connectDB = require('../lib/db.cjs');
 const { authMiddleware, adminMiddleware } = require('../middleware/auth.cjs');
 
 // Public route: Get all active team members, sorted by order
 router.get('/', async (req, res) => {
     try {
+        await connectDB();
         const team = await TeamMember.find({ isActive: true }).sort({ order: 1, createdAt: -1 });
         res.json(team);
     } catch (err) {
@@ -16,6 +18,7 @@ router.get('/', async (req, res) => {
 // Admin route: Get all team members
 router.get('/admin', authMiddleware, adminMiddleware, async (req, res) => {
     try {
+        await connectDB();
         const team = await TeamMember.find().sort({ order: 1, createdAt: -1 });
         res.json(team);
     } catch (err) {
@@ -26,6 +29,7 @@ router.get('/admin', authMiddleware, adminMiddleware, async (req, res) => {
 // Admin route: Create a team member
 router.post('/', authMiddleware, adminMiddleware, async (req, res) => {
     try {
+        await connectDB();
         const newMember = new TeamMember(req.body);
         const savedMember = await newMember.save();
         res.status(201).json(savedMember);
@@ -37,6 +41,7 @@ router.post('/', authMiddleware, adminMiddleware, async (req, res) => {
 // Admin route: Update a team member
 router.put('/:id', authMiddleware, adminMiddleware, async (req, res) => {
     try {
+        await connectDB();
         const updatedMember = await TeamMember.findByIdAndUpdate(
             req.params.id,
             req.body,
@@ -54,6 +59,7 @@ router.put('/:id', authMiddleware, adminMiddleware, async (req, res) => {
 // Admin route: Delete a team member
 router.delete('/:id', authMiddleware, adminMiddleware, async (req, res) => {
     try {
+        await connectDB();
         const member = await TeamMember.findByIdAndDelete(req.params.id);
         if (!member) {
             return res.status(404).json({ message: 'Team member not found' });

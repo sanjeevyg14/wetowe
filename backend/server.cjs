@@ -140,6 +140,17 @@ setInterval(async () => {
   }
 }, CLEANUP_INTERVAL);
 
+// Ensure DB connection is ready before any API route (serverless safety net)
+app.use('/api', async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    console.error('❌ DB connection middleware error:', err.message);
+    res.status(500).json({ message: 'Database connection error. Please try again.' });
+  }
+});
+
 // Use Routes
 app.use('/api/trips', tripRoutes);
 app.use('/api/auth', authRoutes);
