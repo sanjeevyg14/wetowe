@@ -70,6 +70,13 @@ router.get('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const tripData = req.body;
+    const normalizedPrice = Number(tripData.price);
+
+    if (!Number.isFinite(normalizedPrice) || normalizedPrice <= 0) {
+      return res.status(400).json({ message: 'Price must be a positive number.' });
+    }
+
+    tripData.price = normalizedPrice;
     
     // Generate or ensure unique slug
     if (!tripData.slug) {
@@ -88,7 +95,11 @@ router.post('/', async (req, res) => {
     const newTrip = await trip.save();
     res.status(201).json(newTrip);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    console.error('Trip creation failed:', err);
+    if (err.name === 'ValidationError') {
+      return res.status(400).json({ message: 'Invalid trip payload. Please check required fields.' });
+    }
+    res.status(500).json({ message: 'Failed to create trip. Please try again.' });
   }
 });
 
