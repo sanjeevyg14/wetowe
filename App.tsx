@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
+import { Analytics } from '@vercel/analytics/react';
 import Home from './pages/Home';
 import TripDetails from './pages/TripDetails';
 import Admin from './pages/Admin';
@@ -38,6 +39,7 @@ const App: React.FC = () => {
             <Route path="/booking-confirmation" element={<BookingConfirmation />} />
             <Route path="/launch" element={<Launch />} />
           </Routes>
+          <Analytics />
         </Router>
       </AuthProvider>
     </HelmetProvider>
