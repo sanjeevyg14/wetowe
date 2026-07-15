@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Analytics } from '@vercel/analytics/react';
 import Home from './pages/Home';
 import TripDetails from './pages/TripDetails';
 import Admin from './pages/Admin';
@@ -24,6 +25,7 @@ const App: React.FC = () => {
           <Route path="/profile" element={<Profile />} />
           <Route path="/my-bookings" element={<MyBookings />} />
         </Routes>
+        <Analytics />
       </Router>
     </AuthProvider>
   );
