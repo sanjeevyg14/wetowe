@@ -20,13 +20,11 @@ const TripCard: React.FC<TripCardProps> = ({ trip }) => {
             alt={trip.title} 
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 grayscale-[20%] group-hover:grayscale-0"
           />
-          <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-md px-2 py-1 rounded-sm flex items-center gap-1 border border-brand-olive/10">
-            <Star size={12} className="text-yellow-500 fill-yellow-500" />
-            <span className="text-xs font-bold text-brand-black">{trip.rating}</span>
-          </div>
-          <div className="absolute bottom-3 right-3 bg-brand-olive text-brand-black text-[10px] font-bold px-3 py-1 rounded-sm uppercase tracking-wider">
-            Selling Fast
-          </div>
+          {trip.badgeText && trip.badgeText.trim() !== '' && (
+            <div className="absolute bottom-3 right-3 bg-brand-olive text-brand-black text-[10px] font-bold px-3 py-1 rounded-sm uppercase tracking-wider">
+              {trip.badgeText}
+            </div>
+          )}
         </div>
         
         <div className="p-5 flex flex-col flex-grow">

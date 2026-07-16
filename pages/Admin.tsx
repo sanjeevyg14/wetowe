@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { LayoutDashboard, Package, Users, DollarSign, PlusCircle, Settings, Edit, Trash2, X, Save, Search, CheckCircle, RefreshCcw, MessageSquare, Mail, Phone, Plus, Minus, ChevronDown, ChevronUp, Link as LinkIcon, Upload, Image as ImageIcon, Loader, Star, ToggleLeft, ToggleRight, Megaphone, FileDown, FileText } from 'lucide-react';
+import { LayoutDashboard, Package, Users, DollarSign, PlusCircle, Settings, Edit, Trash2, X, Save, Search, CheckCircle, RefreshCcw, MessageSquare, Mail, Phone, Plus, Minus, ChevronDown, ChevronUp, Link as LinkIcon, Upload, Image as ImageIcon, Loader, Star, ToggleLeft, ToggleRight, Megaphone, FileDown, FileText, Copy } from 'lucide-react';
 import { downloadTicketPDF, downloadManifestPDF } from '../utils/pdfUtils';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { api } from '../services/api';
@@ -500,6 +500,7 @@ const Admin: React.FC = () => {
             reviewsCount: 0,
             imageUrl: '',
             cardImageUrl: '',
+            badgeText: 'Selling Fast',
             description: '',
             gallery: [],
             highlights: [],
@@ -520,6 +521,7 @@ const Admin: React.FC = () => {
         setCurrentTrip({
             ...trip,
             category: trip.category || 'Trending Expeditions',
+            badgeText: trip.badgeText || '',
             gallery: trip.gallery || [],
             highlights: trip.highlights || [],
             inclusions: trip.inclusions || [],
@@ -529,6 +531,26 @@ const Admin: React.FC = () => {
             dates: trip.dates || []
         });
         setIsEditing(true);
+        setIsModalOpen(true);
+    };
+
+    const handleDuplicate = (trip: Trip) => {
+        const { id, _id, ...rest } = trip as any;
+        setCurrentTrip({
+            ...rest,
+            title: `Copy of ${trip.title}`,
+            slug: trip.slug ? `${trip.slug}-copy` : '',
+            category: trip.category || 'Trending Expeditions',
+            badgeText: trip.badgeText || '',
+            gallery: trip.gallery || [],
+            highlights: trip.highlights || [],
+            inclusions: trip.inclusions || [],
+            exclusions: trip.exclusions || [],
+            pickupPoints: trip.pickupPoints || [],
+            itinerary: trip.itinerary || [],
+            dates: trip.dates || []
+        });
+        setIsEditing(false); // false means it will create a new trip instead of updating
         setIsModalOpen(true);
     };
 
@@ -1360,8 +1382,16 @@ const Admin: React.FC = () => {
                                                         <td className="px-6 py-4 text-right">
                                                             <div className="flex items-center justify-end gap-2">
                                                                 <button
+                                                                    onClick={() => handleDuplicate(trip)}
+                                                                    className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
+                                                                    title="Duplicate Trip"
+                                                                >
+                                                                    <Copy size={18} />
+                                                                </button>
+                                                                <button
                                                                     onClick={() => openEditModal(trip)}
                                                                     className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                                                                    title="Edit Trip"
                                                                 >
                                                                     <Edit size={18} />
                                                                 </button>
@@ -2085,7 +2115,7 @@ const Admin: React.FC = () => {
                                             required
                                         />
                                     </div>
-                                    <div className="md:col-span-2">
+                                    <div className="md:col-span-1">
                                         <label className="block text-sm font-bold text-gray-700 mb-2">Category (Home Page Section)</label>
                                         <input
                                             type="text"
@@ -2095,6 +2125,17 @@ const Admin: React.FC = () => {
                                             className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-brand-purple focus:outline-none"
                                             placeholder="e.g. Trending Expeditions, Independence Day Special"
                                             required
+                                        />
+                                    </div>
+                                    <div className="md:col-span-1">
+                                        <label className="block text-sm font-bold text-gray-700 mb-2">Card Badge Text</label>
+                                        <input
+                                            type="text"
+                                            name="badgeText"
+                                            value={currentTrip.badgeText || ''}
+                                            onChange={handleInputChange}
+                                            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-brand-purple focus:outline-none"
+                                            placeholder="e.g. Selling Fast (leave empty to hide)"
                                         />
                                     </div>
                                     {/* ... (Existing inputs for slug, location, price, duration) ... */}

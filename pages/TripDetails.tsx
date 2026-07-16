@@ -304,11 +304,6 @@ const TripDetails: React.FC = () => {
                     <div className="max-w-7xl mx-auto">
                         <div className="flex items-center gap-2 mb-4">
                             <span className="bg-brand-olive text-brand-cream px-3 py-1 text-xs font-bold uppercase tracking-widest border border-brand-cream/20">Expedition</span>
-                            <div className="flex items-center text-brand-olive/90 bg-black/30 backdrop-blur-sm px-2 py-1 rounded-sm">
-                                <Star size={14} className="fill-brand-olive text-brand-olive mr-1" />
-                                <span className="font-bold text-sm">{trip.rating}</span>
-                                <span className="text-xs ml-1 opacity-70">({trip.reviewsCount})</span>
-                            </div>
                         </div>
                         <h1 className="text-4xl md:text-6xl font-black text-brand-olive font-serif leading-none mb-4 max-w-4xl drop-shadow-lg">
                             {trip.title}

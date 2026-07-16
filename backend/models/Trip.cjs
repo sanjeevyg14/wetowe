@@ -17,6 +17,7 @@ const tripSchema = new mongoose.Schema({
   reviewsCount: { type: Number, default: 0 },
   imageUrl: { type: String, required: true }, // Cover/Hero image (recommended: 1920x1080px, 16:9 ratio)
   cardImageUrl: { type: String }, // Card/Thumbnail image (recommended: 800x600px, 4:3 ratio)
+  badgeText: { type: String, default: 'Selling Fast' }, // Custom text for the card badge (e.g. Selling Fast, Few Seats Left)
   gallery: [String],
   description: { type: String, required: true },
   highlights: [String],
