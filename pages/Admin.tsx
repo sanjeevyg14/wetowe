@@ -207,7 +207,8 @@ const Admin: React.FC = () => {
                     api.getSetting('home_stats'),
                     api.getSetting('home_quick_tags'),
                     api.getSetting('our_story_content'),
-                    api.getSetting('contact_us_content')
+                    api.getSetting('contact_us_content'),
+                    api.getSetting('home_category_order')
                 ])
             ]);
 
@@ -247,6 +248,44 @@ const Admin: React.FC = () => {
             setLoading(false);
         }
     };
+
+    // Category Reorder State & Handlers
+    const [categoryOrder, setCategoryOrder] = useState<string[]>([]);
+    const [draggedCatIndex, setDraggedCatIndex] = useState<number | null>(null);
+
+    useEffect(() => {
+        const uniqueCategories = Array.from(new Set(trips.map(t => t.category || 'Trending Expeditions')));
+        const savedOrder = siteSettings.find(s => s.key === 'home_category_order')?.value || [];
+        const mergedOrder = [...savedOrder];
+        uniqueCategories.forEach(cat => {
+            if (!mergedOrder.includes(cat)) {
+                mergedOrder.push(cat);
+            }
+        });
+        setCategoryOrder(mergedOrder);
+    }, [trips, siteSettings]);
+
+    const handleDragStart = (e: React.DragEvent, index: number) => {
+        setDraggedCatIndex(index);
+    };
+
+    const handleDragOver = (e: React.DragEvent, index: number) => {
+        e.preventDefault();
+        if (draggedCatIndex === null || draggedCatIndex === index) return;
+        
+        const newOrder = [...categoryOrder];
+        const draggedItem = newOrder[draggedCatIndex];
+        newOrder.splice(draggedCatIndex, 1);
+        newOrder.splice(index, 0, draggedItem);
+        
+        setDraggedCatIndex(index);
+        setCategoryOrder(newOrder);
+    };
+
+    const handleDragEnd = () => {
+        setDraggedCatIndex(null);
+    };
+
 
     const handleDelete = async (id: string) => {
         if (confirm('Are you sure you want to delete this trip?')) {
@@ -1847,6 +1886,32 @@ const Admin: React.FC = () => {
                                                     alert('Updated Quick Tags!');
                                                 }} className="bg-brand-purple text-white px-4 py-2 rounded-lg font-bold">Save</button>
                                             </div>
+                                        </div>
+
+                                        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                            <h4 className="font-bold text-gray-800 mb-2">Home Page Category Order</h4>
+                                            <p className="text-sm text-gray-500 mb-4">Drag and drop to rearrange the order of trip categories on the home page carousels.</p>
+                                            <div className="space-y-2 mb-4">
+                                                {categoryOrder.map((cat, index) => (
+                                                    <div 
+                                                        key={cat} 
+                                                        draggable 
+                                                        onDragStart={(e) => handleDragStart(e, index)}
+                                                        onDragOver={(e) => handleDragOver(e, index)}
+                                                        onDragEnd={handleDragEnd}
+                                                        className={`p-3 bg-white border rounded cursor-move flex items-center justify-between transition ${draggedCatIndex === index ? 'opacity-50 border-brand-purple' : 'border-gray-300 hover:border-brand-purple'}`}
+                                                    >
+                                                        <span className="font-medium text-gray-700 flex items-center gap-2">
+                                                            <span className="text-gray-400 font-mono text-xs">{index + 1}.</span> {cat}
+                                                        </span>
+                                                        <span className="text-gray-400">☰</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            <button onClick={async () => {
+                                                await api.updateSetting('home_category_order', { value: categoryOrder });
+                                                alert('Category order saved!');
+                                            }} className="bg-brand-purple text-white px-4 py-2 rounded-lg font-bold">Save Order</button>
                                         </div>
 
                                         <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">

@@ -206,22 +206,27 @@ const Home: React.FC = () => {
   // Autoplay pause states
   const [isTestimonialHovered, setIsTestimonialHovered] = useState(false);
 
+  // Category Order State
+  const [categoryOrder, setCategoryOrder] = useState<string[]>([]);
+
   const navigate = useNavigate();
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [tripsData, testimonialsData, galleryData, marqueeData, heroData, statsData, tagsData] = await Promise.all([
+        const [tripsData, testimonialsData, galleryData, marqueeData, heroData, statsData, tagsData, categoryOrderData] = await Promise.all([
           api.getTrips(),
           api.getTestimonials(),
           api.getGalleryImages(),
           api.getMarqueeItems(),
           api.getHeroImages(),
           api.getSetting('home_stats').catch(() => ({ value: null })),
-          api.getSetting('home_quick_tags').catch(() => ({ value: null }))
+          api.getSetting('home_quick_tags').catch(() => ({ value: null })),
+          api.getSetting('home_category_order').catch(() => ({ value: null }))
         ]);
         setTrips(tripsData);
         setTestimonials(testimonialsData);
+        if (categoryOrderData?.value) setCategoryOrder(categoryOrderData.value);
         
         if (statsData?.value) setHomeStats(statsData.value);
         else setHomeStats([
@@ -624,6 +629,14 @@ const Home: React.FC = () => {
       ) : (
         Object.entries(groupedTrips)
           .sort(([catA], [catB]) => {
+            if (categoryOrder.length > 0) {
+              const indexA = categoryOrder.indexOf(catA);
+              const indexB = categoryOrder.indexOf(catB);
+              if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+              if (indexA !== -1) return -1;
+              if (indexB !== -1) return 1;
+            }
+            // Fallback
             if (catA === 'Trending Expeditions') return -1;
             if (catB === 'Trending Expeditions') return 1;
             return 0;
