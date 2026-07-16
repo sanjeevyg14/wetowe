@@ -493,21 +493,52 @@ const Admin: React.FC = () => {
         setIsModalOpen(true);
     };
 
+    // Success notification state
+    const [successMessage, setSuccessMessage] = useState('');
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!currentTrip.title || !currentTrip.price) return;
+        if (!currentTrip.title || !currentTrip.price) {
+            alert('Please fill in the required fields: Title and Price');
+            return;
+        }
+        if (!currentTrip.location) {
+            alert('Please fill in the Location field');
+            return;
+        }
+        if (!currentTrip.duration) {
+            alert('Please fill in the Duration field');
+            return;
+        }
+        if (!currentTrip.imageUrl) {
+            alert('Please upload or provide a Cover/Hero Image URL');
+            return;
+        }
+        if (!currentTrip.description) {
+            alert('Please fill in the Description field');
+            return;
+        }
+        if (currentTrip.description && currentTrip.description.length < 50) {
+            alert('Description must be at least 50 characters long');
+            return;
+        }
 
         try {
             if (isEditing && currentTrip.id) {
-                await api.updateTrip(currentTrip as Trip);
-                setTrips(trips.map(t => t.id === currentTrip.id ? (currentTrip as Trip) : t));
+                const updated = await api.updateTrip(currentTrip as Trip);
+                setTrips(trips.map(t => t.id === currentTrip.id ? updated : t));
+                setSuccessMessage('Trip updated successfully! ✅');
             } else {
                 const newTrip = await api.createTrip(currentTrip as Trip);
                 setTrips([newTrip, ...trips]);
+                setSuccessMessage('Trip created successfully! 🎉');
             }
             setIsModalOpen(false);
-        } catch (error) {
+            // Auto-hide success message after 4 seconds
+            setTimeout(() => setSuccessMessage(''), 4000);
+        } catch (error: any) {
             console.error("Failed to save trip", error);
+            alert(`Failed to save trip: ${error.message || 'Unknown error'}`);
         }
     };
 
@@ -517,7 +548,7 @@ const Admin: React.FC = () => {
         setCurrentTrip(prev => {
             const newData = {
                 ...prev,
-                [name]: name === 'price' || name === 'rating' || name === 'reviewsCount' || name === 'gstPercentage' ? Number(value) : value
+                [name]: name === 'price' || name === 'rating' || name === 'reviewsCount' || name === 'gstPercentage' || name === 'maxMaleCapacity' || name === 'maxFemaleCapacity' ? Number(value) : value
             };
 
             if (name === 'title' && !isEditing) {
@@ -661,6 +692,19 @@ const Admin: React.FC = () => {
     return (
         <div className="min-h-screen bg-gray-100 font-sans admin-panel">
             <Navbar />
+
+            {/* Success Toast Notification */}
+            {successMessage && (
+                <div className="fixed top-6 right-6 z-[100] animate-slide-in-right">
+                    <div className="bg-green-600 text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 min-w-[320px]">
+                        <CheckCircle size={24} className="shrink-0" />
+                        <span className="font-bold text-sm">{successMessage}</span>
+                        <button onClick={() => setSuccessMessage('')} className="ml-auto text-white/70 hover:text-white">
+                            <X size={18} />
+                        </button>
+                    </div>
+                </div>
+            )}
 
             <div className="flex max-w-7xl mx-auto px-4 py-8 gap-6">
                 {/* Sidebar */}

@@ -63,7 +63,10 @@ export const api = {
             headers: getAuthHeaders(),
             body: JSON.stringify(trip),
         });
-        if (!response.ok) throw new Error('Failed to create trip');
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || 'Failed to create trip');
+        }
         const data = await response.json();
         return { ...data, id: data._id };
     },
@@ -74,7 +77,10 @@ export const api = {
             headers: getAuthHeaders(),
             body: JSON.stringify(updatedTrip),
         });
-        if (!response.ok) throw new Error('Failed to update trip');
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || 'Failed to update trip');
+        }
         const data = await response.json();
         return { ...data, id: data._id };
     },

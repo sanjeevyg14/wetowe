@@ -622,7 +622,13 @@ const Home: React.FC = () => {
       {Object.keys(groupedTrips).length === 0 && loading ? (
         <TripCarousel category="Trending Expeditions" categoryTrips={[]} loading={true} />
       ) : (
-        Object.entries(groupedTrips).map(([category, categoryTrips]) => (
+        Object.entries(groupedTrips)
+          .sort(([catA], [catB]) => {
+            if (catA === 'Trending Expeditions') return -1;
+            if (catB === 'Trending Expeditions') return 1;
+            return 0;
+          })
+          .map(([category, categoryTrips]) => (
           <TripCarousel key={category} category={category} categoryTrips={categoryTrips} loading={false} />
         ))
       )}

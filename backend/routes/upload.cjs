@@ -8,7 +8,7 @@ const router = express.Router();
 const upload = multer({
   storage: r2Storage,
   limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB max
+    fileSize: 10 * 1024 * 1024 // 10MB max
   },
   fileFilter: (req, file, cb) => {
     // Accept only specific image MIME types
@@ -50,7 +50,7 @@ router.post('/', authMiddleware, adminMiddleware, upload.single('image'), (req, 
 router.use((error, req, res, next) => {
   if (error instanceof multer.MulterError) {
     if (error.code === 'LIMIT_FILE_SIZE') {
-      return res.status(400).json({ message: 'File size exceeds 5MB limit' });
+      return res.status(400).json({ message: 'File size exceeds 10MB limit. Please compress the image.' });
     }
   }
   res.status(400).json({ message: error.message });
