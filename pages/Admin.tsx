@@ -489,6 +489,19 @@ const Admin: React.FC = () => {
     };
 
     const openAddModal = () => {
+        const draft = localStorage.getItem('tripDraft');
+        if (draft && confirm('You have an unsaved draft. Do you want to load it?')) {
+            try {
+                const parsedDraft = JSON.parse(draft);
+                setCurrentTrip(parsedDraft);
+                setIsEditing(false);
+                setIsModalOpen(true);
+                return;
+            } catch (e) {
+                console.error("Failed to parse draft", e);
+            }
+        }
+
         setCurrentTrip({
             title: '',
             category: 'Trending Expeditions',
@@ -595,12 +608,19 @@ const Admin: React.FC = () => {
                 setSuccessMessage('Trip created successfully! 🎉');
             }
             setIsModalOpen(false);
+            localStorage.removeItem('tripDraft');
             // Auto-hide success message after 4 seconds
             setTimeout(() => setSuccessMessage(''), 4000);
         } catch (error: any) {
             console.error("Failed to save trip", error);
             alert(`Failed to save trip: ${error.message || 'Unknown error'}`);
         }
+    };
+
+    const handleSaveDraft = () => {
+        localStorage.setItem('tripDraft', JSON.stringify(currentTrip));
+        setSuccessMessage('Draft saved locally! ✅');
+        setTimeout(() => setSuccessMessage(''), 4000);
     };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -2496,6 +2516,13 @@ const Admin: React.FC = () => {
                                     className="px-6 py-2 rounded-lg border border-gray-300 text-gray-700 font-bold hover:bg-gray-50 transition"
                                 >
                                     Cancel
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleSaveDraft}
+                                    className="px-6 py-2 rounded-lg bg-gray-200 text-gray-700 font-bold hover:bg-gray-300 transition flex items-center gap-2"
+                                >
+                                    <Save size={18} /> Save Draft
                                 </button>
                                 <button
                                     type="submit"

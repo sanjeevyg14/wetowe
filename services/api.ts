@@ -64,8 +64,15 @@ export const api = {
             body: JSON.stringify(trip),
         });
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.message || 'Failed to create trip');
+            const text = await response.text();
+            let errorData = {};
+            try { errorData = JSON.parse(text); } catch (e) {
+                if (response.status === 413 || text.toLowerCase().includes('request entity too large')) {
+                    throw new Error('Trip data is too large. Please reduce the amount of content.');
+                }
+                throw new Error(text || 'Failed to create trip');
+            }
+            throw new Error((errorData as any).message || 'Failed to create trip');
         }
         const data = await response.json();
         return { ...data, id: data._id };
@@ -78,8 +85,15 @@ export const api = {
             body: JSON.stringify(updatedTrip),
         });
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.message || 'Failed to update trip');
+            const text = await response.text();
+            let errorData = {};
+            try { errorData = JSON.parse(text); } catch (e) {
+                if (response.status === 413 || text.toLowerCase().includes('request entity too large')) {
+                    throw new Error('Trip data is too large. Please reduce the amount of content.');
+                }
+                throw new Error(text || 'Failed to update trip');
+            }
+            throw new Error((errorData as any).message || 'Failed to update trip');
         }
         const data = await response.json();
         return { ...data, id: data._id };

@@ -20,9 +20,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     // Check for persisted session
+    const token = localStorage.getItem('token');
     const storedUser = authService.getCurrentUser();
-    if (storedUser) {
+    if (storedUser && token) {
       setUser(storedUser);
+    } else {
+      authService.logout();
     }
     setLoading(false);
   }, []);

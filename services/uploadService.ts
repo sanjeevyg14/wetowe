@@ -23,7 +23,16 @@ export const uploadToCloudinary = async (file: File): Promise<string> => {
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
+      const text = await response.text();
+      let errorData;
+      try {
+        errorData = JSON.parse(text);
+      } catch (e) {
+        if (response.status === 413 || text.toLowerCase().includes('request entity too large')) {
+          throw new Error('Image file is too large. Please compress your image (max 4.5MB).');
+        }
+        throw new Error(text || `Image upload failed (${response.status})`);
+      }
       throw new Error(errorData.message || 'Image upload failed');
     }
 
