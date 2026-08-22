@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import TripCard from '../components/TripCard';
 import SEO from '../components/SEO';
+import { getOptimizedImageUrl } from '../utils/imageOptimization';
 import { api } from '../services/api';
 import { Trip, Testimonial } from '../types';
 import { Link, useNavigate } from 'react-router-dom';
@@ -554,7 +555,7 @@ const Home: React.FC = () => {
                     className={`absolute inset-0 transition-opacity duration-700 ${idx === heroIndex ? 'opacity-100' : 'opacity-0'}`}
                   >
                     <img
-                      src={img.imageUrl}
+                      src={getOptimizedImageUrl(img.imageUrl, 1920)}
                       alt={img.caption || `Hero ${idx + 1}`}
                       className="w-full h-full object-cover"
                       loading={idx === 0 ? "eager" : "lazy"}
@@ -739,7 +740,7 @@ const Home: React.FC = () => {
 
                 <div className="flex items-center gap-4">
                   <img
-                    src={testimonials[testimonialIndex].avatarUrl}
+                    src={getOptimizedImageUrl(testimonials[testimonialIndex].avatarUrl, 100)}
                     alt={testimonials[testimonialIndex].name}
                     className="w-12 h-12 rounded-full object-cover border-2 border-brand-beige"
                   />

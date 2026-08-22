@@ -8,6 +8,7 @@ import { Trip } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import SEO, { generateTripSchema, generateBreadcrumbSchema } from '../components/SEO';
 import { downloadItineraryPDF } from '../utils/pdfUtils';
+import { getOptimizedImageUrl } from '../utils/imageOptimization';
 
 const TripDetails: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -283,7 +284,7 @@ const TripDetails: React.FC = () => {
             <div className="w-full bg-brand-cream md:p-8 lg:p-12">
                 <div className="relative h-[65vh] md:h-auto md:aspect-[16/9] w-full max-w-7xl mx-auto overflow-hidden md:rounded-3xl shadow-xl">
                 <img
-                    src={trip.imageUrl}
+                    src={getOptimizedImageUrl(trip.imageUrl, 1920)}
                     alt={trip.title}
                     className="w-full h-full object-cover"
                     loading="eager"
@@ -418,7 +419,7 @@ const TripDetails: React.FC = () => {
                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                                     {galleryImages.map((img, idx) => (
                                         <div key={idx} className="aspect-square relative group overflow-hidden cursor-pointer" onClick={() => openLightbox(idx)}>
-                                            <img src={img} className="w-full h-full object-cover transition duration-500 group-hover:scale-110 grayscale-[30%] group-hover:grayscale-0" alt={`Gallery ${idx}`} loading="lazy" />
+                                            <img src={getOptimizedImageUrl(img, 800)} className="w-full h-full object-cover transition duration-500 group-hover:scale-110 grayscale-[30%] group-hover:grayscale-0" alt={`Gallery ${idx}`} loading="lazy" />
                                             <div className="absolute inset-0 bg-brand-olive/20 opacity-0 group-hover:opacity-100 transition duration-300"></div>
                                         </div>
                                     ))}

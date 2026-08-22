@@ -2,6 +2,7 @@ import React from 'react';
 import { Star, MapPin, ArrowRight } from 'lucide-react';
 import { Trip } from '../types';
 import { Link } from 'react-router-dom';
+import { getOptimizedImageUrl } from '../utils/imageOptimization';
 
 interface TripCardProps {
   trip: Trip;
@@ -9,7 +10,7 @@ interface TripCardProps {
 
 const TripCard: React.FC<TripCardProps> = ({ trip }) => {
   const linkTarget = trip.slug ? `/trip/${trip.slug}` : `/trip/${trip.id}`;
-  const displayImage = trip.cardImageUrl || trip.imageUrl;
+  const displayImage = getOptimizedImageUrl(trip.cardImageUrl || trip.imageUrl, 600);
 
   return (
     <Link to={linkTarget} className="group block h-full">
