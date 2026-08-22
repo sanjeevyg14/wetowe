@@ -19,6 +19,7 @@ const TripCard: React.FC<TripCardProps> = ({ trip }) => {
             src={displayImage} 
             alt={trip.title} 
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 grayscale-[20%] group-hover:grayscale-0"
+            loading="lazy"
           />
           {trip.badgeText && trip.badgeText.trim() !== '' && (
             <div className="absolute bottom-3 right-3 bg-brand-olive text-brand-black text-[10px] font-bold px-3 py-1 rounded-sm uppercase tracking-wider">

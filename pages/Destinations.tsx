@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import TripCard from '../components/TripCard';
-import SEO from '../components/SEO';
+import SEO, { generateBreadcrumbSchema } from '../components/SEO';
 import { api } from '../services/api';
 import { Trip } from '../types';
 import { Search, Filter, MapPin, Calendar, X } from 'lucide-react';
@@ -79,6 +79,10 @@ const Destinations: React.FC = () => {
                 keywords="travel destinations, weekend getaway, trekking, beach trips, heritage tours, India travel, adventure trips"
                 url="/destinations"
                 image="https://wheelstowilderness.in/og-image.jpg"
+                structuredData={generateBreadcrumbSchema([
+                    { name: 'Home', url: '/' },
+                    { name: 'Destinations', url: '/destinations' }
+                ])}
             />
             <Navbar />
 

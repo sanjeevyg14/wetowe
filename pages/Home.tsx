@@ -409,9 +409,9 @@ const Home: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col bg-brand-cream overflow-x-hidden font-sans">
       <SEO
-        title="Home"
-        description="Discover handpicked weekend getaways, trekking spots, and hidden gems across India. Book curated travel experiences to Gokarna, Hampi, Pondicherry, Wayanad and more."
-        keywords="travel, trips, weekend getaway, trekking, adventure, India travel, group tours, Gokarna, Hampi, Pondicherry, Wayanad"
+        title="Curated Expeditions & Weekend Getaways"
+        description="Curated weekend getaways & adventure trips from ₹2,999. Explore Gokarna, Hampi, Chikmagalur, Wayanad & more hidden gems across India."
+        keywords="travel, trips, weekend getaway, trekking, adventure, India travel, group tours, Gokarna, Hampi, Pondicherry, Wayanad, Chikmagalur"
         url="/"
         image="https://wheelstowilderness.in/og-image.jpg"
       />
@@ -557,6 +557,8 @@ const Home: React.FC = () => {
                       src={img.imageUrl}
                       alt={img.caption || `Hero ${idx + 1}`}
                       className="w-full h-full object-cover"
+                      loading={idx === 0 ? "eager" : "lazy"}
+                      fetchPriority={idx === 0 ? "high" : "auto"}
                     />
                   </div>
                 ))}

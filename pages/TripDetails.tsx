@@ -6,7 +6,7 @@ import Footer from '../components/Footer';
 import { api } from '../services/api';
 import { Trip } from '../types';
 import { useAuth } from '../contexts/AuthContext';
-import SEO from '../components/SEO';
+import SEO, { generateTripSchema, generateBreadcrumbSchema } from '../components/SEO';
 import { downloadItineraryPDF } from '../utils/pdfUtils';
 
 const TripDetails: React.FC = () => {
@@ -250,42 +250,32 @@ const TripDetails: React.FC = () => {
     return (
         <div className="min-h-screen bg-brand-beige font-sans relative text-brand-black">
             <SEO
-                title={trip.title}
-                description={trip.description.substring(0, 160)}
+                title={`${trip.title} | ${trip.category || 'Adventure'} Package`}
+                description={`${trip.title} – from ₹${trip.price.toLocaleString('en-IN')}. ${trip.highlights?.[0] || trip.description.substring(0, 80)}. Book now!`.substring(0, 155)}
                 image={trip.imageUrl}
                 url={`/trip/${id}`}
-                keywords={`${trip.title}, ${trip.location}, travel, adventure trip, weekend getaway`}
-                structuredData={{
-                    '@context': 'https://schema.org',
-                    '@type': 'TouristTrip',
-                    name: trip.title,
-                    description: trip.description.substring(0, 300),
-                    image: trip.imageUrl,
-                    touristType: 'Adventure Travelers',
-                    offers: {
-                        '@type': 'Offer',
+                type="product"
+                keywords={`${trip.title}, ${trip.location}, ${trip.category || 'adventure trip'}, weekend getaway, travel India`}
+                structuredData={[
+                    generateTripSchema({
+                        title: trip.title,
+                        description: trip.description.substring(0, 300),
+                        imageUrl: trip.imageUrl,
+                        gallery: trip.gallery,
                         price: trip.price,
-                        priceCurrency: 'INR',
-                        availability: 'https://schema.org/InStock',
-                        url: `https://wheelstowilderness.in/trip/${id}`
-                    },
-                    itinerary: {
-                        '@type': 'ItemList',
-                        numberOfItems: parseInt(trip.duration) || 2,
-                        itemListElement: [{
-                            '@type': 'ListItem',
-                            position: 1,
-                            name: trip.location
-                        }]
-                    },
-                    aggregateRating: {
-                        '@type': 'AggregateRating',
-                        ratingValue: trip.rating,
-                        reviewCount: trip.reviewsCount || 10,
-                        bestRating: 5,
-                        worstRating: 1
-                    }
-                }}
+                        location: trip.location,
+                        duration: trip.duration,
+                        slug: trip.slug || id || '',
+                        category: trip.category,
+                        rating: trip.rating,
+                        reviewCount: trip.reviewsCount
+                    }),
+                    generateBreadcrumbSchema([
+                        { name: 'Home', url: '/' },
+                        { name: trip.category || 'Destinations', url: '/destinations' },
+                        { name: trip.title, url: `/trip/${trip.slug || id}` }
+                    ])
+                ]}
             />
             <Navbar />
 
@@ -296,6 +286,8 @@ const TripDetails: React.FC = () => {
                     src={trip.imageUrl}
                     alt={trip.title}
                     className="w-full h-full object-cover"
+                    loading="eager"
+                    fetchPriority="high"
                 />
                 {/* Gradient Overlay for Text Readability */}
                 <div className="absolute inset-0 bg-gradient-to-t from-brand-black/90 via-transparent to-black/20"></div>
@@ -426,7 +418,7 @@ const TripDetails: React.FC = () => {
                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                                     {galleryImages.map((img, idx) => (
                                         <div key={idx} className="aspect-square relative group overflow-hidden cursor-pointer" onClick={() => openLightbox(idx)}>
-                                            <img src={img} className="w-full h-full object-cover transition duration-500 group-hover:scale-110 grayscale-[30%] group-hover:grayscale-0" alt={`Gallery ${idx}`} />
+                                            <img src={img} className="w-full h-full object-cover transition duration-500 group-hover:scale-110 grayscale-[30%] group-hover:grayscale-0" alt={`Gallery ${idx}`} loading="lazy" />
                                             <div className="absolute inset-0 bg-brand-olive/20 opacity-0 group-hover:opacity-100 transition duration-300"></div>
                                         </div>
                                     ))}
