@@ -1000,9 +1000,10 @@ const Home: React.FC = () => {
                 onClick={() => openLightbox(idx)}
               >
                 <img
-                  src={img.imageUrl}
+                  src={getOptimizedImageUrl(img.imageUrl, 800)}
                   alt={img.caption || `Gallery ${idx}`}
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  loading="lazy"
                 />
                 <div className="absolute inset-0 bg-brand-olive/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                   <span className="text-brand-cream border border-brand-cream px-4 py-2 uppercase text-xs font-bold tracking-widest hover:bg-brand-cream hover:text-brand-black transition">View</span>
@@ -1026,7 +1027,7 @@ const Home: React.FC = () => {
 
           <div className="flex flex-col items-center" onClick={(e) => e.stopPropagation()}>
             <img
-              src={galleryImages[currentImageIndex]?.imageUrl}
+              src={getOptimizedImageUrl(galleryImages[currentImageIndex]?.imageUrl, 1200)}
               alt={galleryImages[currentImageIndex]?.caption || "Full screen"}
               className="max-h-[75vh] max-w-[90vw] object-contain border-4 border-brand-cream shadow-2xl"
             />

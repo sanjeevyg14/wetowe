@@ -653,7 +653,7 @@ const TripDetails: React.FC = () => {
                                 </div>
 
                                 <div className="bg-white p-4 mb-6 flex gap-4 items-center border border-brand-black/5 rounded-lg shadow-sm">
-                                    <img src={trip.imageUrl} alt="Thumb" className="w-16 h-16 object-cover rounded-md grayscale" />
+                                    <img src={getOptimizedImageUrl(trip.imageUrl, 200)} alt="Thumb" className="w-16 h-16 object-cover rounded-md grayscale" />
                                     <div className="flex-1">
                                         <h4 className="font-bold text-brand-black text-sm line-clamp-1">{trip.title}</h4>
                                         <div className="text-xs text-brand-black/50 mt-1 font-mono flex items-center gap-2">

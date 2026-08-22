@@ -5,6 +5,7 @@ import Footer from '../components/Footer';
 
 import { TeamMember } from '../types';
 import { api } from '../services/api';
+import { getOptimizedImageUrl } from '../utils/imageOptimization';
 
 const Team: React.FC = () => {
     const [teamMembers, setTeamMembers] = React.useState<TeamMember[]>([]);
@@ -68,7 +69,7 @@ const Team: React.FC = () => {
                                 <div className="flex flex-col md:flex-row">
                                     <div className="md:w-2/5 relative overflow-hidden">
                                         <img
-                                            src={member.imageUrl}
+                                            src={getOptimizedImageUrl(member.imageUrl, 400)}
                                             alt={member.name}
                                             className="w-full h-64 md:h-full object-cover group-hover:scale-105 transition-transform duration-700"
                                         />

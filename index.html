@@ -44,15 +44,24 @@
     <link rel="icon" type="image/png" href="/wetowe1.png" />
     <link rel="apple-touch-icon" href="/wetowe1.png" />
     
-    <!-- Fonts -->
-    <link href="https://fonts.cdnfonts.com/css/the-seasons?display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
-    
-    <!-- Preconnect for performance -->
+    <!-- Preconnect for performance (MUST come before font links) -->
     <link rel="preconnect" href="https://fonts.cdnfonts.com" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    
+    <link rel="preconnect" href="https://pub-2a8760a1d5c14d2086493e43a6d5e739.r2.dev" />
+
+    <!-- Fonts - loaded asynchronously to avoid render-blocking -->
+    <link rel="preload" as="style" href="https://fonts.cdnfonts.com/css/the-seasons?display=swap">
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap">
+    <link href="https://fonts.cdnfonts.com/css/the-seasons?display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript>
+      <link href="https://fonts.cdnfonts.com/css/the-seasons?display=swap" rel="stylesheet">
+      <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    </noscript>
+
+<link rel="stylesheet" href="/index.css">
+
     <!-- Structured Data - TravelAgency (Knowledge Panel) -->
     <script type="application/ld+json">
     {
@@ -83,7 +92,7 @@
       }
     }
     </script>
-    
+
     <!-- Structured Data - WebSite with SearchAction -->
     <script type="application/ld+json">
     {
@@ -98,23 +107,7 @@
       }
     }
     </script>
-    
-  <script type="importmap">
-{
-  "imports": {
-    "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.10.1",
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.31.0",
-    "react/": "https://aistudiocdn.com/react@^19.2.1/",
-    "react": "https://aistudiocdn.com/react@^19.2.1",
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.556.0",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
-    "recharts": "https://aistudiocdn.com/recharts@^3.5.1",
-    "vite": "https://aistudiocdn.com/vite@^7.2.6",
-    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1"
-  }
-}
-</script>
-<link rel="stylesheet" href="/index.css">
+
 </head>
   <body>
     <div id="root"></div>
