@@ -14,21 +14,27 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Trust first proxy (Vercel/CDN) so rate-limiter uses real client IP from X-Forwarded-For
+app.set('trust proxy', 1);
+
 // Security Middleware
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://aistudiocdn.com"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://fonts.cdnfonts.com"],
       imgSrc: ["'self'", "data:", "https:", "http:"],
-      connectSrc: ["'self'"],
-      fontSrc: ["'self'", "data:"],
+      connectSrc: ["'self'", process.env.FRONTEND_URL || "*", "https://*.vercel.app"],
+      fontSrc: ["'self'", "data:", "https://fonts.gstatic.com", "https://fonts.cdnfonts.com", "https://fonts.googleapis.com"],
       objectSrc: ["'none'"],
       mediaSrc: ["'self'"],
       frameSrc: ["'none'"],
     },
   },
+  // Disable CSP entirely for API-only responses (JSON)
+  // The frontend SPA serves its own CSP via the static HTML
+  crossOriginResourcePolicy: { policy: "cross-origin" },
   hsts: {
     maxAge: 31536000, // 1 year in seconds
     includeSubDomains: true,
@@ -36,10 +42,24 @@ app.use(helmet({
   }
 }));
 
-// Rate limiting - General API
+// Rate limiting - General API (generous for content-heavy travel site)
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  max: 500, // limit each IP to 500 requests per windowMs
+  skip: (req) => {
+    // Skip rate limit for migration routes
+    if (req.originalUrl && req.originalUrl.includes('/api/admin/migrate')) return true;
+    // Skip rate limit for authenticated admin requests
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+    if (token) {
+      try {
+        const jwt = require('jsonwebtoken');
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        if (decoded && decoded.role === 'admin') return true;
+      } catch (e) { /* token invalid, don't skip */ }
+    }
+    return false;
+  },
   message: { message: 'Too many requests, please try again later.' },
   standardHeaders: true,
   legacyHeaders: false,
@@ -48,7 +68,7 @@ const generalLimiter = rateLimit({
 // Rate limiting - Auth endpoints (more strict)
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // limit each IP to 10 auth requests per windowMs
+  max: 20, // limit each IP to 20 auth requests per windowMs
   message: { message: 'Too many authentication attempts, please try again later.' },
   standardHeaders: true,
   legacyHeaders: false,
@@ -91,6 +111,9 @@ const galleryRoutes = require('./routes/gallery.cjs');
 const marqueeRoutes = require('./routes/marquee.cjs');
 const seoRoutes = require('./routes/seo.cjs');
 const heroRoutes = require('./routes/hero.cjs');
+const teamRoutes = require('./routes/team.cjs');
+const settingsRoutes = require('./routes/settings.cjs');
+const migrateRoutes = require('./routes/migrate.cjs');
 const { cleanupExpiredBookings } = require('./lib/bookingUtils.cjs');
 
 // Connect to Database (Serverless optimized)
@@ -117,6 +140,17 @@ setInterval(async () => {
   }
 }, CLEANUP_INTERVAL);
 
+// Ensure DB connection is ready before any API route (serverless safety net)
+app.use('/api', async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    console.error('❌ DB connection middleware error:', err.message);
+    res.status(500).json({ message: 'Database connection error. Please try again.' });
+  }
+});
+
 // Use Routes
 app.use('/api/trips', tripRoutes);
 app.use('/api/auth', authRoutes);
@@ -129,6 +163,9 @@ app.use('/api/gallery', galleryRoutes);
 app.use('/api/marquee', marqueeRoutes);
 app.use('/api/seo', seoRoutes);
 app.use('/api/hero', heroRoutes);
+app.use('/api/team', teamRoutes);
+app.use('/api/settings', settingsRoutes);
+app.use('/api/admin/migrate', migrateRoutes);
 
 // Base Route
 app.get('/', (req, res) => {
@@ -137,6 +174,52 @@ app.get('/', (req, res) => {
 
 app.get('/api', (req, res) => {
   res.send('Wheel to Wilderness API is running...');
+});
+
+// Top-level sitemap & robots aliases (so crawlers find them at /sitemap.xml)
+app.get('/sitemap.xml', async (req, res) => {
+  try {
+    await connectDB();
+    const Trip = require('./models/Trip.cjs');
+    const trips = await Trip.find({ isActive: { $ne: false } })
+      .select('slug updatedAt imageUrl title')
+      .lean();
+    const today = new Date().toISOString().split('T')[0];
+    const staticPages = [
+      { url: '/', priority: '1.0', changefreq: 'daily' },
+      { url: '/destinations', priority: '0.9', changefreq: 'daily' },
+      { url: '/our-story', priority: '0.7', changefreq: 'monthly' },
+      { url: '/team', priority: '0.6', changefreq: 'monthly' },
+      { url: '/contact', priority: '0.8', changefreq: 'monthly' },
+      { url: '/terms', priority: '0.4', changefreq: 'yearly' },
+      { url: '/cancellation-policy', priority: '0.4', changefreq: 'yearly' },
+    ];
+    let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"\n        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n`;
+    for (const page of staticPages) {
+      xml += `  <url>\n    <loc>${SITE_URL}${page.url}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>${page.changefreq}</changefreq>\n    <priority>${page.priority}</priority>\n  </url>\n`;
+    }
+    for (const trip of trips) {
+      const lastmod = trip.updatedAt ? new Date(trip.updatedAt).toISOString().split('T')[0] : today;
+      xml += `  <url>\n    <loc>${SITE_URL}/trip/${trip.slug}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n`;
+      if (trip.imageUrl) {
+        xml += `    <image:image>\n      <image:loc>${trip.imageUrl}</image:loc>\n      <image:title>${(trip.title || 'Trip Image').replace(/&/g, '&amp;').replace(/</g, '&lt;')}</image:title>\n    </image:image>\n`;
+      }
+      xml += `  </url>\n`;
+    }
+    xml += `</urlset>`;
+    res.set('Content-Type', 'application/xml');
+    res.set('Cache-Control', 'public, max-age=3600');
+    res.send(xml);
+  } catch (err) {
+    console.error('Sitemap generation error:', err);
+    res.status(500).send('Error generating sitemap');
+  }
+});
+
+app.get('/robots.txt', (req, res) => {
+  const robotsTxt = `# Robots.txt for Wheels to Wilderness\n# ${SITE_URL}\n\nUser-agent: *\nAllow: /\n\nDisallow: /admin\nDisallow: /admin/*\nDisallow: /api/*\nDisallow: /login\nDisallow: /signup\nDisallow: /profile\nDisallow: /my-bookings\n\nSitemap: ${SITE_URL}/sitemap.xml\n\nCrawl-delay: 1\n\nUser-agent: Googlebot\nAllow: /\nDisallow: /admin\n\nUser-agent: Bingbot\nAllow: /\nDisallow: /admin\n`;
+  res.set('Content-Type', 'text/plain');
+  res.send(robotsTxt);
 });
 
 // ── Dynamic Open Graph injection for /trip/:id ──────────────────────────────
@@ -150,8 +233,8 @@ const CRAWLER_UA = /WhatsApp|Twitterbot|facebookexternalhit|LinkedInBot|Googlebo
 const SITE_URL = 'https://wheelstowilderness.in';
 const FALLBACK_IMAGE = `${SITE_URL}/og-image.jpg`;
 
-// Helper: build the patched <head> string
-function injectOgTags(html, { title, description, image, url }) {
+// Helper: build the patched <head> string (OG tags + JSON-LD structured data)
+function injectOgTags(html, { title, description, image, url, jsonLdSchemas }) {
   const esc = (s) => String(s ?? '').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   const safeTitle = esc(title);
   const safeDesc = esc(description);
@@ -177,14 +260,23 @@ function injectOgTags(html, { title, description, image, url }) {
     `<title>${safeTitle} | Wheels to Wilderness</title>`,
     `<meta name="description" content="${safeDesc}" />`,
     `<link rel="canonical" href="${safeUrl}" />`,
-  ].join('\n    ');
+  ];
+
+  // Inject JSON-LD structured data blocks for crawlers
+  if (jsonLdSchemas && Array.isArray(jsonLdSchemas)) {
+    for (const schema of jsonLdSchemas) {
+      ogTags.push(`<script type="application/ld+json">${JSON.stringify(schema)}</script>`);
+    }
+  }
+
+  const joinedTags = ogTags.join('\n    ');
 
   // Remove existing OG/Twitter/title/description tags so we don't duplicate
   let patched = html
     .replace(/<title>[^<]*<\/title>/gi, '')
     .replace(/<meta\s+(?:property|name)="(?:og:|twitter:|description|title)[^"]*"[^>]*\/>/gi, '')
     .replace(/<link\s+rel="canonical"[^>]*\/>/gi, '')
-    .replace('</head>', `    ${ogTags}\n  </head>`);
+    .replace('</head>', `    ${joinedTags}\n  </head>`);
 
   return patched;
 }
@@ -244,6 +336,71 @@ app.get('/trip/:id', async (req, res, next) => {
       url: tripUrl,
     };
 
+    // Build JSON-LD schemas for crawlers (TouristTrip + Product, BreadcrumbList)
+    const tripImages = [trip.imageUrl];
+    if (trip.gallery && trip.gallery.length > 0) {
+      trip.gallery.slice(0, 4).forEach(img => {
+        if (img && !tripImages.includes(img)) tripImages.push(img);
+      });
+    }
+
+    const touristTypes = ['Adventure'];
+    const cat = (trip.category || '').toLowerCase();
+    if (cat.includes('weekend') || cat.includes('getaway')) touristTypes.push('Weekend Getaway');
+    if (cat.includes('trek')) touristTypes.push('Trekking');
+    if (cat.includes('beach')) touristTypes.push('Beach Holiday');
+    if (cat.includes('heritage')) touristTypes.push('Heritage Tour');
+    if (touristTypes.length === 1) touristTypes.push('Weekend Getaway');
+
+    const tripSchema = {
+      '@context': 'https://schema.org',
+      '@type': ['TouristTrip', 'Product'],
+      name: trip.title,
+      description: (trip.description || '').substring(0, 300),
+      image: tripImages,
+      touristType: touristTypes,
+      offers: {
+        '@type': 'Offer',
+        price: String(trip.price),
+        priceCurrency: 'INR',
+        availability: 'https://schema.org/InStock',
+        validFrom: `${new Date().getFullYear()}-01-01`,
+        url: tripUrl
+      },
+      provider: {
+        '@type': 'TravelAgency',
+        name: 'Wheels to Wilderness',
+        url: SITE_URL
+      },
+      itinerary: {
+        '@type': 'ItemList',
+        numberOfItems: parseInt(trip.duration) || 2,
+        itemListElement: [{ '@type': 'ListItem', position: 1, name: trip.location }]
+      }
+    };
+
+    if (trip.rating) {
+      tripSchema.aggregateRating = {
+        '@type': 'AggregateRating',
+        ratingValue: String(trip.rating),
+        reviewCount: String(trip.reviewsCount || 10),
+        bestRating: '5',
+        worstRating: '1'
+      };
+    }
+
+    const breadcrumbSchema = {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}/` },
+        { '@type': 'ListItem', position: 2, name: trip.category || 'Destinations', item: `${SITE_URL}/destinations` },
+        { '@type': 'ListItem', position: 3, name: trip.title, item: tripUrl }
+      ]
+    };
+
+    meta.jsonLdSchemas = [tripSchema, breadcrumbSchema];
+
     const html = readIndexHtml();
     if (!html) {
       // index.html not built yet (local dev before `npm run build`)
@@ -258,6 +415,8 @@ app.get('/trip/:id', async (req, res, next) => {
           <meta name="twitter:card" content="summary_large_image" />
           <meta name="twitter:image" content="${esc(meta.image)}" />
           <title>${esc(meta.title)} | Wheels to Wilderness</title>
+          <script type="application/ld+json">${JSON.stringify(tripSchema)}</script>
+          <script type="application/ld+json">${JSON.stringify(breadcrumbSchema)}</script>
         </head><body></body></html>`);
       }
       return next();

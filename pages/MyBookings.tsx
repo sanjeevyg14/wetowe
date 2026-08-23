@@ -157,7 +157,7 @@ const MyBookings: React.FC = () => {
                                         <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
                                             <p className="text-[10px] uppercase font-bold text-gray-400 tracking-widest mb-1">Travelers</p>
                                             <div className="flex items-center gap-2 font-bold text-gray-700">
-                                                <Users size={16} className="text-brand-sage" /> {booking.travelers} Person(s)
+                                                <Users size={16} className="text-brand-sage" /> {booking.maleTravelers + booking.femaleTravelers} Traveler{(booking.maleTravelers + booking.femaleTravelers) > 1 ? 's' : ''}
                                             </div>
                                         </div>
                                         <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { LayoutDashboard, Package, Users, DollarSign, PlusCircle, Settings, Edit, Trash2, X, Save, Search, CheckCircle, RefreshCcw, MessageSquare, Mail, Phone, Plus, Minus, ChevronDown, ChevronUp, Link as LinkIcon, Upload, Image as ImageIcon, Loader, Star, ToggleLeft, ToggleRight, Megaphone, FileDown, FileText } from 'lucide-react';
+import { LayoutDashboard, Package, Users, DollarSign, PlusCircle, Settings, Edit, Trash2, X, Save, Search, CheckCircle, RefreshCcw, MessageSquare, Mail, Phone, Plus, Minus, ChevronDown, ChevronUp, Link as LinkIcon, Upload, Image as ImageIcon, Loader, Star, ToggleLeft, ToggleRight, Megaphone, FileDown, FileText, Copy } from 'lucide-react';
 import { downloadTicketPDF, downloadManifestPDF } from '../utils/pdfUtils';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { api } from '../services/api';
@@ -8,6 +8,7 @@ import { Trip, BookingStats, Booking, Enquiry, ItineraryItem, Testimonial } from
 import Navbar from '../components/Navbar';
 import { useAuth } from '../contexts/AuthContext';
 import { Navigate, Link } from 'react-router-dom';
+import { TeamMember, SiteSetting } from '../types';
 
 // -- Helper Components for List Management --
 
@@ -137,7 +138,7 @@ const ItineraryInput: React.FC<{
                                     addActivity(dayIndex, el.value);
                                     el.value = '';
                                 }}
-                                className="bg-gray-100 px-3 py-1 rounded text-sm hover:bg-gray-200"
+                                className="bg-brand-purple text-white px-3 py-1 rounded text-sm hover:bg-brand-darkPurple"
                             >
                                 Add
                             </button>
@@ -160,8 +161,10 @@ const Admin: React.FC = () => {
     const [reviews, setReviews] = useState<Testimonial[]>([]);
     const [tickerItems, setTickerItems] = useState<{ _id: string; text: string; icon: string; isActive: boolean; order: number }[]>([]);
     const [heroImages, setHeroImages] = useState<{ id: string; imageUrl: string; caption: string; order: number; isActive: boolean }[]>([]);
+    const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+    const [siteSettings, setSiteSettings] = useState<SiteSetting[]>([]);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState<'overview' | 'trips' | 'bookings' | 'enquiries' | 'gallery' | 'reviews' | 'ticker' | 'hero'>('overview');
+    const [activeTab, setActiveTab] = useState<'overview' | 'trips' | 'bookings' | 'enquiries' | 'gallery' | 'reviews' | 'ticker' | 'hero' | 'team' | 'settings'>('overview');
     const { user, isAdmin, loading: authLoading } = useAuth();
 
     // Modal State
@@ -173,6 +176,11 @@ const Admin: React.FC = () => {
     // Enquiry Modal State
     const [enquiryModalOpen, setEnquiryModalOpen] = useState(false);
     const [selectedEnquiry, setSelectedEnquiry] = useState<Enquiry | null>(null);
+
+    // Team Modal State
+    const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);
+    const [isEditingTeam, setIsEditingTeam] = useState(false);
+    const [currentTeamMember, setCurrentTeamMember] = useState<Partial<TeamMember>>({});
 
     // Refs for file inputs
     const mainImageInputRef = useRef<HTMLInputElement>(null);
@@ -193,7 +201,15 @@ const Admin: React.FC = () => {
                 api.getAdminGallery(),
                 api.getAdminTestimonials(),
                 api.getAdminMarqueeItems(),
-                api.getAdminHeroImages()
+                api.getAdminHeroImages(),
+                api.getAdminTeamMembers(),
+                Promise.all([
+                    api.getSetting('home_stats'),
+                    api.getSetting('home_quick_tags'),
+                    api.getSetting('our_story_content'),
+                    api.getSetting('contact_us_content'),
+                    api.getSetting('home_category_order')
+                ])
             ]);
 
             if (results[0].status === 'fulfilled') setTrips(results[0].value);
@@ -220,12 +236,56 @@ const Admin: React.FC = () => {
             if (results[7].status === 'fulfilled') setHeroImages(results[7].value);
             else console.error("Failed to fetch hero images:", results[7].reason);
 
+            if (results[8].status === 'fulfilled') setTeamMembers(results[8].value);
+            else console.error("Failed to fetch team members:", results[8].reason);
+
+            if (results[9].status === 'fulfilled') setSiteSettings(results[9].value.filter(Boolean));
+            else console.error("Failed to fetch settings:", results[9].reason);
+
         } catch (error) {
             console.error("Failed to fetch admin data", error);
         } finally {
             setLoading(false);
         }
     };
+
+    // Category Reorder State & Handlers
+    const [categoryOrder, setCategoryOrder] = useState<string[]>([]);
+    const [draggedCatIndex, setDraggedCatIndex] = useState<number | null>(null);
+
+    useEffect(() => {
+        const uniqueCategories = Array.from(new Set(trips.map(t => t.category || 'Trending Expeditions')));
+        const savedOrder = siteSettings.find(s => s.key === 'home_category_order')?.value || [];
+        const mergedOrder = [...savedOrder];
+        uniqueCategories.forEach(cat => {
+            if (!mergedOrder.includes(cat)) {
+                mergedOrder.push(cat);
+            }
+        });
+        setCategoryOrder(mergedOrder);
+    }, [trips, siteSettings]);
+
+    const handleDragStart = (e: React.DragEvent, index: number) => {
+        setDraggedCatIndex(index);
+    };
+
+    const handleDragOver = (e: React.DragEvent, index: number) => {
+        e.preventDefault();
+        if (draggedCatIndex === null || draggedCatIndex === index) return;
+        
+        const newOrder = [...categoryOrder];
+        const draggedItem = newOrder[draggedCatIndex];
+        newOrder.splice(draggedCatIndex, 1);
+        newOrder.splice(index, 0, draggedItem);
+        
+        setDraggedCatIndex(index);
+        setCategoryOrder(newOrder);
+    };
+
+    const handleDragEnd = () => {
+        setDraggedCatIndex(null);
+    };
+
 
     const handleDelete = async (id: string) => {
         if (confirm('Are you sure you want to delete this trip?')) {
@@ -429,8 +489,22 @@ const Admin: React.FC = () => {
     };
 
     const openAddModal = () => {
+        const draft = localStorage.getItem('tripDraft');
+        if (draft && confirm('You have an unsaved draft. Do you want to load it?')) {
+            try {
+                const parsedDraft = JSON.parse(draft);
+                setCurrentTrip(parsedDraft);
+                setIsEditing(false);
+                setIsModalOpen(true);
+                return;
+            } catch (e) {
+                console.error("Failed to parse draft", e);
+            }
+        }
+
         setCurrentTrip({
             title: '',
+            category: 'Trending Expeditions',
             slug: '',
             location: '',
             price: 0,
@@ -439,6 +513,7 @@ const Admin: React.FC = () => {
             reviewsCount: 0,
             imageUrl: '',
             cardImageUrl: '',
+            badgeText: 'Selling Fast',
             description: '',
             gallery: [],
             highlights: [],
@@ -447,7 +522,8 @@ const Admin: React.FC = () => {
             pickupPoints: [],
             itinerary: [],
             dates: [],
-            maxCapacity: 12,
+            maxMaleCapacity: 6,
+            maxFemaleCapacity: 6,
             gstPercentage: 5
         });
         setIsEditing(false);
@@ -457,6 +533,8 @@ const Admin: React.FC = () => {
     const openEditModal = (trip: Trip) => {
         setCurrentTrip({
             ...trip,
+            category: trip.category || 'Trending Expeditions',
+            badgeText: trip.badgeText || '',
             gallery: trip.gallery || [],
             highlights: trip.highlights || [],
             inclusions: trip.inclusions || [],
@@ -469,22 +547,80 @@ const Admin: React.FC = () => {
         setIsModalOpen(true);
     };
 
+    const handleDuplicate = (trip: Trip) => {
+        const { id, _id, ...rest } = trip as any;
+        setCurrentTrip({
+            ...rest,
+            title: `Copy of ${trip.title}`,
+            slug: trip.slug ? `${trip.slug}-copy` : '',
+            category: trip.category || 'Trending Expeditions',
+            badgeText: trip.badgeText || '',
+            gallery: trip.gallery || [],
+            highlights: trip.highlights || [],
+            inclusions: trip.inclusions || [],
+            exclusions: trip.exclusions || [],
+            pickupPoints: trip.pickupPoints || [],
+            itinerary: trip.itinerary || [],
+            dates: trip.dates || []
+        });
+        setIsEditing(false); // false means it will create a new trip instead of updating
+        setIsModalOpen(true);
+    };
+
+    // Success notification state
+    const [successMessage, setSuccessMessage] = useState('');
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!currentTrip.title || !currentTrip.price) return;
+        if (!currentTrip.title || !currentTrip.price) {
+            alert('Please fill in the required fields: Title and Price');
+            return;
+        }
+        if (!currentTrip.location) {
+            alert('Please fill in the Location field');
+            return;
+        }
+        if (!currentTrip.duration) {
+            alert('Please fill in the Duration field');
+            return;
+        }
+        if (!currentTrip.imageUrl) {
+            alert('Please upload or provide a Cover/Hero Image URL');
+            return;
+        }
+        if (!currentTrip.description) {
+            alert('Please fill in the Description field');
+            return;
+        }
+        if (currentTrip.description && currentTrip.description.length < 50) {
+            alert('Description must be at least 50 characters long');
+            return;
+        }
 
         try {
             if (isEditing && currentTrip.id) {
-                await api.updateTrip(currentTrip as Trip);
-                setTrips(trips.map(t => t.id === currentTrip.id ? (currentTrip as Trip) : t));
+                const updated = await api.updateTrip(currentTrip as Trip);
+                setTrips(trips.map(t => t.id === currentTrip.id ? updated : t));
+                setSuccessMessage('Trip updated successfully! ✅');
             } else {
                 const newTrip = await api.createTrip(currentTrip as Trip);
                 setTrips([newTrip, ...trips]);
+                setSuccessMessage('Trip created successfully! 🎉');
             }
             setIsModalOpen(false);
-        } catch (error) {
+            localStorage.removeItem('tripDraft');
+            // Auto-hide success message after 4 seconds
+            setTimeout(() => setSuccessMessage(''), 4000);
+        } catch (error: any) {
             console.error("Failed to save trip", error);
+            alert(`Failed to save trip: ${error.message || 'Unknown error'}`);
         }
+    };
+
+    const handleSaveDraft = () => {
+        localStorage.setItem('tripDraft', JSON.stringify(currentTrip));
+        setSuccessMessage('Draft saved locally! ✅');
+        setTimeout(() => setSuccessMessage(''), 4000);
     };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -493,7 +629,7 @@ const Admin: React.FC = () => {
         setCurrentTrip(prev => {
             const newData = {
                 ...prev,
-                [name]: name === 'price' || name === 'rating' || name === 'reviewsCount' || name === 'gstPercentage' ? Number(value) : value
+                [name]: name === 'price' || name === 'rating' || name === 'reviewsCount' || name === 'gstPercentage' || name === 'maxMaleCapacity' || name === 'maxFemaleCapacity' ? Number(value) : value
             };
 
             if (name === 'title' && !isEditing) {
@@ -576,6 +712,60 @@ const Admin: React.FC = () => {
         }
     };
 
+    // --- Team Member Handlers ---
+    const handleAddTeam = () => {
+        setCurrentTeamMember({
+            name: '',
+            role: '',
+            imageUrl: '',
+            bio: '',
+            linkedin: '',
+            instagram: '',
+            order: 0,
+            isActive: true
+        });
+        setIsEditingTeam(false);
+        setIsTeamModalOpen(true);
+    };
+
+    const handleEditTeam = (member: TeamMember) => {
+        setCurrentTeamMember(member);
+        setIsEditingTeam(true);
+        setIsTeamModalOpen(true);
+    };
+
+    const handleDeleteTeam = async (id: string) => {
+        if (!confirm('Are you sure you want to delete this team member?')) return;
+        try {
+            await api.deleteTeamMember(id);
+            setTeamMembers(teamMembers.filter(m => m._id !== id));
+        } catch (error) {
+            console.error('Failed to delete team member', error);
+            alert('Failed to delete team member');
+        }
+    };
+
+    const handleTeamSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!currentTeamMember.imageUrl) {
+            alert('Please upload a photo for the team member.');
+            return;
+        }
+        try {
+            if (isEditingTeam && currentTeamMember._id) {
+                const updated = await api.updateTeamMember(currentTeamMember._id, currentTeamMember as TeamMember);
+                setTeamMembers(teamMembers.map(m => m._id === updated._id ? updated : m));
+            } else {
+                const added = await api.addTeamMember(currentTeamMember as Omit<TeamMember, '_id'>);
+                setTeamMembers([added, ...teamMembers]);
+            }
+            setIsTeamModalOpen(false);
+        } catch (error) {
+            console.error('Failed to save team member', error);
+            alert('Failed to save team member');
+        }
+    };
+
     if (authLoading) return <div>Loading...</div>;
     if (!user) return <Navigate to="/login?redirect=/admin" />;
     if (!isAdmin) return <Navigate to="/" />;
@@ -583,6 +773,19 @@ const Admin: React.FC = () => {
     return (
         <div className="min-h-screen bg-gray-100 font-sans admin-panel">
             <Navbar />
+
+            {/* Success Toast Notification */}
+            {successMessage && (
+                <div className="fixed top-6 right-6 z-[100] animate-slide-in-right">
+                    <div className="bg-green-600 text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 min-w-[320px]">
+                        <CheckCircle size={24} className="shrink-0" />
+                        <span className="font-bold text-sm">{successMessage}</span>
+                        <button onClick={() => setSuccessMessage('')} className="ml-auto text-white/70 hover:text-white">
+                            <X size={18} />
+                        </button>
+                    </div>
+                </div>
+            )}
 
             <div className="flex max-w-7xl mx-auto px-4 py-8 gap-6">
                 {/* Sidebar */}
@@ -645,6 +848,18 @@ const Admin: React.FC = () => {
                             >
                                 <ImageIcon size={20} /> Hero Carousel
                             </button>
+                            <button
+                                onClick={() => setActiveTab('team')}
+                                className={`flex items-center gap-3 w-full px-4 py-3 rounded-lg font-medium transition ${activeTab === 'team' ? 'bg-purple-50 text-brand-purple' : 'text-gray-600 hover:bg-gray-50'}`}
+                            >
+                                <Users size={20} /> Team Members
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('settings')}
+                                className={`flex items-center gap-3 w-full px-4 py-3 rounded-lg font-medium transition ${activeTab === 'settings' ? 'bg-purple-50 text-brand-purple' : 'text-gray-600 hover:bg-gray-50'}`}
+                            >
+                                <Settings size={20} /> Site Settings
+                            </button>
                         </nav>
                     </div>
                 </aside>
@@ -652,7 +867,7 @@ const Admin: React.FC = () => {
                 {/* Mobile Tab Navigation */}
                 <div className="lg:hidden w-full mb-4 overflow-x-auto">
                     <div className="flex gap-2 min-w-max px-1 pb-2">
-                        {(['overview', 'trips', 'bookings', 'enquiries', 'gallery', 'reviews', 'ticker', 'hero'] as const).map(tab => (
+                        {(['overview', 'trips', 'bookings', 'enquiries', 'gallery', 'reviews', 'ticker', 'hero', 'team', 'settings'] as const).map(tab => (
                             <button
                                 key={tab}
                                 onClick={() => setActiveTab(tab)}
@@ -859,7 +1074,7 @@ const Admin: React.FC = () => {
                                     {Object.entries(bookingsByTrip).map(([tripId, { tripTitle, byDate }]) => {
                                         const tripBookings = Object.values(byDate).flat();
                                         const confirmedCount = tripBookings.filter(b => b.status === 'confirmed').length;
-                                        const totalTravelers = tripBookings.reduce((s, b) => s + b.travelers, 0);
+                                        const totalTravelers = tripBookings.reduce((s, b) => s + (b.maleTravelers || 0) + (b.femaleTravelers || 0), 0);
                                         const totalRevenue = tripBookings.filter(b => b.status === 'confirmed').reduce((s, b) => s + (b.totalPrice || 0), 0);
                                         const isOpen = expandedTrips.has(tripId);
 
@@ -899,7 +1114,7 @@ const Admin: React.FC = () => {
                                                                 const dateKey = `${tripId}__${date}`;
                                                                 const isDateOpen = expandedDates.has(dateKey);
                                                                 const dateConfirmed = dateBookings.filter(b => b.status === 'confirmed').length;
-                                                                const dateTravelers = dateBookings.reduce((s, b) => s + b.travelers, 0);
+                                                                const dateTravelers = dateBookings.reduce((s, b) => s + (b.maleTravelers || 0) + (b.femaleTravelers || 0), 0);
 
                                                                 return (
                                                                     <div key={date} className="border-b border-gray-50 last:border-b-0">
@@ -951,7 +1166,7 @@ const Admin: React.FC = () => {
                                                                                                     <div className="text-xs text-gray-400">{booking.email}</div>
                                                                                                     {booking.phone && <div className="text-xs text-gray-400">{booking.phone}</div>}
                                                                                                 </td>
-                                                                                                <td className="px-6 py-3 text-gray-700">{booking.travelers}</td>
+                                                                                                <td className="px-6 py-3 text-gray-700">{booking.maleTravelers + booking.femaleTravelers}</td>
                                                                                                 <td className="px-6 py-3 font-medium text-gray-900">₹{booking.totalPrice?.toLocaleString('en-IN')}</td>
                                                                                                 <td className="px-6 py-3">
                                                                                                     <span className={`px-2 py-1 rounded-full text-xs font-bold uppercase ${
@@ -1040,7 +1255,7 @@ const Admin: React.FC = () => {
                                                             </div>
 
                                                             <div className="flex items-center gap-2 mt-1">
-                                                                <Users size={14} /> <span>{enquiry.Travellers ?? enquiry.Travellers ?? '1'} traveler{(enquiry.Travellers ?? enquiry.Travellers) > 1 ? 's' : ''}</span>
+                                                                <Users size={14} /> <span>{(enquiry.maleTravelers || 0) + (enquiry.femaleTravelers || 0)} traveler{((enquiry.maleTravelers || 0) + (enquiry.femaleTravelers || 0)) > 1 ? 's' : ''}</span>
                                                             </div>
 
                                                             <div className="flex items-center gap-2 mt-1">
@@ -1187,8 +1402,16 @@ const Admin: React.FC = () => {
                                                         <td className="px-6 py-4 text-right">
                                                             <div className="flex items-center justify-end gap-2">
                                                                 <button
+                                                                    onClick={() => handleDuplicate(trip)}
+                                                                    className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
+                                                                    title="Duplicate Trip"
+                                                                >
+                                                                    <Copy size={18} />
+                                                                </button>
+                                                                <button
                                                                     onClick={() => openEditModal(trip)}
                                                                     className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                                                                    title="Edit Trip"
                                                                 >
                                                                     <Edit size={18} />
                                                                 </button>
@@ -1654,6 +1877,231 @@ const Admin: React.FC = () => {
                                     </div>
                                 </div>
                             )}
+
+                            {activeTab === 'team' && (
+                                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                                    <div className="p-6 border-b border-gray-100">
+                                        <h3 className="text-lg font-bold text-gray-800">Team Members</h3>
+                                        <p className="text-sm text-gray-500 mt-1">Manage team members displayed on the Team page.</p>
+                                    </div>
+                                    <div className="p-6">
+                                        <p className="text-gray-500 mb-4">You can add, edit, or remove team members here.</p>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                            {teamMembers.map((member) => (
+                                                <div key={member._id} className="border border-gray-200 rounded-lg p-4 flex gap-4 items-center">
+                                                    <img src={member.imageUrl} alt={member.name} className="w-16 h-16 rounded-full object-cover" />
+                                                    <div className="flex-1">
+                                                        <h4 className="font-bold text-gray-800">{member.name}</h4>
+                                                        <p className="text-sm text-gray-500">{member.role}</p>
+                                                    </div>
+                                                    <div className="flex gap-2">
+                                                        <button onClick={() => handleEditTeam(member)} className="text-brand-purple p-2 hover:bg-purple-50 rounded">
+                                                            <Edit size={16} />
+                                                        </button>
+                                                        <button onClick={() => handleDeleteTeam(member._id)} className="text-red-500 p-2 hover:bg-red-50 rounded">
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                            <button onClick={handleAddTeam} className="border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center text-gray-500 hover:text-brand-purple hover:border-brand-purple transition min-h-[100px]">
+                                                <PlusCircle size={24} className="mb-2" />
+                                                <span className="font-bold">Add Member</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeTab === 'settings' && (
+                                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                                    <div className="p-6 border-b border-gray-100">
+                                        <h3 className="text-lg font-bold text-gray-800">Site Settings</h3>
+                                        <p className="text-sm text-gray-500 mt-1">Manage dynamic content for Home, Our Story, and Contact Us pages.</p>
+                                    </div>
+                                    <div className="p-6 space-y-8">
+                                        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                            <h4 className="font-bold text-gray-800 mb-2">Home Page Quick Tags</h4>
+                                            <p className="text-sm text-gray-500 mb-4">Edit the 4 locations shown in the search bar.</p>
+                                            <div className="flex gap-2">
+                                                <input 
+                                                    type="text" 
+                                                    defaultValue={siteSettings.find(s => s.key === 'home_quick_tags')?.value?.join(', ') || 'Hampi, Gokarna, Wayanad, Pondicherry'}
+                                                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg"
+                                                    id="quick-tags-input"
+                                                />
+                                                <button onClick={async () => {
+                                                    const val = (document.getElementById('quick-tags-input') as HTMLInputElement).value;
+                                                    await api.updateSetting('home_quick_tags', { value: val.split(',').map(s => s.trim()) });
+                                                    alert('Updated Quick Tags!');
+                                                }} className="bg-brand-purple text-white px-4 py-2 rounded-lg font-bold">Save</button>
+                                            </div>
+                                        </div>
+
+                                        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                            <h4 className="font-bold text-gray-800 mb-2">Home Page Category Order</h4>
+                                            <p className="text-sm text-gray-500 mb-4">Drag and drop to rearrange the order of trip categories on the home page carousels.</p>
+                                            <div className="space-y-2 mb-4">
+                                                {categoryOrder.map((cat, index) => (
+                                                    <div 
+                                                        key={cat} 
+                                                        draggable 
+                                                        onDragStart={(e) => handleDragStart(e, index)}
+                                                        onDragOver={(e) => handleDragOver(e, index)}
+                                                        onDragEnd={handleDragEnd}
+                                                        className={`p-3 bg-white border rounded cursor-move flex items-center justify-between transition ${draggedCatIndex === index ? 'opacity-50 border-brand-purple' : 'border-gray-300 hover:border-brand-purple'}`}
+                                                    >
+                                                        <span className="font-medium text-gray-700 flex items-center gap-2">
+                                                            <span className="text-gray-400 font-mono text-xs">{index + 1}.</span> {cat}
+                                                        </span>
+                                                        <span className="text-gray-400">☰</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            <button onClick={async () => {
+                                                await api.updateSetting('home_category_order', { value: categoryOrder });
+                                                alert('Category order saved!');
+                                            }} className="bg-brand-purple text-white px-4 py-2 rounded-lg font-bold">Save Order</button>
+                                        </div>
+
+                                        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                            <h4 className="font-bold text-gray-800 mb-4">Home Page Stats</h4>
+                                            <div className="space-y-4">
+                                                {(() => {
+                                                    const currentStats = siteSettings.find(s => s.key === 'home_stats')?.value || [
+                                                        { end: 150, suffix: '+', label: 'Trips Done', iconName: 'Trophy' },
+                                                        { end: 5000, suffix: '+', label: 'Travelers', iconName: 'Users' },
+                                                        { end: 25, suffix: '+', label: 'Spots', iconName: 'Map' },
+                                                        { end: 40, suffix: '%', label: 'Solo Women', iconName: 'Heart' }
+                                                    ];
+                                                    return (
+                                                        <form onSubmit={async (e) => {
+                                                            e.preventDefault();
+                                                            const formData = new FormData(e.target as HTMLFormElement);
+                                                            const newStats = [];
+                                                            for(let i=0; i<4; i++) {
+                                                                newStats.push({
+                                                                    end: parseInt(formData.get(`stat_${i}_end`) as string) || 0,
+                                                                    suffix: formData.get(`stat_${i}_suffix`),
+                                                                    label: formData.get(`stat_${i}_label`),
+                                                                    iconName: formData.get(`stat_${i}_iconName`)
+                                                                });
+                                                            }
+                                                            await api.updateSetting('home_stats', { value: newStats });
+                                                            alert('Home Stats updated!');
+                                                        }}>
+                                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                                                {currentStats.map((stat: any, i: number) => (
+                                                                    <div key={i} className="border p-3 rounded bg-white">
+                                                                        <h5 className="font-bold mb-2 text-sm text-gray-600">Stat {i+1}</h5>
+                                                                        <div className="grid grid-cols-2 gap-2">
+                                                                            <input type="number" name={`stat_${i}_end`} defaultValue={stat.end} placeholder="Number (e.g. 150)" className="w-full px-2 py-1 border rounded" required />
+                                                                            <input type="text" name={`stat_${i}_suffix`} defaultValue={stat.suffix} placeholder="Suffix (e.g. +)" className="w-full px-2 py-1 border rounded" />
+                                                                            <input type="text" name={`stat_${i}_label`} defaultValue={stat.label} placeholder="Label (e.g. Trips)" className="w-full px-2 py-1 border rounded" required />
+                                                                            <select name={`stat_${i}_iconName`} defaultValue={stat.iconName} className="w-full px-2 py-1 border rounded">
+                                                                                <option value="Trophy">Trophy</option>
+                                                                                <option value="Users">Users</option>
+                                                                                <option value="Map">Map</option>
+                                                                                <option value="Heart">Heart</option>
+                                                                                <option value="Star">Star</option>
+                                                                                <option value="Zap">Zap</option>
+                                                                            </select>
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                            <button type="submit" className="bg-brand-purple text-white px-4 py-2 rounded-lg font-bold">Save Home Stats</button>
+                                                        </form>
+                                                    );
+                                                })()}
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                            <h4 className="font-bold text-gray-800 mb-4">Our Story Content</h4>
+                                            <div className="space-y-4">
+                                                {(() => {
+                                                    const currentStory = siteSettings.find(s => s.key === 'our_story_content')?.value || {
+                                                        heading: "OUR STORY",
+                                                        subHeading: "Born from a passion for the wild and a love for authentic adventures.",
+                                                        section1Title: "The Beginning",
+                                                        section1Text1: "Wheel to Wilderness started in 2019...",
+                                                        section2Title: "Our Mission",
+                                                        section2Text: "We believe that travel has the power to transform lives..."
+                                                    };
+                                                    return (
+                                                        <form onSubmit={async (e) => {
+                                                            e.preventDefault();
+                                                            const formData = new FormData(e.target as HTMLFormElement);
+                                                            const data = {
+                                                                heading: formData.get('heading'),
+                                                                subHeading: formData.get('subHeading'),
+                                                                section1Title: formData.get('section1Title'),
+                                                                section1Text1: formData.get('section1Text1'),
+                                                                section2Title: formData.get('section2Title'),
+                                                                section2Text: formData.get('section2Text'),
+                                                                heroImage: currentStory.heroImage || "https://picsum.photos/id/1036/1920/800"
+                                                            };
+                                                            await api.updateSetting('our_story_content', { value: data });
+                                                            alert('Our Story updated!');
+                                                        }}>
+                                                            <input type="text" name="heading" defaultValue={currentStory.heading} placeholder="Heading" className="w-full px-4 py-2 border rounded-lg mb-2" />
+                                                            <input type="text" name="subHeading" defaultValue={currentStory.subHeading} placeholder="Sub Heading" className="w-full px-4 py-2 border rounded-lg mb-2" />
+                                                            <input type="text" name="section1Title" defaultValue={currentStory.section1Title} placeholder="Section 1 Title" className="w-full px-4 py-2 border rounded-lg mb-2" />
+                                                            <textarea name="section1Text1" defaultValue={currentStory.section1Text1} placeholder="Section 1 Text" className="w-full px-4 py-2 border rounded-lg mb-2 h-24"></textarea>
+                                                            <input type="text" name="section2Title" defaultValue={currentStory.section2Title} placeholder="Section 2 Title" className="w-full px-4 py-2 border rounded-lg mb-2" />
+                                                            <textarea name="section2Text" defaultValue={currentStory.section2Text} placeholder="Section 2 Text" className="w-full px-4 py-2 border rounded-lg mb-2 h-24"></textarea>
+                                                            <button type="submit" className="bg-brand-purple text-white px-4 py-2 rounded-lg font-bold">Save Our Story</button>
+                                                        </form>
+                                                    );
+                                                })()}
+                                            </div>
+                                        </div>
+
+                                        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                            <h4 className="font-bold text-gray-800 mb-4">Contact Us Content</h4>
+                                            <div className="space-y-4">
+                                                {(() => {
+                                                    const currentContact = siteSettings.find(s => s.key === 'contact_us_content')?.value || {
+                                                        phone: "+91 96064 99422",
+                                                        phoneDesc: "Mon-Sat, 9AM - 7PM IST",
+                                                        email: "experiences@wheelstowilderness.in",
+                                                        emailDesc: "We reply within 24 hours",
+                                                        address: "Bangalore, Karnataka",
+                                                        addressDesc: "By appointment only"
+                                                    };
+                                                    return (
+                                                        <form onSubmit={async (e) => {
+                                                            e.preventDefault();
+                                                            const formData = new FormData(e.target as HTMLFormElement);
+                                                            const data = {
+                                                                phone: formData.get('phone'),
+                                                                phoneDesc: formData.get('phoneDesc'),
+                                                                email: formData.get('email'),
+                                                                emailDesc: formData.get('emailDesc'),
+                                                                address: formData.get('address'),
+                                                                addressDesc: formData.get('addressDesc'),
+                                                            };
+                                                            await api.updateSetting('contact_us_content', { value: data });
+                                                            alert('Contact Us updated!');
+                                                        }}>
+                                                            <div className="grid grid-cols-2 gap-4 mb-2">
+                                                                <input type="text" name="phone" defaultValue={currentContact.phone} placeholder="Phone" className="w-full px-4 py-2 border rounded-lg" />
+                                                                <input type="text" name="phoneDesc" defaultValue={currentContact.phoneDesc} placeholder="Phone Description" className="w-full px-4 py-2 border rounded-lg" />
+                                                                <input type="text" name="email" defaultValue={currentContact.email} placeholder="Email" className="w-full px-4 py-2 border rounded-lg" />
+                                                                <input type="text" name="emailDesc" defaultValue={currentContact.emailDesc} placeholder="Email Description" className="w-full px-4 py-2 border rounded-lg" />
+                                                                <input type="text" name="address" defaultValue={currentContact.address} placeholder="Address" className="w-full px-4 py-2 border rounded-lg" />
+                                                                <input type="text" name="addressDesc" defaultValue={currentContact.addressDesc} placeholder="Address Description" className="w-full px-4 py-2 border rounded-lg" />
+                                                            </div>
+                                                            <button type="submit" className="bg-brand-purple text-white px-4 py-2 rounded-lg font-bold">Save Contact Info</button>
+                                                        </form>
+                                                    );
+                                                })()}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </>
                     )}
                 </main>
@@ -1685,6 +2133,29 @@ const Admin: React.FC = () => {
                                             className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-brand-purple focus:outline-none"
                                             placeholder="e.g. Weekend at Hampi"
                                             required
+                                        />
+                                    </div>
+                                    <div className="md:col-span-1">
+                                        <label className="block text-sm font-bold text-gray-700 mb-2">Category (Home Page Section)</label>
+                                        <input
+                                            type="text"
+                                            name="category"
+                                            value={currentTrip.category}
+                                            onChange={handleInputChange}
+                                            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-brand-purple focus:outline-none"
+                                            placeholder="e.g. Trending Expeditions, Independence Day Special"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="md:col-span-1">
+                                        <label className="block text-sm font-bold text-gray-700 mb-2">Card Badge Text</label>
+                                        <input
+                                            type="text"
+                                            name="badgeText"
+                                            value={currentTrip.badgeText || ''}
+                                            onChange={handleInputChange}
+                                            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-brand-purple focus:outline-none"
+                                            placeholder="e.g. Selling Fast (leave empty to hide)"
                                         />
                                     </div>
                                     {/* ... (Existing inputs for slug, location, price, duration) ... */}
@@ -1741,15 +2212,28 @@ const Admin: React.FC = () => {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-bold text-gray-700 mb-2">Max Capacity (Seats per date)</label>
+                                        <label className="block text-sm font-bold text-gray-700 mb-2">Max Male Capacity</label>
                                         <input
                                             type="number"
-                                            name="maxCapacity"
-                                            value={currentTrip.maxCapacity || 12}
+                                            name="maxMaleCapacity"
+                                            value={currentTrip.maxMaleCapacity || 6}
                                             onChange={handleInputChange}
                                             className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-brand-purple focus:outline-none"
-                                            placeholder="12"
-                                            min="1"
+                                            placeholder="6"
+                                            min="0"
+                                            max="100"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-bold text-gray-700 mb-2">Max Female Capacity</label>
+                                        <input
+                                            type="number"
+                                            name="maxFemaleCapacity"
+                                            value={currentTrip.maxFemaleCapacity || 6}
+                                            onChange={handleInputChange}
+                                            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-brand-purple focus:outline-none"
+                                            placeholder="6"
+                                            min="0"
                                             max="100"
                                         />
                                     </div>
@@ -1875,6 +2359,7 @@ const Admin: React.FC = () => {
                                                     onChange={handleInputChange}
                                                     className="flex-1 px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-brand-purple focus:outline-none text-sm"
                                                     placeholder="Or paste image URL"
+                                                    required
                                                 />
                                             </div>
                                             <p className="text-xs text-gray-500">Used on trip detail page hero section. Supported formats: JPG, PNG, WEBP. Max size: 5MB.</p>
@@ -1975,6 +2460,9 @@ const Admin: React.FC = () => {
                                         onChange={handleInputChange}
                                         className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-brand-purple focus:outline-none h-32"
                                         placeholder="Describe the adventure..."
+                                        required
+                                        minLength={50}
+                                        maxLength={5000}
                                     ></textarea>
                                 </div>
                             </div>
@@ -2028,6 +2516,13 @@ const Admin: React.FC = () => {
                                     className="px-6 py-2 rounded-lg border border-gray-300 text-gray-700 font-bold hover:bg-gray-50 transition"
                                 >
                                     Cancel
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleSaveDraft}
+                                    className="px-6 py-2 rounded-lg bg-gray-200 text-gray-700 font-bold hover:bg-gray-300 transition flex items-center gap-2"
+                                >
+                                    <Save size={18} /> Save Draft
                                 </button>
                                 <button
                                     type="submit"
@@ -2095,7 +2590,7 @@ const Admin: React.FC = () => {
                                     </div>
                                     <div>
                                         <label className="text-xs font-bold text-gray-500 uppercase">Number of Travelers</label>
-                                        <p className="text-gray-900 font-medium">{selectedEnquiry.Travellers ?? '—'}</p>
+                                        <p className="text-gray-900 font-medium">{(selectedEnquiry.maleTravelers || 0) + (selectedEnquiry.femaleTravelers || 0)}</p>
                                     </div>
                                 </div>
                             </div>
@@ -2139,6 +2634,84 @@ const Admin: React.FC = () => {
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Team Member Modal */}
+            {isTeamModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                        <div className="sticky top-0 bg-white border-b border-gray-100 p-6 flex justify-between items-center z-10">
+                            <h3 className="text-xl font-bold text-gray-900">{isEditingTeam ? 'Edit Team Member' : 'Add Team Member'}</h3>
+                            <button onClick={() => setIsTeamModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+                                <X size={24} />
+                            </button>
+                        </div>
+                        <form onSubmit={handleTeamSubmit} className="p-6 space-y-4">
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-2">Name</label>
+                                <input type="text" required value={currentTeamMember.name || ''} onChange={e => setCurrentTeamMember({...currentTeamMember, name: e.target.value})} className="w-full px-4 py-2 border rounded-lg" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-2">Role</label>
+                                <input type="text" required value={currentTeamMember.role || ''} onChange={e => setCurrentTeamMember({...currentTeamMember, role: e.target.value})} className="w-full px-4 py-2 border rounded-lg" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-2">Photo</label>
+                                {currentTeamMember.imageUrl && (
+                                    <div className="mb-3">
+                                        <img src={currentTeamMember.imageUrl} alt="Preview" className="w-24 h-24 rounded-full object-cover border-2 border-gray-200" />
+                                    </div>
+                                )}
+                                <div className="flex items-center gap-3">
+                                    <label className="cursor-pointer bg-brand-purple text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-brand-darkPurple transition flex items-center gap-2">
+                                        <Upload size={16} />
+                                        {isUploading ? 'Uploading...' : 'Upload Image'}
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            className="hidden"
+                                            disabled={isUploading}
+                                            onChange={async (e) => {
+                                                if (e.target.files && e.target.files[0]) {
+                                                    setIsUploading(true);
+                                                    try {
+                                                        const url = await uploadToCloudinary(e.target.files[0]);
+                                                        setCurrentTeamMember(prev => ({ ...prev, imageUrl: url }));
+                                                    } catch (err: any) {
+                                                        alert(err.message || 'Upload failed');
+                                                    } finally {
+                                                        setIsUploading(false);
+                                                        e.target.value = '';
+                                                    }
+                                                }
+                                            }}
+                                        />
+                                    </label>
+                                    {isUploading && <Loader size={20} className="animate-spin text-brand-purple" />}
+                                </div>
+                                {!currentTeamMember.imageUrl && <p className="text-xs text-red-500 mt-1">* Photo is required</p>}
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-2">Bio</label>
+                                <textarea required value={currentTeamMember.bio || ''} onChange={e => setCurrentTeamMember({...currentTeamMember, bio: e.target.value})} className="w-full px-4 py-2 border rounded-lg h-24" />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-2">LinkedIn (Optional)</label>
+                                    <input type="text" value={currentTeamMember.linkedin || ''} onChange={e => setCurrentTeamMember({...currentTeamMember, linkedin: e.target.value})} className="w-full px-4 py-2 border rounded-lg" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-2">Instagram (Optional)</label>
+                                    <input type="text" value={currentTeamMember.instagram || ''} onChange={e => setCurrentTeamMember({...currentTeamMember, instagram: e.target.value})} className="w-full px-4 py-2 border rounded-lg" />
+                                </div>
+                            </div>
+                            <div className="pt-4 flex justify-end gap-2">
+                                <button type="button" onClick={() => setIsTeamModalOpen(false)} className="px-4 py-2 text-gray-500 font-bold">Cancel</button>
+                                <button type="submit" className="bg-brand-purple text-white px-6 py-2 rounded-lg font-bold">Save Member</button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}

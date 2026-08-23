@@ -18,10 +18,17 @@ const Login: React.FC = () => {
     setIsLoading(true);
 
     try {
-      await login(email, password);
+      const loggedInUser = await login(email, password);
       const params = new URLSearchParams(location.search);
       const redirect = params.get('redirect');
-      const safeRedirect = redirect && redirect.startsWith('/') && !redirect.startsWith('//') ? redirect : '/profile';
+      
+      let safeRedirect = '/profile';
+      if (redirect && redirect.startsWith('/') && !redirect.startsWith('//')) {
+          safeRedirect = redirect;
+      } else if (loggedInUser?.role === 'admin') {
+          safeRedirect = '/admin';
+      }
+      
       navigate(safeRedirect);
     } catch (err: any) {
       setError(err.message || 'Failed to sign in');
@@ -37,7 +44,7 @@ const Login: React.FC = () => {
             <Link to="/" className="inline-flex flex-col items-center mb-6 group">
               <div className="flex items-center gap-2">
                 <img 
-                  src="../components/wetowe1.png" 
+                  src="/wetowe1.png" 
                   alt="Wheel to Wilderness" 
                   className="h-20 w-15 rounded-md object-cover shadow-sm group-hover:rotate-3 transition-transform duration-300"
                 />

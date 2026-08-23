@@ -8,7 +8,7 @@ interface SEOProps {
   image?: string;
   url?: string;
   type?: 'website' | 'article' | 'product';
-  structuredData?: object;
+  structuredData?: object | object[];
   noindex?: boolean;
 }
 
@@ -30,29 +30,32 @@ const SEO: React.FC<SEOProps> = ({
   const fullTitle = title ? `${title} | ${SITE_NAME}` : `${SITE_NAME} - Let's Get Lost Together`;
   const fullUrl = url ? `${BASE_URL}${url}` : BASE_URL;
 
-  // Default organization structured data
+  // Default organization structured data (Knowledge Panel)
   const organizationSchema = {
     '@context': 'https://schema.org',
     '@type': 'TravelAgency',
     name: SITE_NAME,
     description: DEFAULT_DESCRIPTION,
     url: BASE_URL,
-    logo: `${BASE_URL}/wetowe1.png`,
+    logo: `${BASE_URL}/logo.png`,
+    image: `${BASE_URL}/banner.jpg`,
+    telephone: '+919606499422',
+    email: 'experiences@wheelstowilderness.in',
+    priceRange: '₹₹',
     sameAs: [
-      'https://instagram.com/wheelstowilderness',
-      'https://facebook.com/wheelstowilderness',
-      'https://twitter.com/wheelstowild'
+      'https://www.instagram.com/wheelstowilderness'
     ],
     contactPoint: {
       '@type': 'ContactPoint',
-      telephone: '+91-9606499422',
+      telephone: '+919606499422',
       contactType: 'customer service',
       availableLanguage: ['English', 'Hindi']
     },
     address: {
       '@type': 'PostalAddress',
-      addressCountry: 'IN',
-      addressRegion: 'Karnataka'
+      addressLocality: 'Bangalore',
+      addressRegion: 'Karnataka',
+      addressCountry: 'IN'
     }
   };
 
@@ -100,9 +103,17 @@ const SEO: React.FC<SEOProps> = ({
 
       {/* Custom Structured Data */}
       {structuredData && (
-        <script type="application/ld+json">
-          {JSON.stringify(structuredData)}
-        </script>
+        Array.isArray(structuredData)
+          ? structuredData.map((data, idx) => (
+              <script key={idx} type="application/ld+json">
+                {JSON.stringify(data)}
+              </script>
+            ))
+          : (
+            <script type="application/ld+json">
+              {JSON.stringify(structuredData)}
+            </script>
+          )
       )}
     </Helmet>
   );
@@ -110,50 +121,77 @@ const SEO: React.FC<SEOProps> = ({
 
 export default SEO;
 
-// Helper function to generate Trip structured data
+// Helper function to generate Trip structured data (TouristTrip + Product dual-type)
 export const generateTripSchema = (trip: {
   title: string;
   description: string;
   imageUrl: string;
+  gallery?: string[];
   price: number;
   location: string;
   duration: string;
   slug: string;
+  category?: string;
   rating?: number;
   reviewCount?: number;
-}) => ({
-  '@context': 'https://schema.org',
-  '@type': 'TouristTrip',
-  name: trip.title,
-  description: trip.description,
-  image: trip.imageUrl,
-  touristType: 'Adventure Travelers',
-  offers: {
-    '@type': 'Offer',
-    price: trip.price,
-    priceCurrency: 'INR',
-    availability: 'https://schema.org/InStock',
-    url: `https://wheelstowilderness.in/trip/${trip.slug}`
-  },
-  itinerary: {
-    '@type': 'ItemList',
-    numberOfItems: parseInt(trip.duration) || 2,
-    itemListElement: [{
-      '@type': 'ListItem',
-      position: 1,
-      name: trip.location
-    }]
-  },
-  ...(trip.rating && {
-    aggregateRating: {
-      '@type': 'AggregateRating',
-      ratingValue: trip.rating,
-      reviewCount: trip.reviewCount || 10,
-      bestRating: 5,
-      worstRating: 1
-    }
-  })
-});
+}) => {
+  // Derive touristType array from category
+  const touristTypes: string[] = ['Adventure'];
+  const cat = (trip.category || '').toLowerCase();
+  if (cat.includes('weekend') || cat.includes('getaway')) touristTypes.push('Weekend Getaway');
+  if (cat.includes('trek')) touristTypes.push('Trekking');
+  if (cat.includes('beach')) touristTypes.push('Beach Holiday');
+  if (cat.includes('heritage')) touristTypes.push('Heritage Tour');
+  if (touristTypes.length === 1) touristTypes.push('Weekend Getaway'); // default fallback
+
+  // Build image array
+  const images: string[] = [trip.imageUrl];
+  if (trip.gallery && trip.gallery.length > 0) {
+    trip.gallery.slice(0, 4).forEach(img => {
+      if (!images.includes(img)) images.push(img);
+    });
+  }
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': ['TouristTrip', 'Product'],
+    name: trip.title,
+    description: trip.description,
+    image: images,
+    touristType: touristTypes,
+    offers: {
+      '@type': 'Offer',
+      price: String(trip.price),
+      priceCurrency: 'INR',
+      availability: 'https://schema.org/InStock',
+      validFrom: `${new Date().getFullYear()}-01-01`,
+      url: `https://wheelstowilderness.in/trip/${trip.slug}`
+    },
+    provider: {
+      '@type': 'TravelAgency',
+      name: 'Wheels to Wilderness',
+      url: 'https://wheelstowilderness.in'
+    },
+    itinerary: {
+      '@type': 'ItemList',
+      numberOfItems: parseInt(trip.duration) || 2,
+      itemListElement: [{
+        '@type': 'ListItem',
+        position: 1,
+        name: trip.location
+      }]
+    },
+    ...(trip.rating && {
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        ratingValue: String(trip.rating),
+        reviewCount: String(trip.reviewCount || 10),
+        bestRating: '5',
+        worstRating: '1'
+      }
+    })
+  };
+};
 
 // Helper for breadcrumb structured data
 export const generateBreadcrumbSchema = (items: { name: string; url: string }[]) => ({

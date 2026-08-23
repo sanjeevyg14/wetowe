@@ -8,6 +8,7 @@ export interface Trip {
   id: string;
   slug?: string; // SEO friendly URL
   title: string;
+  category?: string; // Section grouping on Home page
   location: string;
   price: number;
   duration: string;
@@ -16,6 +17,7 @@ export interface Trip {
   reviewsCount: number;
   imageUrl: string; // Cover/Hero image (recommended: 1920x1080px, 16:9 ratio)
   cardImageUrl?: string; // Card/Thumbnail image (recommended: 800x600px, 4:3 ratio)
+  badgeText?: string; // Custom badge text
   gallery: string[];
   description: string;
   highlights: string[];
@@ -24,7 +26,9 @@ export interface Trip {
   pickupPoints: string[];
   itinerary: ItineraryItem[];
   dates: string[];
-  maxCapacity?: number; // Max travelers per date (default 12)
+  maxCapacity?: number; // Legacy: Max travelers per date (default 12)
+  maxMaleCapacity?: number;
+  maxFemaleCapacity?: number;
   isActive?: boolean; // Trip visibility status (default true)
   gstPercentage?: number; // GST tax percentage applied at checkout (default 5)
 }
@@ -62,7 +66,8 @@ export interface Booking {
   email: string;
   phone: string;
   date: string;
-  travelers: number;
+  maleTravelers: number;
+  femaleTravelers: number;
   pickupPoint?: string; // Selected boarding/pickup point for the trip
   totalPrice: number;
   status: 'pending' | 'contacted' | 'confirmed' | 'cancelled' | 'refunded' | 'failed' | 'expired';
@@ -76,10 +81,29 @@ export interface Enquiry {
   email: string;
   when: number;
   where: string;
-  Travellers: number;
+  maleTravelers: number;
+  femaleTravelers: number;
   traveldate: Date;
   phone: string;
   message: string;
   status: 'new' | 'contacted' | 'resolved';
   createdAt: string;
+}
+
+export interface TeamMember {
+  _id: string;
+  name: string;
+  role: string;
+  imageUrl: string;
+  bio: string;
+  linkedin?: string;
+  instagram?: string;
+  isActive: boolean;
+  order: number;
+}
+
+export interface SiteSetting {
+  key: string;
+  value: any;
+  description?: string;
 }

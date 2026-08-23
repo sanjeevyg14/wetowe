@@ -1,4 +1,4 @@
-import { Trip, BookingStats, Testimonial, Booking, Enquiry, User } from '../types';
+import { Trip, BookingStats, Testimonial, Booking, Enquiry, User, TeamMember, SiteSetting } from '../types';
 
 const API_URL = (import.meta as any)?.env?.VITE_API_URL || '/api';
 
@@ -63,7 +63,17 @@ export const api = {
             headers: getAuthHeaders(),
             body: JSON.stringify(trip),
         });
-        if (!response.ok) throw new Error('Failed to create trip');
+        if (!response.ok) {
+            const text = await response.text();
+            let errorData = {};
+            try { errorData = JSON.parse(text); } catch (e) {
+                if (response.status === 413 || text.toLowerCase().includes('request entity too large')) {
+                    throw new Error('Trip data is too large. Please reduce the amount of content.');
+                }
+                throw new Error(text || 'Failed to create trip');
+            }
+            throw new Error((errorData as any).message || 'Failed to create trip');
+        }
         const data = await response.json();
         return { ...data, id: data._id };
     },
@@ -74,7 +84,17 @@ export const api = {
             headers: getAuthHeaders(),
             body: JSON.stringify(updatedTrip),
         });
-        if (!response.ok) throw new Error('Failed to update trip');
+        if (!response.ok) {
+            const text = await response.text();
+            let errorData = {};
+            try { errorData = JSON.parse(text); } catch (e) {
+                if (response.status === 413 || text.toLowerCase().includes('request entity too large')) {
+                    throw new Error('Trip data is too large. Please reduce the amount of content.');
+                }
+                throw new Error(text || 'Failed to update trip');
+            }
+            throw new Error((errorData as any).message || 'Failed to update trip');
+        }
         const data = await response.json();
         return { ...data, id: data._id };
     },
@@ -229,7 +249,7 @@ export const api = {
         return await response.json();
     },
 
-    checkAvailability: async (tripId: string, date: string): Promise<{ totalBooked: number, remaining: number, maxCapacity: number, isSoldOut: boolean }> => {
+    checkAvailability: async (tripId: string, date: string): Promise<{ totalBooked: number, totalMaleBooked: number, totalFemaleBooked: number, remaining: number, remainingMale: number, remainingFemale: number, maxCapacity: number, maxMaleCapacity: number, maxFemaleCapacity: number, isSoldOut: boolean }> => {
         const response = await fetch(`${API_URL}/bookings/check-availability?tripId=${tripId}&date=${encodeURIComponent(date)}`);
         if (!response.ok) throw new Error('Failed to check availability');
         return await response.json();
@@ -365,7 +385,7 @@ export const api = {
     },
 
     // --- ENQUIRIES ---
-    submitEnquiry: async (enquiryData: { name: string, Travellers: string, phone: string, traveldate: string, email: string, where: string, message: string }): Promise<void> => {
+    submitEnquiry: async (enquiryData: { name: string, Travellers?: string, maleTravelers?: number, femaleTravelers?: number, phone: string, traveldate: string, email: string, where: string, message: string }): Promise<void> => {
         const response = await fetch(`${API_URL}/enquiries`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -432,5 +452,68 @@ export const api = {
             headers: getAuthHeaders()
         });
         if (!response.ok) throw new Error('Failed to delete hero image');
+    },
+
+    // --- TEAM ---
+    getTeamMembers: async (): Promise<TeamMember[]> => {
+        const response = await fetch(`${API_URL}/team`);
+        if (!response.ok) throw new Error('Failed to fetch team members');
+        return await response.json();
+    },
+
+    getAdminTeamMembers: async (): Promise<TeamMember[]> => {
+        const response = await fetch(`${API_URL}/team/admin`, {
+            headers: getAuthHeaders()
+        });
+        if (!response.ok) throw new Error('Failed to fetch team members');
+        return await response.json();
+    },
+
+    addTeamMember: async (data: Omit<TeamMember, '_id'>): Promise<TeamMember> => {
+        const response = await fetch(`${API_URL}/team`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(data)
+        });
+        if (!response.ok) throw new Error('Failed to add team member');
+        return await response.json();
+    },
+
+    updateTeamMember: async (id: string, data: Partial<TeamMember>): Promise<TeamMember> => {
+        const response = await fetch(`${API_URL}/team/${id}`, {
+            method: 'PUT',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(data)
+        });
+        if (!response.ok) throw new Error('Failed to update team member');
+        return await response.json();
+    },
+
+    deleteTeamMember: async (id: string): Promise<void> => {
+        const response = await fetch(`${API_URL}/team/${id}`, {
+            method: 'DELETE',
+            headers: getAuthHeaders()
+        });
+        if (!response.ok) throw new Error('Failed to delete team member');
+    },
+
+    // --- SITE SETTINGS ---
+    getSetting: async (key: string): Promise<SiteSetting> => {
+        const response = await fetch(`${API_URL}/settings/${key}`);
+        if (!response.ok) {
+            if (response.status === 404) return { key, value: null };
+            throw new Error('Failed to fetch setting');
+        }
+        return await response.json();
+    },
+
+    updateSetting: async (key: string, data: { value: any, description?: string }): Promise<SiteSetting> => {
+        const response = await fetch(`${API_URL}/settings/${key}`, {
+            method: 'PUT',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(data)
+        });
+        if (!response.ok) throw new Error('Failed to update setting');
+        return await response.json();
     }
 };

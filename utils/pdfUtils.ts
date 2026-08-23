@@ -360,7 +360,7 @@ export function downloadTicketPDF(booking: Booking): void {
   const safeName         = escHtml(booking.customerName);
   const safeTrip         = escHtml(booking.tripTitle);
   const safeDate         = escHtml(booking.date);
-  const safeTravelers    = escHtml(String(booking.travelers));
+  const safeTravelers    = escHtml(String(booking.maleTravelers + booking.femaleTravelers));
   const safeStatus       = escHtml(booking.status);
   const safeEmail        = escHtml(booking.email);
   const safePhone        = escHtml(booking.phone);
@@ -670,8 +670,8 @@ export function downloadTicketPDF(booking: Booking): void {
 
 export function downloadManifestPDF(tripTitle: string, date: string, bookings: Booking[]): void {
   const confirmedBookings = bookings.filter(b => b.status === 'confirmed');
-  const totalTravelers = bookings.reduce((sum, b) => sum + b.travelers, 0);
-  const confirmedTravelers = confirmedBookings.reduce((sum, b) => sum + b.travelers, 0);
+  const totalTravelers = bookings.reduce((sum, b) => sum + (b.maleTravelers || 0) + (b.femaleTravelers || 0), 0);
+  const confirmedTravelers = confirmedBookings.reduce((sum, b) => sum + (b.maleTravelers || 0) + (b.femaleTravelers || 0), 0);
   const totalRevenue = confirmedBookings.reduce((sum, b) => sum + (b.totalPrice || 0), 0);
 
   const safeTripTitle = escHtml(tripTitle);
@@ -692,7 +692,7 @@ export function downloadManifestPDF(tripTitle: string, date: string, bookings: B
         <td><strong>${escHtml(b.customerName)}</strong></td>
         <td>${escHtml(b.phone)}</td>
         <td>${escHtml(b.email)}</td>
-        <td style="text-align:center">${Number(b.travelers) || 0}</td>
+        <td style="text-align:center">${(b.maleTravelers || 0) + (b.femaleTravelers || 0)}</td>
         <td>${b.pickupPoint ? escHtml(b.pickupPoint) : '<span style="color:#ccc">&#8212;</span>'}</td>
         <td style="text-align:right">&#8377;${escHtml(b.totalPrice?.toLocaleString('en-IN') || '0')}</td>
         <td style="text-align:center"><span class="badge status-${safeStatusClass}">${escHtml(b.status)}</span></td>
