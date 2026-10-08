@@ -333,13 +333,13 @@ const RannOfKutch: React.FC = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.1, duration: 0.6 }}
                 viewport={{ once: true }}
-                className="p-6 bg-white rounded-2xl border border-brand-olive/10 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
+                className="p-6 bg-brand-cream rounded-2xl border border-brand-olive/10 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
               >
                 <div className="text-3xl md:text-4xl font-black text-brand-olive font-serif">
                   {stat.value}
                   <span className="text-brand-sage text-sm ml-1">{stat.unit}</span>
                 </div>
-                <p className="text-[10px] uppercase tracking-[0.2em] text-brand-olive/40 font-bold mt-2">{stat.label}</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-brand-olive/60 font-bold mt-2">{stat.label}</p>
               </motion.div>
             ))}
           </div>
@@ -434,8 +434,8 @@ const RannOfKutch: React.FC = () => {
                     onClick={() => setActiveDay(i)}
                     className={`w-full text-left p-4 rounded-xl border transition-all duration-300 group ${
                       activeDay === i
-                        ? 'bg-brand-olive text-white border-brand-olive shadow-xl shadow-brand-olive/20'
-                        : 'bg-white border-brand-olive/10 hover:border-brand-olive/30 hover:shadow-md'
+                        ? 'bg-brand-cream text-brand-olive border-brand-cream shadow-xl shadow-brand-cream/20'
+                        : 'bg-brand-beige border-brand-olive/10 hover:border-brand-sage/30 hover:shadow-md'
                     }`}
                     whileHover={{ x: activeDay === i ? 0 : 4 }}
                     whileTap={{ scale: 0.98 }}
@@ -443,25 +443,25 @@ const RannOfKutch: React.FC = () => {
                     <div className="flex items-center gap-4">
                       <div className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${
                         activeDay === i
-                          ? 'bg-white/20 text-white'
-                          : 'bg-brand-olive/10 text-brand-olive group-hover:bg-brand-olive/20'
+                          ? 'bg-brand-olive/20 text-brand-olive'
+                          : 'bg-brand-cream/20 text-brand-cream group-hover:bg-brand-cream/30'
                       }`}>
                         {item.icon}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className={`text-[10px] uppercase tracking-[0.2em] font-bold mb-0.5 ${
-                          activeDay === i ? 'text-white/60' : 'text-brand-olive/40'
+                          activeDay === i ? 'text-brand-olive/60' : 'text-brand-black/40'
                         }`}>
                           Day {item.day} — {item.time}
                         </div>
                         <div className={`font-bold text-sm truncate ${
-                          activeDay === i ? 'text-white' : 'text-brand-olive'
+                          activeDay === i ? 'text-brand-olive' : 'text-brand-black'
                         }`}>
                           {item.title}
                         </div>
                       </div>
                       <ArrowRight size={16} className={`flex-shrink-0 transition-all ${
-                        activeDay === i ? 'text-white/80 translate-x-0' : 'text-brand-olive/20 -translate-x-2 opacity-0 group-hover:opacity-100 group-hover:translate-x-0'
+                        activeDay === i ? 'text-brand-olive/80 translate-x-0' : 'text-brand-black/20 -translate-x-2 opacity-0 group-hover:opacity-100 group-hover:translate-x-0'
                       }`} />
                     </div>
                   </motion.button>
@@ -478,7 +478,7 @@ const RannOfKutch: React.FC = () => {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -30 }}
                   transition={{ duration: 0.4, ease: 'easeOut' }}
-                  className="bg-white rounded-2xl border border-brand-olive/10 overflow-hidden shadow-sm"
+                  className="bg-brand-beige rounded-2xl border border-brand-olive/10 overflow-hidden shadow-sm"
                 >
                   {/* Day Image */}
                   <div className="relative h-[300px] md:h-[400px] overflow-hidden">
@@ -500,18 +500,18 @@ const RannOfKutch: React.FC = () => {
 
                   {/* Day Content */}
                   <div className="p-6 md:p-8">
-                    <p className="text-brand-olive/70 leading-relaxed text-base mb-8">
+                    <p className="text-brand-black/70 leading-relaxed text-base mb-8">
                       {itinerary[activeDay].description}
                     </p>
 
                     {/* Highlights */}
                     <div className="space-y-3">
-                      <h4 className="text-[10px] uppercase tracking-[0.2em] text-brand-olive/40 font-bold">Key Highlights</h4>
+                      <h4 className="text-[10px] uppercase tracking-[0.2em] text-brand-black/40 font-bold">Key Highlights</h4>
                       <div className="flex flex-wrap gap-2">
                         {itinerary[activeDay].highlights.map((h, j) => (
                           <span
                             key={j}
-                            className="inline-flex items-center gap-1.5 bg-brand-olive/5 border border-brand-olive/10 text-brand-olive px-3 py-1.5 rounded-full text-xs font-bold"
+                            className="inline-flex items-center gap-1.5 bg-brand-cream/10 border border-brand-cream/20 text-brand-black px-3 py-1.5 rounded-full text-xs font-bold"
                           >
                             <Check size={12} className="text-brand-sage" />
                             {h}
@@ -600,13 +600,13 @@ const RannOfKutch: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             {/* Standard */}
-            <div className="bg-white rounded-2xl border border-brand-olive/10 p-8 shadow-sm hover:shadow-lg transition-all duration-300">
-              <div className="text-[10px] uppercase tracking-[0.2em] text-brand-olive/40 font-bold mb-2">Standard</div>
+            <div className="bg-brand-beige rounded-2xl border border-brand-cream/20 p-8 shadow-sm hover:shadow-lg transition-all duration-300">
+              <div className="text-[10px] uppercase tracking-[0.2em] text-brand-black/40 font-bold mb-2">Standard</div>
               <div className="flex items-baseline gap-2 mb-4">
-                <span className="text-4xl font-black text-brand-olive font-serif">₹14,999</span>
-                <span className="text-brand-olive/40 text-sm">/person</span>
+                <span className="text-4xl font-black text-brand-black font-serif">₹14,999</span>
+                <span className="text-brand-black/40 text-sm">/person</span>
               </div>
-              <p className="text-brand-olive/50 text-sm mb-8">The complete Rann of Kutch experience.</p>
+              <p className="text-brand-black/50 text-sm mb-8">The complete Rann of Kutch experience.</p>
 
               <div className="space-y-3 mb-8">
                 {[
@@ -618,7 +618,7 @@ const RannOfKutch: React.FC = () => {
                   'Expert Trip Leader',
                   'Airport/Station Transfers',
                 ].map((item, i) => (
-                  <div key={i} className="flex items-center gap-3 text-sm text-brand-olive/70">
+                  <div key={i} className="flex items-center gap-3 text-sm text-brand-black/70">
                     <Check size={16} className="text-brand-sage flex-shrink-0" />
                     <span>{item}</span>
                   </div>
@@ -627,26 +627,26 @@ const RannOfKutch: React.FC = () => {
 
               <a
                 href="#enquiry"
-                className="block text-center bg-brand-olive/10 text-brand-olive font-bold py-3.5 rounded-xl hover:bg-brand-olive hover:text-white transition-all duration-300 text-sm uppercase tracking-wider"
+                className="block text-center bg-brand-cream text-brand-olive font-bold py-3.5 rounded-xl hover:bg-brand-black hover:text-brand-olive transition-all duration-300 text-sm uppercase tracking-wider"
               >
                 Enquire Now
               </a>
             </div>
 
             {/* Early Bird */}
-            <div className="relative bg-brand-olive rounded-2xl p-8 shadow-xl shadow-brand-olive/20 text-white">
+            <div className="relative bg-brand-cream rounded-2xl p-8 shadow-xl shadow-brand-cream/20 text-brand-olive">
               {/* Badge */}
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-400 to-orange-400 text-brand-black text-[10px] font-black uppercase tracking-[0.2em] px-4 py-1.5 rounded-full shadow-lg">
                 🔥 Early Bird — Save ₹2,000
               </div>
 
-              <div className="text-[10px] uppercase tracking-[0.2em] text-white/50 font-bold mb-2 mt-2">Early Bird</div>
+              <div className="text-[10px] uppercase tracking-[0.2em] text-brand-olive/50 font-bold mb-2 mt-2">Early Bird</div>
               <div className="flex items-baseline gap-2 mb-1">
-                <span className="text-4xl font-black font-serif">₹12,999</span>
-                <span className="text-white/40 text-sm">/person</span>
+                <span className="text-4xl font-black font-serif text-brand-olive">₹12,999</span>
+                <span className="text-brand-olive/40 text-sm">/person</span>
               </div>
-              <div className="text-sm text-white/40 line-through mb-4">₹14,999</div>
-              <p className="text-white/60 text-sm mb-8">Limited offer — first 20 bookings only.</p>
+              <div className="text-sm text-brand-olive/40 line-through mb-4">₹14,999</div>
+              <p className="text-brand-olive/60 text-sm mb-8">Limited offer — first 20 bookings only.</p>
 
               <div className="space-y-3 mb-8">
                 {[
@@ -657,8 +657,8 @@ const RannOfKutch: React.FC = () => {
                   '🎁 Exclusive Kutchi Souvenir',
                   '⭐ Priority Campsite Selection',
                 ].map((item, i) => (
-                  <div key={i} className="flex items-center gap-3 text-sm text-white/80">
-                    <Check size={16} className="text-amber-300 flex-shrink-0" />
+                  <div key={i} className="flex items-center gap-3 text-sm text-brand-olive/80">
+                    <Check size={16} className="text-brand-sage flex-shrink-0" />
                     <span>{item}</span>
                   </div>
                 ))}
@@ -666,7 +666,7 @@ const RannOfKutch: React.FC = () => {
 
               <a
                 href="#enquiry"
-                className="block text-center bg-white text-brand-olive font-bold py-3.5 rounded-xl hover:bg-amber-50 transition-all duration-300 text-sm uppercase tracking-wider shadow-lg"
+                className="block text-center bg-brand-olive text-brand-cream font-bold py-3.5 rounded-xl hover:bg-brand-beige hover:text-brand-black transition-all duration-300 text-sm uppercase tracking-wider shadow-lg"
               >
                 Grab Early Bird Spot
               </a>
@@ -681,7 +681,7 @@ const RannOfKutch: React.FC = () => {
               { icon: <Users size={18} />, text: 'Small Groups Only' },
               { icon: <Flame size={18} />, text: '150+ Trips Done' },
             ].map((badge, i) => (
-              <div key={i} className="flex items-center gap-2 text-brand-olive/40 text-xs font-bold uppercase tracking-wider">
+              <div key={i} className="flex items-center gap-2 text-brand-olive/60 text-xs font-bold uppercase tracking-wider">
                 {badge.icon}
                 <span>{badge.text}</span>
               </div>
