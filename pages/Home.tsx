@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Calendar, MapPin, Users, Star, Filter, ArrowRight, Minus, Plus, ChevronLeft, ChevronRight, Quote, X, Camera, Zap, Trophy, Heart, Map, Mail, Phone, Send, Compass, ArrowUpRight, ShieldCheck, Leaf, Gift, Percent, Tag, Clock, Flame } from 'lucide-react';
+import { Search, Calendar, MapPin, Users, Star, ArrowRight, Minus, Plus, ChevronLeft, ChevronRight, Quote, X, Camera, Zap, Trophy, Heart, Map, Mail, Phone, Send, Compass, ArrowUpRight, ShieldCheck, Leaf, Gift, Percent, Tag, Clock, Flame } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import TripCard from '../components/TripCard';
+import BookingNotification from '../components/BookingNotification';
 import SEO from '../components/SEO';
 import { getOptimizedImageUrl } from '../utils/imageOptimization';
 import { api } from '../services/api';
@@ -182,7 +183,6 @@ const Home: React.FC = () => {
   const [quickTags, setQuickTags] = useState<string[]>(['Hampi', 'Gokarna', 'Wayanad', 'Pondicherry']);
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedDuration, setSelectedDuration] = useState('All');
   const [travellers, setTravellers] = useState(1);
   const [isTravellerPickerOpen, setIsTravellerPickerOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState('');
@@ -283,21 +283,7 @@ const Home: React.FC = () => {
     return acc;
   }, {} as Record<string, Trip[]>);
 
-  const durations = ['All', '2 Days', '3 Days', 'Longer'];
 
-  const filteredTrips = trips.filter(trip => {
-    const matchesSearch = trip.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      trip.location.toLowerCase().includes(searchTerm.toLowerCase());
-
-    let matchesDuration = true;
-    if (selectedDuration !== 'All') {
-      if (selectedDuration === '2 Days') matchesDuration = trip.duration.includes('2 Days');
-      else if (selectedDuration === '3 Days') matchesDuration = trip.duration.includes('3 Days');
-      else if (selectedDuration === 'Longer') matchesDuration = parseInt(trip.duration) > 3;
-    }
-
-    return matchesSearch && matchesDuration;
-  });
 
   // Gallery images are now fetched from API in useEffect above
 
@@ -649,67 +635,7 @@ const Home: React.FC = () => {
         ))
       )}
 
-      {/* Main Filtered Grid Section */}
-      <section className="bg-brand-beige py-20 w-full relative z-10 border-y border-brand-olive/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row justify-between items-end mb-10 gap-4">
-            <div>
-              <h2 className="text-3xl md:text-4xl font-extrabold text-brand-black mb-3 font-serif uppercase tracking-wide">Curated Journeys</h2>
-              <p className="text-brand-black/60 text-lg">Handpicked trips for the rugged soul.</p>
-            </div>
 
-            {/* Duration Filter */}
-            <div className="flex items-center bg-brand-cream p-1.5 rounded-lg overflow-x-auto max-w-full border border-brand-olive/20 shadow-sm">
-              <span className="px-3 text-brand-olive font-bold text-xs uppercase flex items-center gap-1 tracking-wider">
-                <Filter size={12} /> Filter:
-              </span>
-              {durations.map(duration => (
-                <button
-                  key={duration}
-                  onClick={() => setSelectedDuration(duration)}
-                  className={`
-                    px-4 py-2 rounded-md text-sm font-bold transition-all whitespace-nowrap
-                    ${selectedDuration === duration
-                      ? 'bg-brand-olive text-brand-cream shadow-sm'
-                      : 'text-brand-olive/50 hover:text-brand-olive'}
-                    `}
-                >
-                  {duration}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-              {[1, 2, 3, 4].map(i => (
-                <div key={i} className="h-[400px] bg-brand-cream rounded-md animate-pulse"></div>
-              ))}
-            </div>
-          ) : filteredTrips.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-              {filteredTrips.map((trip, index) => (
-                <div key={trip.id} className={`animate-fade-in-up`} style={{ animationDelay: `${index * 100}ms` }}>
-                  <TripCard trip={trip} />
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-24 bg-brand-cream rounded-xl border border-dashed border-brand-olive/30">
-              <div className="bg-brand-beige w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Search className="text-brand-black" size={32} />
-              </div>
-              <p className="text-xl text-brand-olive font-medium">No adventures found matching your criteria.</p>
-              <button
-                onClick={() => { setSearchTerm(''); setSelectedDuration('All'); }}
-                className="mt-6 text-brand-olive font-bold hover:underline flex items-center justify-center gap-2 mx-auto uppercase tracking-wide text-sm"
-              >
-                Clear filters <ArrowRight size={16} />
-              </button>
-            </div>
-          )}
-        </div>
-      </section>
 
 
 
@@ -1048,6 +974,9 @@ const Home: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Social Proof Booking Notification */}
+      <BookingNotification trips={trips} />
 
       <Footer />
     </div>
