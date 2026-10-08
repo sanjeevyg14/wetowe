@@ -76,9 +76,9 @@ const StatCounter: React.FC<{ end: number; duration?: number; label: string; suf
   }, [hasAnimated, end, duration]);
 
   return (
-    <div ref={ref} className="flex flex-col items-center p-8 bg-brand-cream rounded-xl border border-brand-olive/10 hover:border-brand-olive transition-all h-full justify-center text-center group hover:shadow-xl hover:-translate-y-2 duration-500 relative overflow-hidden">
+    <div ref={ref} className="flex flex-col items-center p-8 bg-white/5 backdrop-blur-md rounded-xl border border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:bg-white/10 hover:border-brand-sage/50 transition-all h-full justify-center text-center group hover:shadow-[0_8px_30px_rgb(0,0,0,0.2)] hover:-translate-y-2 duration-500 relative overflow-hidden">
       {/* Background Blob */}
-      <div className="absolute top-0 left-0 w-full h-full bg-brand-olive/10 scale-0 group-hover:scale-100 rounded-xl transition-transform duration-500 origin-bottom"></div>
+      <div className="absolute top-0 left-0 w-full h-full bg-brand-olive/5 scale-0 group-hover:scale-100 rounded-xl transition-transform duration-500 origin-bottom"></div>
 
       <div className={`relative z-10 mb-4 text-brand-olive bg-brand-olive/10 p-5 rounded-full transform transition-all duration-1000 cubic-bezier(0.34, 1.56, 0.64, 1) ${hasAnimated ? 'scale-100 rotate-0 opacity-100' : 'scale-50 -rotate-45 opacity-0'} group-hover:bg-brand-olive group-hover:text-brand-cream group-hover:scale-110`}>
         {icon}
@@ -446,15 +446,15 @@ const Home: React.FC = () => {
               </p>
 
               {/* Search Bar - Redesigned */}
-              <div className="bg-white p-2 rounded-2xl shadow-xl border border-brand-olive/10 max-w-2xl relative z-30">
+              <div className="bg-white/10 backdrop-blur-xl p-2 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] border border-white/20 max-w-2xl relative z-30">
                 <div className="flex flex-col md:flex-row gap-2">
                   {/* Location */}
                   <div className="flex-[1.5] relative group">
-                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-cream" size={20} />
+                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-olive/70" size={20} />
                     <input
                       type="text"
                       placeholder="Where to?"
-                      className="w-full h-full bg-gray-50 hover:bg-gray-100 transition rounded-xl py-3 pl-12 pr-4 outline-none text-brand-black font-medium placeholder:text-gray-400"
+                      className="w-full h-full bg-white/5 hover:bg-white/10 transition rounded-xl py-3 pl-12 pr-4 outline-none text-brand-olive font-medium placeholder:text-brand-olive/40 focus:bg-white/10 focus:ring-1 focus:ring-brand-olive/30"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -462,10 +462,10 @@ const Home: React.FC = () => {
 
                   {/* Date */}
                   <div className="flex-1 relative group">
-                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-cream" size={20} />
+                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-olive/70" size={20} />
                     <input
                       type="date"
-                      className="w-full h-full bg-gray-50 hover:bg-gray-100 transition rounded-xl py-3 pl-12 pr-4 outline-none text-brand-black font-medium text-sm uppercase"
+                      className="w-full h-full bg-white/5 hover:bg-white/10 transition rounded-xl py-3 pl-12 pr-4 outline-none text-brand-olive font-medium text-sm uppercase focus:bg-white/10 focus:ring-1 focus:ring-brand-olive/30 [color-scheme:dark]"
                       value={selectedDate}
                       onChange={(e) => setSelectedDate(e.target.value)}
                     />
@@ -475,13 +475,13 @@ const Home: React.FC = () => {
                   <div className="flex-1 relative group">
                     <div
                       onClick={() => setIsTravellerPickerOpen(!isTravellerPickerOpen)}
-                      className="w-full h-full bg-gray-50 hover:bg-gray-100 transition rounded-xl py-3 pl-12 pr-4 outline-none text-gray-900 font-bold cursor-pointer flex items-center select-none"
+                      className="w-full h-full bg-white/5 hover:bg-white/10 transition rounded-xl py-3 pl-12 pr-4 outline-none text-brand-olive font-medium cursor-pointer flex items-center select-none focus:bg-white/10 focus:ring-1 focus:ring-brand-olive/30"
                     >
                       <span className="text-sm truncate">
                         {travellers} Traveler{travellers !== 1 ? 's' : ''}
                       </span>
                     </div>
-                    <Users className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-cream" size={20} />
+                    <Users className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-olive/70" size={20} />
 
                     {/* Dropdown */}
                     {isTravellerPickerOpen && (
@@ -514,16 +514,15 @@ const Home: React.FC = () => {
 
                   <button
                     onClick={handleSearch}
-                    className="bg-brand-cream text-brand-olive p-4 rounded-xl hover:bg-brand-black hover:text-brand-olive transition shadow-lg flex items-center justify-center"
+                    className="bg-brand-olive text-brand-cream p-4 rounded-xl hover:bg-brand-beige hover:text-brand-black transition duration-300 shadow-[0_0_20px_rgba(249,245,235,0.3)] flex items-center justify-center hover:scale-105"
                   >
                     <Search size={24} />
                   </button>
                 </div>
 
-                {/* Quick Tags underneath */}
-                <div className="mt-3 flex gap-2 px-2 overflow-x-auto no-scrollbar">
+                <div className="mt-4 flex gap-2 px-2 overflow-x-auto no-scrollbar pb-1">
                   {quickTags.map(tag => (
-                    <button key={tag} onClick={() => setSearchTerm(tag)} className="text-[10px] font-bold uppercase tracking-wider text-brand-black/40 hover:text-brand-olive transition border border-brand-black/10 px-2 py-1 rounded-md whitespace-nowrap bg-gray-50">
+                    <button key={tag} onClick={() => setSearchTerm(tag)} className="text-[10px] font-bold uppercase tracking-wider text-brand-olive/70 hover:text-brand-olive hover:border-brand-olive/50 hover:bg-white/10 transition duration-300 border border-white/20 px-3 py-1.5 rounded-md whitespace-nowrap bg-white/5 backdrop-blur-sm">
                       {tag}
                     </button>
                   ))}
@@ -582,26 +581,26 @@ const Home: React.FC = () => {
               </div>
 
               {/* Floating Elements */}
-              <div className="absolute top-4 -left-12 bg-white p-4 rounded-xl shadow-xl z-20 animate-float hidden md:block border border-brand-beige/30">
+              <div className="absolute top-4 -left-12 bg-white/10 backdrop-blur-xl p-4 rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] z-20 animate-float hidden md:block border border-white/20">
                 <div className="flex items-center gap-3">
-                  <div className="bg-green-100 p-2 rounded-full text-green-600">
+                  <div className="bg-brand-sage/20 p-2 rounded-full text-brand-sage border border-brand-sage/30">
                     <ShieldCheck size={20} />
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Travel Insured Trips</p>
-                    <p className="text-lg font-black text-brand-black">Verified</p>
+                    <p className="text-xs font-bold text-white/70 uppercase tracking-wider">Travel Insured Trips</p>
+                    <p className="text-lg font-black text-white">Verified</p>
                   </div>
                 </div>
               </div>
 
-              <div className="absolute bottom-20 -right-8 bg-white p-4 rounded-xl shadow-xl z-20 animate-float animate-delay-200 hidden md:block border border-brand-beige/30">
-                <div className="flex -space-x-3 mb-2">
+              <div className="absolute bottom-20 -right-8 bg-white/10 backdrop-blur-xl p-4 rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] z-20 animate-float animate-delay-200 hidden md:block border border-white/20">
+                <div className="flex -space-x-3 mb-2 justify-center">
                   {[1, 2, 3].map(i => (
-                    <img key={i} className="w-8 h-8 rounded-full border-2 border-white object-cover" src={`https://i.pravatar.cc/100?img=${i + 10}`} alt="User" />
+                    <img key={i} className="w-8 h-8 rounded-full border-2 border-brand-cream object-cover" src={`https://i.pravatar.cc/100?img=${i + 10}`} alt="User" />
                   ))}
-                  <div className="w-8 h-8 rounded-full border-2 border-white bg-brand-cream text-brand-olive flex items-center justify-center text-[10px] font-bold">+2k</div>
+                  <div className="w-8 h-8 rounded-full border-2 border-brand-cream bg-brand-olive text-brand-cream flex items-center justify-center text-[10px] font-bold">+2k</div>
                 </div>
-                <p className="text-xs font-bold text-center text-brand-black/60 uppercase tracking-wider">Happy Travelers</p>
+                <p className="text-xs font-bold text-center text-white/70 uppercase tracking-wider mt-1">Happy Travelers</p>
               </div>
 
               {/* Decorative border */}
@@ -646,13 +645,12 @@ const Home: React.FC = () => {
             <h2 className="text-4xl font-extrabold text-brand-olive font-serif">Traveler Tales</h2>
           </div>
 
-          {testimonials.length > 0 && (
             <div
-              className="relative bg-white rounded-lg border border-brand-olive/20 p-10 md:p-14 mx-auto max-w-4xl shadow-sm hover:shadow-lg transition-all"
+              className="relative bg-brand-beige rounded-2xl border border-brand-olive/10 p-10 md:p-14 mx-auto max-w-4xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:-translate-y-1 transition-all duration-500"
               onMouseEnter={() => setIsTestimonialHovered(true)}
               onMouseLeave={() => setIsTestimonialHovered(false)}
             >
-              <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-brand-olive bg-brand-cream p-3 rounded-full shadow-lg">
+              <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-brand-olive bg-brand-cream p-3 rounded-full shadow-[0_0_20px_rgba(58,77,57,0.3)]">
                 <Quote size={32} fill="currentColor" />
               </div>
 
