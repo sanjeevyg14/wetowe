@@ -18,6 +18,7 @@ const Terms = lazy(() => import('./pages/Terms'));
 const CancellationPolicy = lazy(() => import('./pages/CancellationPolicy'));
 const BookingConfirmation = lazy(() => import('./pages/BookingConfirmation'));
 const Launch = lazy(() => import('./pages/Launch'));
+const RannOfKutch = lazy(() => import('./pages/RannOfKutch'));
 
 // Simple loading spinner for Suspense fallback
 const LoadingFallback = () => (
@@ -50,6 +51,7 @@ const App: React.FC = () => {
               <Route path="/cancellation-policy" element={<CancellationPolicy />} />
               <Route path="/booking-confirmation" element={<BookingConfirmation />} />
               <Route path="/launch" element={<Launch />} />
+              <Route path="/rann-of-kutch" element={<RannOfKutch />} />
             </Routes>
           </Suspense>
         </Router>
