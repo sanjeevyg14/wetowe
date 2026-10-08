@@ -333,13 +333,13 @@ const RannOfKutch: React.FC = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.1, duration: 0.6 }}
                 viewport={{ once: true }}
-                className="p-6 bg-brand-cream rounded-2xl border border-brand-olive/10 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
+                className="p-6 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:bg-white/10 hover:border-brand-sage/50 hover:-translate-y-2 transition-all duration-500"
               >
-                <div className="text-3xl md:text-4xl font-black text-brand-olive font-serif">
+                <div className="text-3xl md:text-4xl font-black text-brand-olive font-serif drop-shadow-sm">
                   {stat.value}
                   <span className="text-brand-sage text-sm ml-1">{stat.unit}</span>
                 </div>
-                <p className="text-[10px] uppercase tracking-[0.2em] text-brand-olive/60 font-bold mt-2">{stat.label}</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-brand-olive/70 font-bold mt-2">{stat.label}</p>
               </motion.div>
             ))}
           </div>
@@ -432,36 +432,36 @@ const RannOfKutch: React.FC = () => {
                   <motion.button
                     key={i}
                     onClick={() => setActiveDay(i)}
-                    className={`w-full text-left p-4 rounded-xl border transition-all duration-300 group ${
+                    className={`w-full text-left p-4 rounded-xl border transition-all duration-500 group ${
                       activeDay === i
-                        ? 'bg-brand-cream text-brand-olive border-brand-cream shadow-xl shadow-brand-cream/20'
-                        : 'bg-brand-beige border-brand-olive/10 hover:border-brand-sage/30 hover:shadow-md'
+                        ? 'bg-brand-olive text-brand-cream border-brand-olive shadow-[0_0_40px_rgba(249,245,235,0.15)] scale-[1.02]'
+                        : 'bg-white/5 text-brand-olive/70 border-white/10 hover:bg-white/10 hover:border-white/20 hover:text-brand-olive'
                     }`}
                     whileHover={{ x: activeDay === i ? 0 : 4 }}
                     whileTap={{ scale: 0.98 }}
                   >
                     <div className="flex items-center gap-4">
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-500 ${
                         activeDay === i
-                          ? 'bg-brand-olive/20 text-brand-olive'
-                          : 'bg-brand-cream/20 text-brand-cream group-hover:bg-brand-cream/30'
+                          ? 'bg-brand-cream text-brand-olive shadow-inner'
+                          : 'bg-white/10 text-brand-olive group-hover:bg-white/20 group-hover:scale-110'
                       }`}>
                         {item.icon}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className={`text-[10px] uppercase tracking-[0.2em] font-bold mb-0.5 ${
-                          activeDay === i ? 'text-brand-olive/60' : 'text-brand-black/40'
+                        <div className={`text-[10px] uppercase tracking-[0.2em] font-bold mb-0.5 transition-colors duration-500 ${
+                          activeDay === i ? 'text-brand-cream/70' : 'text-brand-olive/40 group-hover:text-brand-olive/60'
                         }`}>
                           Day {item.day} — {item.time}
                         </div>
-                        <div className={`font-bold text-sm truncate ${
-                          activeDay === i ? 'text-brand-olive' : 'text-brand-black'
+                        <div className={`font-bold text-sm truncate transition-colors duration-500 ${
+                          activeDay === i ? 'text-brand-cream' : 'text-brand-olive group-hover:text-brand-olive'
                         }`}>
                           {item.title}
                         </div>
                       </div>
-                      <ArrowRight size={16} className={`flex-shrink-0 transition-all ${
-                        activeDay === i ? 'text-brand-olive/80 translate-x-0' : 'text-brand-black/20 -translate-x-2 opacity-0 group-hover:opacity-100 group-hover:translate-x-0'
+                      <ArrowRight size={16} className={`flex-shrink-0 transition-all duration-500 ${
+                        activeDay === i ? 'text-brand-cream translate-x-0' : 'text-brand-olive/20 -translate-x-2 opacity-0 group-hover:opacity-100 group-hover:translate-x-0'
                       }`} />
                     </div>
                   </motion.button>
@@ -478,7 +478,7 @@ const RannOfKutch: React.FC = () => {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -30 }}
                   transition={{ duration: 0.4, ease: 'easeOut' }}
-                  className="bg-brand-beige rounded-2xl border border-brand-olive/10 overflow-hidden shadow-sm"
+                  className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.3)]"
                 >
                   {/* Day Image */}
                   <div className="relative h-[300px] md:h-[400px] overflow-hidden">
@@ -492,7 +492,7 @@ const RannOfKutch: React.FC = () => {
                       <div className="text-[10px] uppercase tracking-[0.3em] text-white/60 font-bold mb-2">
                         Day {itinerary[activeDay].day}
                       </div>
-                      <h3 className="text-2xl md:text-3xl font-black font-serif text-white">
+                      <h3 className="text-2xl md:text-3xl font-black font-serif text-white drop-shadow-lg">
                         {itinerary[activeDay].title}
                       </h3>
                     </div>
@@ -500,18 +500,18 @@ const RannOfKutch: React.FC = () => {
 
                   {/* Day Content */}
                   <div className="p-6 md:p-8">
-                    <p className="text-brand-black/70 leading-relaxed text-base mb-8">
+                    <p className="text-brand-olive/80 leading-relaxed text-base mb-8 font-light">
                       {itinerary[activeDay].description}
                     </p>
 
                     {/* Highlights */}
                     <div className="space-y-3">
-                      <h4 className="text-[10px] uppercase tracking-[0.2em] text-brand-black/40 font-bold">Key Highlights</h4>
+                      <h4 className="text-[10px] uppercase tracking-[0.2em] text-brand-olive/50 font-bold">Key Highlights</h4>
                       <div className="flex flex-wrap gap-2">
                         {itinerary[activeDay].highlights.map((h, j) => (
                           <span
                             key={j}
-                            className="inline-flex items-center gap-1.5 bg-brand-cream/10 border border-brand-cream/20 text-brand-black px-3 py-1.5 rounded-full text-xs font-bold"
+                            className="inline-flex items-center gap-1.5 bg-white/10 border border-white/10 text-brand-olive px-3 py-1.5 rounded-full text-xs font-bold shadow-sm"
                           >
                             <Check size={12} className="text-brand-sage" />
                             {h}
