@@ -144,7 +144,7 @@ export async function downloadItineraryPDF(trip: Trip): Promise<void> {
     <!-- Brand -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;position:relative;z-index:1;">
       <div>
-        <div style="font-size:22px;font-weight:900;letter-spacing:2px;text-transform:uppercase;color:${brandCream};">🏕️ Wheels to Wilderness</div>
+        <div style="font-size:22px;font-weight:900;letter-spacing:2px;text-transform:uppercase;color:${brandCream};">🏕️ WHEELS TO WILDERNESS</div>
         <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;opacity:0.5;margin-top:2px;">Let's Get Lost Together</div>
       </div>
       <div style="text-align:right;">
@@ -360,7 +360,7 @@ export function downloadTicketPDF(booking: Booking): void {
   const safeName         = escHtml(booking.customerName);
   const safeTrip         = escHtml(booking.tripTitle);
   const safeDate         = escHtml(booking.date);
-  const safeTravelers    = escHtml(String(booking.travelers));
+  const safeTravelers    = escHtml(String(booking.maleTravelers + booking.femaleTravelers));
   const safeStatus       = escHtml(booking.status);
   const safeEmail        = escHtml(booking.email);
   const safePhone        = escHtml(booking.phone);
@@ -556,8 +556,8 @@ export function downloadTicketPDF(booking: Booking): void {
     <div class="main">
       <div class="main-header">
         <div>
-          <div class="brand-name">🎒 WeTowe Adventures</div>
-          <div class="brand-tagline">Wheels to Wilderness</div>
+          <div class="brand-name">🎒 WHEELS TO WILDERNESS</div>
+          <div class="brand-tagline">Premium Expeditions</div>
         </div>
         <div class="pass-type">Boarding Pass</div>
       </div>
@@ -670,8 +670,8 @@ export function downloadTicketPDF(booking: Booking): void {
 
 export function downloadManifestPDF(tripTitle: string, date: string, bookings: Booking[]): void {
   const confirmedBookings = bookings.filter(b => b.status === 'confirmed');
-  const totalTravelers = bookings.reduce((sum, b) => sum + b.travelers, 0);
-  const confirmedTravelers = confirmedBookings.reduce((sum, b) => sum + b.travelers, 0);
+  const totalTravelers = bookings.reduce((sum, b) => sum + (b.maleTravelers || 0) + (b.femaleTravelers || 0), 0);
+  const confirmedTravelers = confirmedBookings.reduce((sum, b) => sum + (b.maleTravelers || 0) + (b.femaleTravelers || 0), 0);
   const totalRevenue = confirmedBookings.reduce((sum, b) => sum + (b.totalPrice || 0), 0);
 
   const safeTripTitle = escHtml(tripTitle);
@@ -692,7 +692,7 @@ export function downloadManifestPDF(tripTitle: string, date: string, bookings: B
         <td><strong>${escHtml(b.customerName)}</strong></td>
         <td>${escHtml(b.phone)}</td>
         <td>${escHtml(b.email)}</td>
-        <td style="text-align:center">${Number(b.travelers) || 0}</td>
+        <td style="text-align:center">${(b.maleTravelers || 0) + (b.femaleTravelers || 0)}</td>
         <td>${b.pickupPoint ? escHtml(b.pickupPoint) : '<span style="color:#ccc">&#8212;</span>'}</td>
         <td style="text-align:right">&#8377;${escHtml(b.totalPrice?.toLocaleString('en-IN') || '0')}</td>
         <td style="text-align:center"><span class="badge status-${safeStatusClass}">${escHtml(b.status)}</span></td>
@@ -764,7 +764,7 @@ export function downloadManifestPDF(tripTitle: string, date: string, bookings: B
     </tbody>
   </table>
   <div class="footer">
-    WeTowe Adventures &bull; Boarding Manifest &bull; For official use only &bull; Please verify passenger details at boarding point
+    WHEELS TO WILDERNESS &bull; Boarding Manifest &bull; For official use only &bull; Please verify passenger details at boarding point
   </div>
 </body>
 </html>`;

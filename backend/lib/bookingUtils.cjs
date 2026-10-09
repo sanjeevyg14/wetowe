@@ -47,6 +47,8 @@ async function getBookingStats(tripId, date) {
 
     const trip = await Trip.findById(tripId);
     const maxCapacity = trip?.maxCapacity || 12;
+    const maxMaleCapacity = trip?.maxMaleCapacity || 6;
+    const maxFemaleCapacity = trip?.maxFemaleCapacity || 6;
 
     const result = await Booking.aggregate([
         {
@@ -62,7 +64,9 @@ async function getBookingStats(tripId, date) {
         {
             $group: {
                 _id: '$status',
-                count: { $sum: '$travelers' }
+                count: { $sum: { $ifNull: ['$travelers', 0] } },
+                maleCount: { $sum: { $ifNull: ['$maleTravelers', 0] } },
+                femaleCount: { $sum: { $ifNull: ['$femaleTravelers', 0] } }
             }
         }
     ]);
@@ -70,19 +74,33 @@ async function getBookingStats(tripId, date) {
     const stats = {
         confirmed: 0,
         pending: 0,
+        confirmedMale: 0,
+        pendingMale: 0,
+        confirmedFemale: 0,
+        pendingFemale: 0,
         maxCapacity,
-        available: maxCapacity
+        maxMaleCapacity,
+        maxFemaleCapacity,
+        available: maxCapacity,
+        availableMale: maxMaleCapacity,
+        availableFemale: maxFemaleCapacity
     };
 
     result.forEach(item => {
         if (item._id === 'confirmed') {
             stats.confirmed += item.count;
+            stats.confirmedMale += item.maleCount;
+            stats.confirmedFemale += item.femaleCount;
         } else if (item._id === 'pending') {
-            stats.pending = item.count;
+            stats.pending += item.count;
+            stats.pendingMale += item.maleCount;
+            stats.pendingFemale += item.femaleCount;
         }
     });
 
     stats.available = Math.max(0, maxCapacity - stats.confirmed - stats.pending);
+    stats.availableMale = Math.max(0, maxMaleCapacity - stats.confirmedMale - stats.pendingMale);
+    stats.availableFemale = Math.max(0, maxFemaleCapacity - stats.confirmedFemale - stats.pendingFemale);
 
     return stats;
 }
@@ -93,7 +111,7 @@ async function getBookingStats(tripId, date) {
  * 
  * @param {string} tripId - Trip ID
  * @param {string} date - Trip date
- * @param {number} requestedSeats - Number of seats to reserve
+ * @param {object} requestedSeats - { maleTravelers: number, femaleTravelers: number }
  * @param {object} bookingData - Booking data to create
  * @returns {object} - { success: boolean, booking?: Booking, error?: string, availableSeats?: number }
  */
@@ -112,6 +130,12 @@ async function reserveSeatsAtomically(tripId, date, requestedSeats, bookingData)
     }
 
     const maxCapacity = trip.maxCapacity || 12;
+    const maxMaleCapacity = trip.maxMaleCapacity || 6;
+    const maxFemaleCapacity = trip.maxFemaleCapacity || 6;
+    
+    const reqMale = requestedSeats.maleTravelers || 0;
+    const reqFemale = requestedSeats.femaleTravelers || 0;
+    const totalReq = reqMale + reqFemale;
 
     // Use a MongoDB session for transaction (if replica set is available)
     // For standalone MongoDB, we use optimistic locking pattern
@@ -131,22 +155,45 @@ async function reserveSeatsAtomically(tripId, date, requestedSeats, bookingData)
         {
             $group: {
                 _id: null,
-                totalTravelers: { $sum: '$travelers' }
+                totalTravelers: { $sum: { $ifNull: ['$travelers', 0] } },
+                totalMale: { $sum: { $ifNull: ['$maleTravelers', 0] } },
+                totalFemale: { $sum: { $ifNull: ['$femaleTravelers', 0] } }
             }
         }
     ]);
 
     const currentlyBooked = result.length > 0 ? result[0].totalTravelers : 0;
+    const currentlyMaleBooked = result.length > 0 ? result[0].totalMale : 0;
+    const currentlyFemaleBooked = result.length > 0 ? result[0].totalFemale : 0;
+    
     const availableSeats = maxCapacity - currentlyBooked;
+    const availableMaleSeats = maxMaleCapacity - currentlyMaleBooked;
+    const availableFemaleSeats = maxFemaleCapacity - currentlyFemaleBooked;
 
     // Step 2: Validate availability
-    if (requestedSeats > availableSeats) {
+    if (totalReq > availableSeats) {
         return {
             success: false,
             error: availableSeats === 0
                 ? 'Sorry, this date is fully booked.'
-                : `Only ${availableSeats} seat(s) available. Please reduce the number of travelers.`,
+                : `Only ${availableSeats} total seat(s) available.`,
             availableSeats
+        };
+    }
+    
+    if (reqMale > availableMaleSeats) {
+        return {
+            success: false,
+            error: `Only ${availableMaleSeats} male seat(s) available.`,
+            availableSeats: availableMaleSeats
+        };
+    }
+    
+    if (reqFemale > availableFemaleSeats) {
+        return {
+            success: false,
+            error: `Only ${availableFemaleSeats} female seat(s) available.`,
+            availableSeats: availableFemaleSeats
         };
     }
 
@@ -156,7 +203,9 @@ async function reserveSeatsAtomically(tripId, date, requestedSeats, bookingData)
         ...bookingData,
         tripId,
         date,
-        travelers: requestedSeats,
+        travelers: totalReq,
+        maleTravelers: reqMale,
+        femaleTravelers: reqFemale,
         status: 'pending',
         pendingExpiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 min expiry
         seatLockTimestamp: now // Used for debugging race conditions
@@ -180,15 +229,19 @@ async function reserveSeatsAtomically(tripId, date, requestedSeats, bookingData)
             {
                 $group: {
                     _id: null,
-                    totalTravelers: { $sum: '$travelers' }
+                    totalTravelers: { $sum: { $ifNull: ['$travelers', 0] } },
+                    totalMale: { $sum: { $ifNull: ['$maleTravelers', 0] } },
+                    totalFemale: { $sum: { $ifNull: ['$femaleTravelers', 0] } }
                 }
             }
         ]);
 
         const totalAfterBooking = verifyResult.length > 0 ? verifyResult[0].totalTravelers : 0;
+        const totalMaleAfterBooking = verifyResult.length > 0 ? verifyResult[0].totalMale : 0;
+        const totalFemaleAfterBooking = verifyResult.length > 0 ? verifyResult[0].totalFemale : 0;
 
         // If we've exceeded capacity, this was a race condition - rollback
-        if (totalAfterBooking > maxCapacity) {
+        if (totalAfterBooking > maxCapacity || totalMaleAfterBooking > maxMaleCapacity || totalFemaleAfterBooking > maxFemaleCapacity) {
             console.warn(`[RACE CONDITION] Detected overbooking for trip ${tripId} on ${date}. Rolling back booking ${newBooking._id}`);
 
             // Mark our booking as failed to release seats
@@ -200,14 +253,20 @@ async function reserveSeatsAtomically(tripId, date, requestedSeats, bookingData)
             return {
                 success: false,
                 error: 'Sorry, someone just booked those seats. Please try again.',
-                availableSeats: maxCapacity - (totalAfterBooking - requestedSeats)
+                availableSeats: Math.min(
+                    maxCapacity - (totalAfterBooking - totalReq),
+                    maxMaleCapacity - (totalMaleAfterBooking - reqMale),
+                    maxFemaleCapacity - (totalFemaleAfterBooking - reqFemale)
+                )
             };
         }
 
         return {
             success: true,
             booking: newBooking,
-            remainingSeats: maxCapacity - totalAfterBooking
+            remainingSeats: maxCapacity - totalAfterBooking,
+            remainingMaleSeats: maxMaleCapacity - totalMaleAfterBooking,
+            remainingFemaleSeats: maxFemaleCapacity - totalFemaleAfterBooking
         };
 
     } catch (error) {
@@ -260,6 +319,8 @@ async function getAvailability(tripId, date) {
     }
 
     const maxCapacity = trip.maxCapacity || 12;
+    const maxMaleCapacity = trip.maxMaleCapacity || 6;
+    const maxFemaleCapacity = trip.maxFemaleCapacity || 6;
 
     const result = await Booking.aggregate([
         {
@@ -275,22 +336,35 @@ async function getAvailability(tripId, date) {
         {
             $group: {
                 _id: null,
-                totalTravelers: { $sum: '$travelers' }
+                totalTravelers: { $sum: { $ifNull: ['$travelers', 0] } },
+                totalMale: { $sum: { $ifNull: ['$maleTravelers', 0] } },
+                totalFemale: { $sum: { $ifNull: ['$femaleTravelers', 0] } }
             }
         }
     ]);
 
     const totalBooked = result.length > 0 ? result[0].totalTravelers : 0;
+    const totalMaleBooked = result.length > 0 ? result[0].totalMale : 0;
+    const totalFemaleBooked = result.length > 0 ? result[0].totalFemale : 0;
+    
     const remaining = Math.max(0, maxCapacity - totalBooked);
+    const remainingMale = Math.max(0, maxMaleCapacity - totalMaleBooked);
+    const remainingFemale = Math.max(0, maxFemaleCapacity - totalFemaleBooked);
 
     return {
         success: true,
         tripId,
         date,
         totalBooked,
+        totalMaleBooked,
+        totalFemaleBooked,
         remaining,
+        remainingMale,
+        remainingFemale,
         maxCapacity,
-        isSoldOut: totalBooked >= maxCapacity
+        maxMaleCapacity,
+        maxFemaleCapacity,
+        isSoldOut: totalBooked >= maxCapacity || (remainingMale === 0 && remainingFemale === 0)
     };
 }
 

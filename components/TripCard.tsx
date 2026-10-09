@@ -2,6 +2,7 @@ import React from 'react';
 import { Star, MapPin, ArrowRight } from 'lucide-react';
 import { Trip } from '../types';
 import { Link } from 'react-router-dom';
+import { getOptimizedImageUrl } from '../utils/imageOptimization';
 
 interface TripCardProps {
   trip: Trip;
@@ -9,7 +10,7 @@ interface TripCardProps {
 
 const TripCard: React.FC<TripCardProps> = ({ trip }) => {
   const linkTarget = trip.slug ? `/trip/${trip.slug}` : `/trip/${trip.id}`;
-  const displayImage = trip.cardImageUrl || trip.imageUrl;
+  const displayImage = getOptimizedImageUrl(trip.cardImageUrl || trip.imageUrl, 600);
 
   return (
     <Link to={linkTarget} className="group block h-full">
@@ -19,14 +20,13 @@ const TripCard: React.FC<TripCardProps> = ({ trip }) => {
             src={displayImage} 
             alt={trip.title} 
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 grayscale-[20%] group-hover:grayscale-0"
+            loading="lazy"
           />
-          <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-md px-2 py-1 rounded-sm flex items-center gap-1 border border-brand-olive/10">
-            <Star size={12} className="text-yellow-500 fill-yellow-500" />
-            <span className="text-xs font-bold text-brand-black">{trip.rating}</span>
-          </div>
-          <div className="absolute bottom-3 right-3 bg-brand-olive text-brand-black text-[10px] font-bold px-3 py-1 rounded-sm uppercase tracking-wider">
-            Selling Fast
-          </div>
+          {trip.badgeText && trip.badgeText.trim() !== '' && (
+            <div className="absolute bottom-3 right-3 bg-brand-olive text-brand-black text-[10px] font-bold px-3 py-1 rounded-sm uppercase tracking-wider">
+              {trip.badgeText}
+            </div>
+          )}
         </div>
         
         <div className="p-5 flex flex-col flex-grow">

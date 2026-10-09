@@ -16,7 +16,9 @@ const bookingSchema = new mongoose.Schema({
 
   // Booking Meta
   date: { type: String, required: true, index: true }, // Indexed for availability checks
-  travelers: { type: Number, required: true, min: 1, max: 20 },
+  travelers: { type: Number, min: 1, max: 20 }, // Legacy support
+  maleTravelers: { type: Number, default: 0, min: 0 },
+  femaleTravelers: { type: Number, default: 0, min: 0 },
   pickupPoint: { type: String, default: '' }, // Boarding/pickup location chosen by the traveller
   totalPrice: { type: Number, required: true },
 
@@ -56,7 +58,7 @@ bookingSchema.index({ status: 1, pendingExpiresAt: 1 });
 bookingSchema.pre('save', async function (next) {
   if (this.isNew && this.status === 'pending') {
     // Log new pending bookings for debugging
-    console.log(`[Booking] Creating pending booking for trip ${this.tripId} on ${this.date} - ${this.travelers} travelers`);
+    console.log(`[Booking] Creating pending booking for trip ${this.tripId} on ${this.date} - Male: ${this.maleTravelers}, Female: ${this.femaleTravelers}`);
   }
   next();
 });
@@ -79,25 +81,43 @@ bookingSchema.statics.getCurrentBookings = async function (tripId, date) {
     {
       $group: {
         _id: null,
-        totalTravelers: { $sum: '$travelers' },
-        confirmedTravelers: {
-          $sum: { $cond: [{ $eq: ['$status', 'confirmed'] }, '$travelers', 0] }
+        totalMaleTravelers: { $sum: { $add: [{ $ifNull: ['$maleTravelers', 0] }] } },
+        totalFemaleTravelers: { $sum: { $add: [{ $ifNull: ['$femaleTravelers', 0] }] } },
+        totalLegacyTravelers: { $sum: { $add: [{ $ifNull: ['$travelers', 0] }] } },
+        confirmedMaleTravelers: {
+          $sum: { $cond: [{ $eq: ['$status', 'confirmed'] }, { $ifNull: ['$maleTravelers', 0] }, 0] }
         },
-        pendingTravelers: {
-          $sum: { $cond: [{ $eq: ['$status', 'pending'] }, '$travelers', 0] }
+        confirmedFemaleTravelers: {
+          $sum: { $cond: [{ $eq: ['$status', 'confirmed'] }, { $ifNull: ['$femaleTravelers', 0] }, 0] }
+        },
+        confirmedLegacyTravelers: {
+          $sum: { $cond: [{ $eq: ['$status', 'confirmed'] }, { $ifNull: ['$travelers', 0] }, 0] }
+        },
+        pendingMaleTravelers: {
+          $sum: { $cond: [{ $eq: ['$status', 'pending'] }, { $ifNull: ['$maleTravelers', 0] }, 0] }
+        },
+        pendingFemaleTravelers: {
+          $sum: { $cond: [{ $eq: ['$status', 'pending'] }, { $ifNull: ['$femaleTravelers', 0] }, 0] }
+        },
+        pendingLegacyTravelers: {
+          $sum: { $cond: [{ $eq: ['$status', 'pending'] }, { $ifNull: ['$travelers', 0] }, 0] }
         }
       }
     }
   ]);
 
   if (result.length === 0) {
-    return { total: 0, confirmed: 0, pending: 0 };
+    return { totalMale: 0, totalFemale: 0, totalLegacy: 0, confirmedMale: 0, confirmedFemale: 0, pendingMale: 0, pendingFemale: 0 };
   }
 
   return {
-    total: result[0].totalTravelers,
-    confirmed: result[0].confirmedTravelers,
-    pending: result[0].pendingTravelers
+    totalMale: result[0].totalMaleTravelers,
+    totalFemale: result[0].totalFemaleTravelers,
+    totalLegacy: result[0].totalLegacyTravelers,
+    confirmedMale: result[0].confirmedMaleTravelers,
+    confirmedFemale: result[0].confirmedFemaleTravelers,
+    pendingMale: result[0].pendingMaleTravelers,
+    pendingFemale: result[0].pendingFemaleTravelers,
   };
 };
 

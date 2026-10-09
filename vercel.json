@@ -8,10 +8,25 @@
     },
     {
       "src": "backend/server.cjs",
-      "use": "@vercel/node"
+      "use": "@vercel/node",
+      "config": { "maxDuration": 60 }
     }
   ],
   "routes": [
+    {
+      "src": "/(.*)",
+      "has": [{ "type": "host", "value": "www.wheelstowilderness.in" }],
+      "status": 308,
+      "headers": { "Location": "https://wheelstowilderness.in/$1" }
+    },
+    {
+      "src": "/sitemap.xml",
+      "dest": "/backend/server.cjs"
+    },
+    {
+      "src": "/robots.txt",
+      "dest": "/backend/server.cjs"
+    },
     {
       "src": "/api/(.*)",
       "dest": "/backend/server.cjs"

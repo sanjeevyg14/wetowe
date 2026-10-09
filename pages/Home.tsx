@@ -1,9 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Calendar, MapPin, Users, Star, Filter, ArrowRight, Minus, Plus, ChevronLeft, ChevronRight, Quote, X, Camera, Zap, Trophy, Heart, Map, Mail, Phone, Send, Compass, ArrowUpRight, ShieldCheck, Leaf, Gift, Percent, Tag, Clock, Flame } from 'lucide-react';
+import { Search, Calendar, MapPin, Users, Star, ArrowRight, Minus, Plus, ChevronLeft, ChevronRight, Quote, X, Camera, Zap, Trophy, Heart, Map, Mail, Phone, Send, Compass, ArrowUpRight, ShieldCheck, Leaf, Gift, Percent, Tag, Clock, Flame } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import TripCard from '../components/TripCard';
+import BookingNotification from '../components/BookingNotification';
 import SEO from '../components/SEO';
+import { getOptimizedImageUrl } from '../utils/imageOptimization';
 import { api } from '../services/api';
 import { Trip, Testimonial } from '../types';
 import { Link, useNavigate } from 'react-router-dom';
@@ -74,9 +76,9 @@ const StatCounter: React.FC<{ end: number; duration?: number; label: string; suf
   }, [hasAnimated, end, duration]);
 
   return (
-    <div ref={ref} className="flex flex-col items-center p-8 bg-brand-cream rounded-xl border border-brand-olive/10 hover:border-brand-olive transition-all h-full justify-center text-center group hover:shadow-xl hover:-translate-y-2 duration-500 relative overflow-hidden">
+    <div ref={ref} className="flex flex-col items-center p-8 bg-white/5 backdrop-blur-md rounded-xl border border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:bg-white/10 hover:border-brand-sage/50 transition-all h-full justify-center text-center group hover:shadow-[0_8px_30px_rgb(0,0,0,0.2)] hover:-translate-y-2 duration-500 relative overflow-hidden">
       {/* Background Blob */}
-      <div className="absolute top-0 left-0 w-full h-full bg-brand-olive/10 scale-0 group-hover:scale-100 rounded-xl transition-transform duration-500 origin-bottom"></div>
+      <div className="absolute top-0 left-0 w-full h-full bg-brand-olive/5 scale-0 group-hover:scale-100 rounded-xl transition-transform duration-500 origin-bottom"></div>
 
       <div className={`relative z-10 mb-4 text-brand-olive bg-brand-olive/10 p-5 rounded-full transform transition-all duration-1000 cubic-bezier(0.34, 1.56, 0.64, 1) ${hasAnimated ? 'scale-100 rotate-0 opacity-100' : 'scale-50 -rotate-45 opacity-0'} group-hover:bg-brand-olive group-hover:text-brand-cream group-hover:scale-110`}>
         {icon}
@@ -91,13 +93,96 @@ const StatCounter: React.FC<{ end: number; duration?: number; label: string; suf
   );
 };
 
+// Extracted Trip Carousel component for dynamic categories
+const TripCarousel: React.FC<{ category: string, categoryTrips: Trip[], loading: boolean }> = ({ category, categoryTrips, loading }) => {
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const [isTripHovered, setIsTripHovered] = useState(false);
+  
+  const infiniteTrips = categoryTrips;
+  
+  const scrollCarousel = (direction: 'left' | 'right') => {
+    if (carouselRef.current) {
+      const scrollAmount = 320;
+      carouselRef.current.scrollBy({
+        left: direction === 'right' ? scrollAmount : -scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (isTripHovered || loading || categoryTrips.length <= 1) return; // Don't auto-scroll if only 1 trip
+    const interval = setInterval(() => {
+      if (carouselRef.current) {
+        const { scrollLeft, scrollWidth, clientWidth } = carouselRef.current;
+        // If we reached the end, scroll back to start
+        if (scrollLeft + clientWidth >= scrollWidth - 10) {
+          carouselRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+        } else {
+          carouselRef.current.scrollBy({ left: 320, behavior: 'smooth' });
+        }
+      }
+    }, 3500); // Slightly slower for better reading
+    return () => clearInterval(interval);
+  }, [isTripHovered, loading, categoryTrips.length]);
+
+  return (
+    <section
+        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-10 border-b border-brand-olive/10 last:border-0"
+        onMouseEnter={() => setIsTripHovered(true)}
+        onMouseLeave={() => setIsTripHovered(false)}
+      >
+        <div className="flex items-end justify-between mb-10 pb-6">
+          <div>
+            <h2 className="text-3xl font-extrabold text-brand-olive font-serif uppercase tracking-wide">{category}</h2>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => scrollCarousel('left')}
+              className="p-3 rounded-md border border-brand-olive/20 hover:bg-brand-olive hover:text-brand-cream transition"
+            >
+              <ChevronLeft size={20} />
+            </button>
+            <button
+              onClick={() => scrollCarousel('right')}
+              className="p-3 rounded-md border border-brand-olive/20 hover:bg-brand-olive hover:text-brand-cream transition"
+            >
+              <ChevronRight size={20} />
+            </button>
+          </div>
+        </div>
+
+        {loading ? (
+          <div className="flex gap-4 overflow-hidden">
+            {[1, 2, 3, 4].map(i => (
+              <div key={i} className="min-w-[300px] h-[400px] bg-brand-beige rounded-md animate-pulse"></div>
+            ))}
+          </div>
+        ) : (
+          <div
+            ref={carouselRef}
+            className="flex overflow-x-auto gap-6 pb-4 no-scrollbar scroll-smooth"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
+            {infiniteTrips.map((trip, index) => (
+              <div key={`${trip.id}-${index}`} className="min-w-[300px] sm:min-w-[350px] h-full flex-shrink-0">
+                <TripCard trip={trip} />
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+  );
+};
+
 const Home: React.FC = () => {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [loading, setLoading] = useState(true);
+  const [homeStats, setHomeStats] = useState<any[]>([]);
+  const [quickTags, setQuickTags] = useState<string[]>(['Hampi', 'Gokarna', 'Wayanad', 'Pondicherry']);
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedDuration, setSelectedDuration] = useState('All');
   const [travellers, setTravellers] = useState(1);
   const [isTravellerPickerOpen, setIsTravellerPickerOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState('');
@@ -120,24 +205,39 @@ const Home: React.FC = () => {
   const [heroIndex, setHeroIndex] = useState(0);
 
   // Autoplay pause states
-  const [isTripHovered, setIsTripHovered] = useState(false);
   const [isTestimonialHovered, setIsTestimonialHovered] = useState(false);
 
-  const carouselRef = useRef<HTMLDivElement>(null);
+  // Category Order State
+  const [categoryOrder, setCategoryOrder] = useState<string[]>([]);
+
   const navigate = useNavigate();
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [tripsData, testimonialsData, galleryData, marqueeData, heroData] = await Promise.all([
+        const [tripsData, testimonialsData, galleryData, marqueeData, heroData, statsData, tagsData, categoryOrderData] = await Promise.all([
           api.getTrips(),
           api.getTestimonials(),
           api.getGalleryImages(),
           api.getMarqueeItems(),
-          api.getHeroImages()
+          api.getHeroImages(),
+          api.getSetting('home_stats').catch(() => ({ value: null })),
+          api.getSetting('home_quick_tags').catch(() => ({ value: null })),
+          api.getSetting('home_category_order').catch(() => ({ value: null }))
         ]);
         setTrips(tripsData);
         setTestimonials(testimonialsData);
+        if (categoryOrderData?.value) setCategoryOrder(categoryOrderData.value);
+        
+        if (statsData?.value) setHomeStats(statsData.value);
+        else setHomeStats([
+          { end: 150, suffix: '+', label: 'Trips Done', iconName: 'Trophy' },
+          { end: 5000, suffix: '+', label: 'Travelers', iconName: 'Users' },
+          { end: 25, suffix: '+', label: 'Spots', iconName: 'Map' },
+          { end: 40, suffix: '%', label: 'Solo Women', iconName: 'Heart' }
+        ]);
+
+        if (tagsData?.value) setQuickTags(tagsData.value);
         // Set gallery with fallback to default images
         if (galleryData && galleryData.length > 0) {
           setGalleryImages(galleryData);
@@ -175,24 +275,15 @@ const Home: React.FC = () => {
     loadData();
   }, []);
 
-  // Duplicate trips for infinite loop illusion
-  const infiniteTrips = trips.length > 0 ? [...trips, ...trips] : [];
+  // Group trips by category
+  const groupedTrips = trips.reduce((acc, trip) => {
+    const cat = trip.category || 'Trending Expeditions';
+    if (!acc[cat]) acc[cat] = [];
+    acc[cat].push(trip);
+    return acc;
+  }, {} as Record<string, Trip[]>);
 
-  const durations = ['All', '2 Days', '3 Days', 'Longer'];
 
-  const filteredTrips = trips.filter(trip => {
-    const matchesSearch = trip.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      trip.location.toLowerCase().includes(searchTerm.toLowerCase());
-
-    let matchesDuration = true;
-    if (selectedDuration !== 'All') {
-      if (selectedDuration === '2 Days') matchesDuration = trip.duration.includes('2 Days');
-      else if (selectedDuration === '3 Days') matchesDuration = trip.duration.includes('3 Days');
-      else if (selectedDuration === 'Longer') matchesDuration = parseInt(trip.duration) > 3;
-    }
-
-    return matchesSearch && matchesDuration;
-  });
 
   // Gallery images are now fetched from API in useEffect above
 
@@ -219,16 +310,6 @@ const Home: React.FC = () => {
     } catch (error) {
       console.error(error);
       setEnquiryStatus('error');
-    }
-  };
-
-  const scrollCarousel = (direction: 'left' | 'right') => {
-    if (carouselRef.current) {
-      const scrollAmount = 320; // Width of a card + gap
-      carouselRef.current.scrollBy({
-        left: direction === 'right' ? scrollAmount : -scrollAmount,
-        behavior: 'smooth'
-      });
     }
   };
 
@@ -260,35 +341,6 @@ const Home: React.FC = () => {
     e.stopPropagation();
     setCurrentImageIndex((prev) => (prev - 1 + galleryImages.length) % galleryImages.length);
   };
-
-  // Trip Carousel Infinite Loop Logic
-  useEffect(() => {
-    if (isTripHovered || loading || trips.length === 0) return;
-
-    const interval = setInterval(() => {
-      if (carouselRef.current) {
-        const { scrollLeft, scrollWidth, clientWidth } = carouselRef.current;
-        const maxScroll = scrollWidth / 2; // Since we duplicated the list
-
-        // If we've scrolled past the first set, seamlessly jump back to start
-        if (scrollLeft >= maxScroll) {
-          carouselRef.current.scrollTo({ left: scrollLeft - maxScroll, behavior: 'auto' });
-          // Then scroll forward
-          carouselRef.current.scrollBy({ left: 1, behavior: 'smooth' });
-        } else {
-          // Basic smooth auto scroll
-          carouselRef.current.scrollBy({ left: 320, behavior: 'smooth' });
-        }
-
-        // Check bounds again after scroll to reset if needed
-        if (carouselRef.current.scrollLeft >= maxScroll) {
-          carouselRef.current.scrollTo({ left: 0, behavior: 'auto' });
-        }
-      }
-    }, 2500);
-
-    return () => clearInterval(interval);
-  }, [isTripHovered, loading, trips.length]);
 
   // Testimonial Autoplay
   useEffect(() => {
@@ -344,9 +396,9 @@ const Home: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col bg-brand-cream overflow-x-hidden font-sans">
       <SEO
-        title="Home"
-        description="Discover handpicked weekend getaways, trekking spots, and hidden gems across India. Book curated travel experiences to Gokarna, Hampi, Pondicherry, Wayanad and more."
-        keywords="travel, trips, weekend getaway, trekking, adventure, India travel, group tours, Gokarna, Hampi, Pondicherry, Wayanad"
+        title="Curated Expeditions & Weekend Getaways"
+        description="Curated weekend getaways & adventure trips from ₹2,999. Explore Gokarna, Hampi, Chikmagalur, Wayanad & more hidden gems across India."
+        keywords="travel, trips, weekend getaway, trekking, adventure, India travel, group tours, Gokarna, Hampi, Pondicherry, Wayanad, Chikmagalur"
         url="/"
         image="https://wheelstowilderness.in/og-image.jpg"
       />
@@ -394,15 +446,15 @@ const Home: React.FC = () => {
               </p>
 
               {/* Search Bar - Redesigned */}
-              <div className="bg-white p-2 rounded-2xl shadow-xl border border-brand-olive/10 max-w-2xl relative z-30">
+              <div className="bg-white/10 backdrop-blur-xl p-2 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] border border-white/20 max-w-2xl relative z-30">
                 <div className="flex flex-col md:flex-row gap-2">
                   {/* Location */}
                   <div className="flex-[1.5] relative group">
-                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-cream" size={20} />
+                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-olive/70" size={20} />
                     <input
                       type="text"
                       placeholder="Where to?"
-                      className="w-full h-full bg-gray-50 hover:bg-gray-100 transition rounded-xl py-3 pl-12 pr-4 outline-none text-brand-black font-medium placeholder:text-gray-400"
+                      className="w-full h-full bg-white/5 hover:bg-white/10 transition rounded-xl py-3 pl-12 pr-4 outline-none text-brand-olive font-medium placeholder:text-brand-olive/40 focus:bg-white/10 focus:ring-1 focus:ring-brand-olive/30"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -410,10 +462,10 @@ const Home: React.FC = () => {
 
                   {/* Date */}
                   <div className="flex-1 relative group">
-                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-cream" size={20} />
+                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-olive/70" size={20} />
                     <input
                       type="date"
-                      className="w-full h-full bg-gray-50 hover:bg-gray-100 transition rounded-xl py-3 pl-12 pr-4 outline-none text-brand-black font-medium text-sm uppercase"
+                      className="w-full h-full bg-white/5 hover:bg-white/10 transition rounded-xl py-3 pl-12 pr-4 outline-none text-brand-olive font-medium text-sm uppercase focus:bg-white/10 focus:ring-1 focus:ring-brand-olive/30 [color-scheme:dark]"
                       value={selectedDate}
                       onChange={(e) => setSelectedDate(e.target.value)}
                     />
@@ -423,13 +475,13 @@ const Home: React.FC = () => {
                   <div className="flex-1 relative group">
                     <div
                       onClick={() => setIsTravellerPickerOpen(!isTravellerPickerOpen)}
-                      className="w-full h-full bg-gray-50 hover:bg-gray-100 transition rounded-xl py-3 pl-12 pr-4 outline-none text-brand-black font-medium cursor-pointer flex items-center select-none"
+                      className="w-full h-full bg-white/5 hover:bg-white/10 transition rounded-xl py-3 pl-12 pr-4 outline-none text-brand-olive font-medium cursor-pointer flex items-center select-none focus:bg-white/10 focus:ring-1 focus:ring-brand-olive/30"
                     >
                       <span className="text-sm truncate">
                         {travellers} Traveler{travellers !== 1 ? 's' : ''}
                       </span>
                     </div>
-                    <Users className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-cream" size={20} />
+                    <Users className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-olive/70" size={20} />
 
                     {/* Dropdown */}
                     {isTravellerPickerOpen && (
@@ -462,16 +514,15 @@ const Home: React.FC = () => {
 
                   <button
                     onClick={handleSearch}
-                    className="bg-brand-cream text-brand-olive p-4 rounded-xl hover:bg-brand-black hover:text-brand-olive transition shadow-lg flex items-center justify-center"
+                    className="bg-brand-olive text-brand-cream p-4 rounded-xl hover:bg-brand-beige hover:text-brand-black transition duration-300 shadow-[0_0_20px_rgba(249,245,235,0.3)] flex items-center justify-center hover:scale-105"
                   >
                     <Search size={24} />
                   </button>
                 </div>
 
-                {/* Quick Tags underneath */}
-                <div className="mt-3 flex gap-2 px-2 overflow-x-auto no-scrollbar">
-                  {['Hampi', 'Gokarna', 'Wayanad', 'Pondicherry'].map(tag => (
-                    <button key={tag} onClick={() => setSearchTerm(tag)} className="text-[10px] font-bold uppercase tracking-wider text-brand-black/40 hover:text-brand-olive transition border border-brand-black/10 px-2 py-1 rounded-md whitespace-nowrap bg-gray-50">
+                <div className="mt-4 flex gap-2 px-2 overflow-x-auto no-scrollbar pb-1">
+                  {quickTags.map(tag => (
+                    <button key={tag} onClick={() => setSearchTerm(tag)} className="text-[10px] font-bold uppercase tracking-wider text-brand-olive/70 hover:text-brand-olive hover:border-brand-olive/50 hover:bg-white/10 transition duration-300 border border-white/20 px-3 py-1.5 rounded-md whitespace-nowrap bg-white/5 backdrop-blur-sm">
                       {tag}
                     </button>
                   ))}
@@ -489,9 +540,11 @@ const Home: React.FC = () => {
                     className={`absolute inset-0 transition-opacity duration-700 ${idx === heroIndex ? 'opacity-100' : 'opacity-0'}`}
                   >
                     <img
-                      src={img.imageUrl}
+                      src={getOptimizedImageUrl(img.imageUrl, 1920)}
                       alt={img.caption || `Hero ${idx + 1}`}
                       className="w-full h-full object-cover"
+                      loading={idx === 0 ? "eager" : "lazy"}
+                      fetchPriority={idx === 0 ? "high" : "auto"}
                     />
                   </div>
                 ))}
@@ -528,26 +581,26 @@ const Home: React.FC = () => {
               </div>
 
               {/* Floating Elements */}
-              <div className="absolute top-4 -left-12 bg-white p-4 rounded-xl shadow-xl z-20 animate-float hidden md:block border border-brand-beige/30">
+              <div className="absolute top-4 -left-12 bg-white/10 backdrop-blur-xl p-4 rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] z-20 animate-float hidden md:block border border-white/20">
                 <div className="flex items-center gap-3">
-                  <div className="bg-green-100 p-2 rounded-full text-green-600">
+                  <div className="bg-brand-sage/20 p-2 rounded-full text-brand-sage border border-brand-sage/30">
                     <ShieldCheck size={20} />
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Travel Insured Trips</p>
-                    <p className="text-lg font-black text-brand-black">Verified</p>
+                    <p className="text-xs font-bold text-white/70 uppercase tracking-wider">Travel Insured Trips</p>
+                    <p className="text-lg font-black text-white">Verified</p>
                   </div>
                 </div>
               </div>
 
-              <div className="absolute bottom-20 -right-8 bg-white p-4 rounded-xl shadow-xl z-20 animate-float animate-delay-200 hidden md:block border border-brand-beige/30">
-                <div className="flex -space-x-3 mb-2">
+              <div className="absolute bottom-20 -right-8 bg-white/10 backdrop-blur-xl p-4 rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] z-20 animate-float animate-delay-200 hidden md:block border border-white/20">
+                <div className="flex -space-x-3 mb-2 justify-center">
                   {[1, 2, 3].map(i => (
-                    <img key={i} className="w-8 h-8 rounded-full border-2 border-white object-cover" src={`https://i.pravatar.cc/100?img=${i + 10}`} alt="User" />
+                    <img key={i} className="w-8 h-8 rounded-full border-2 border-brand-cream object-cover" src={`https://i.pravatar.cc/100?img=${i + 10}`} alt="User" />
                   ))}
-                  <div className="w-8 h-8 rounded-full border-2 border-white bg-brand-cream text-brand-olive flex items-center justify-center text-[10px] font-bold">+2k</div>
+                  <div className="w-8 h-8 rounded-full border-2 border-brand-cream bg-brand-olive text-brand-cream flex items-center justify-center text-[10px] font-bold">+2k</div>
                 </div>
-                <p className="text-xs font-bold text-center text-brand-black/60 uppercase tracking-wider">Happy Travelers</p>
+                <p className="text-xs font-bold text-center text-white/70 uppercase tracking-wider mt-1">Happy Travelers</p>
               </div>
 
               {/* Decorative border */}
@@ -558,159 +611,32 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* Trending Trips Carousel (Autoplay Infinite Loop) */}
-      <section
-        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-10"
-        onMouseEnter={() => setIsTripHovered(true)}
-        onMouseLeave={() => setIsTripHovered(false)}
-      >
-        <div className="flex items-end justify-between mb-10 border-b border-brand-olive/10 pb-6">
-          <div>
-            <h2 className="text-3xl font-extrabold text-brand-olive font-serif uppercase tracking-wide">Trending Expeditions</h2>
-            <p className="text-brand-olive/60 mt-1 uppercase text-xs tracking-widest">Top-rated trips happening this month</p>
-          </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => scrollCarousel('left')}
-              className="p-3 rounded-md border border-brand-olive/20 hover:bg-brand-olive hover:text-brand-cream transition"
-            >
-              <ChevronLeft size={20} />
-            </button>
-            <button
-              onClick={() => scrollCarousel('right')}
-              className="p-3 rounded-md border border-brand-olive/20 hover:bg-brand-olive hover:text-brand-cream transition"
-            >
-              <ChevronRight size={20} />
-            </button>
-          </div>
-        </div>
-
-        {loading ? (
-          <div className="flex gap-4">
-            {[1, 2, 3, 4].map(i => (
-              <div key={i} className="min-w-[300px] h-[400px] bg-brand-beige rounded-md animate-pulse"></div>
-            ))}
-          </div>
-        ) : (
-          <div
-            ref={carouselRef}
-            className="flex overflow-x-auto gap-6 pb-4 no-scrollbar scroll-smooth"
-            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-          >
-            {/* Render duplicated list for infinite loop illusion */}
-            {infiniteTrips.map((trip, index) => (
-              <div key={`${trip.id}-${index}`} className="min-w-[300px] sm:min-w-[350px] h-full flex-shrink-0">
-                <TripCard trip={trip} />
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
+      {/* Dynamic Trip Category Carousels */}
+      {Object.keys(groupedTrips).length === 0 && loading ? (
+        <TripCarousel category="Trending Expeditions" categoryTrips={[]} loading={true} />
+      ) : (
+        Object.entries(groupedTrips)
+          .sort(([catA], [catB]) => {
+            if (categoryOrder.length > 0) {
+              const indexA = categoryOrder.indexOf(catA);
+              const indexB = categoryOrder.indexOf(catB);
+              if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+              if (indexA !== -1) return -1;
+              if (indexB !== -1) return 1;
+            }
+            // Fallback
+            if (catA === 'Trending Expeditions') return -1;
+            if (catB === 'Trending Expeditions') return 1;
+            return 0;
+          })
+          .map(([category, categoryTrips]) => (
+          <TripCarousel key={category} category={category} categoryTrips={categoryTrips} loading={false} />
+        ))
+      )}
 
 
-      {/* Main Filtered Grid Section */}
-      <section className="bg-brand-beige py-20 w-full relative z-10 border-y border-brand-olive/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row justify-between items-end mb-10 gap-4">
-            <div>
-              <h2 className="text-3xl md:text-4xl font-extrabold text-brand-black mb-3 font-serif uppercase tracking-wide">Curated Journeys</h2>
-              <p className="text-brand-black/60 text-lg">Handpicked trips for the rugged soul.</p>
-            </div>
 
-            {/* Duration Filter */}
-            <div className="flex items-center bg-brand-cream p-1.5 rounded-lg overflow-x-auto max-w-full border border-brand-olive/20 shadow-sm">
-              <span className="px-3 text-brand-olive font-bold text-xs uppercase flex items-center gap-1 tracking-wider">
-                <Filter size={12} /> Filter:
-              </span>
-              {durations.map(duration => (
-                <button
-                  key={duration}
-                  onClick={() => setSelectedDuration(duration)}
-                  className={`
-                    px-4 py-2 rounded-md text-sm font-bold transition-all whitespace-nowrap
-                    ${selectedDuration === duration
-                      ? 'bg-brand-olive text-brand-cream shadow-sm'
-                      : 'text-brand-olive/50 hover:text-brand-olive'}
-                    `}
-                >
-                  {duration}
-                </button>
-              ))}
-            </div>
-          </div>
 
-          {loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-              {[1, 2, 3, 4].map(i => (
-                <div key={i} className="h-[400px] bg-brand-cream rounded-md animate-pulse"></div>
-              ))}
-            </div>
-          ) : filteredTrips.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-              {filteredTrips.map((trip, index) => (
-                <div key={trip.id} className={`animate-fade-in-up`} style={{ animationDelay: `${index * 100}ms` }}>
-                  <TripCard trip={trip} />
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-24 bg-brand-cream rounded-xl border border-dashed border-brand-olive/30">
-              <div className="bg-brand-beige w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Search className="text-brand-black" size={32} />
-              </div>
-              <p className="text-xl text-brand-olive font-medium">No adventures found matching your criteria.</p>
-              <button
-                onClick={() => { setSearchTerm(''); setSelectedDuration('All'); }}
-                className="mt-6 text-brand-olive font-bold hover:underline flex items-center justify-center gap-2 mx-auto uppercase tracking-wide text-sm"
-              >
-                Clear filters <ArrowRight size={16} />
-              </button>
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* Gallery Section - Darker Theme */}
-      <section className="bg-brand-black py-20 text-brand-cream">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between mb-10">
-            <div>
-              <h2 className="text-3xl font-extrabold text-brand-cream font-serif uppercase tracking-wide">Visual Log</h2>
-              <p className="text-brand-cream/60 mt-2 uppercase text-xs tracking-widest">Captured by our community</p>
-            </div>
-            <a
-              href="https://instagram.com/wheelstowilderness"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hidden md:flex items-center gap-2 text-brand-olive font-bold hover:text-brand-sage transition"
-            >
-              <Camera size={20} /> @wheelstowilderness
-            </a>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-1 h-[600px] md:h-[500px]">
-            {galleryImages.map((img, idx) => (
-              <div
-                key={idx}
-                className={`
-                            relative overflow-hidden cursor-pointer group opacity-90 hover:opacity-100 transition-opacity
-                            ${idx === 0 ? 'col-span-2 row-span-2' : ''}
-                        `}
-                onClick={() => openLightbox(idx)}
-              >
-                <img
-                  src={img.imageUrl}
-                  alt={img.caption || `Gallery ${idx}`}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-brand-olive/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <span className="text-brand-cream border border-brand-cream px-4 py-2 uppercase text-xs font-bold tracking-widest hover:bg-brand-cream hover:text-brand-black transition">View</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* Testimonials */}
       <section className="bg-brand-cream py-24 border-b border-brand-olive/10">
@@ -718,28 +644,27 @@ const Home: React.FC = () => {
           <div className="text-center mb-16">
             <h2 className="text-4xl font-extrabold text-brand-olive font-serif">Traveler Tales</h2>
           </div>
-
           {testimonials.length > 0 && (
             <div
-              className="relative bg-white rounded-lg border border-brand-olive/20 p-10 md:p-14 mx-auto max-w-4xl shadow-sm hover:shadow-lg transition-all"
+              className="relative bg-brand-beige rounded-2xl border border-brand-olive/10 p-10 md:p-14 mx-auto max-w-4xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:-translate-y-1 transition-all duration-500"
               onMouseEnter={() => setIsTestimonialHovered(true)}
               onMouseLeave={() => setIsTestimonialHovered(false)}
             >
-              <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-brand-olive bg-brand-cream p-3 rounded-full shadow-lg">
+              <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-brand-olive bg-brand-cream p-3 rounded-full shadow-[0_0_20px_rgba(58,77,57,0.3)]">
                 <Quote size={32} fill="currentColor" />
               </div>
 
               <div className="flex flex-col items-center text-center animate-fade-in" key={testimonialIndex}>
                 <div className="flex gap-1 mb-6">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} size={18} className={`${i < testimonials[testimonialIndex].rating ? 'text-brand-olive fill-brand-olive' : 'text-gray-200'}`} />
+                    <Star key={i} size={18} className={`${i < testimonials[testimonialIndex].rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-200'}`} />
                   ))}
                 </div>
                 <p className="text-2xl md:text-3xl text-brand-black font-sans italic mb-8 leading-relaxed">"{testimonials[testimonialIndex].quote}"</p>
 
                 <div className="flex items-center gap-4">
                   <img
-                    src={testimonials[testimonialIndex].avatarUrl}
+                    src={getOptimizedImageUrl(testimonials[testimonialIndex].avatarUrl, 100)}
                     alt={testimonials[testimonialIndex].name}
                     className="w-12 h-12 rounded-full object-cover border-2 border-brand-beige"
                   />
@@ -776,18 +701,16 @@ const Home: React.FC = () => {
 
           {/* Stats Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-20">
-            <ScrollReveal delay={0} className="h-full">
-              <StatCounter end={150} suffix="+" label="Trips Done" icon={<Trophy size={28} />} />
-            </ScrollReveal>
-            <ScrollReveal delay={100} className="h-full">
-              <StatCounter end={5000} suffix="+" label="Travelers" icon={<Users size={28} />} />
-            </ScrollReveal>
-            <ScrollReveal delay={200} className="h-full">
-              <StatCounter end={25} suffix="+" label="Spots" icon={<Map size={28} />} />
-            </ScrollReveal>
-            <ScrollReveal delay={300} className="h-full">
-              <StatCounter end={40} suffix="%" label="Solo Women" icon={<Heart size={28} />} />
-            </ScrollReveal>
+            {homeStats.map((stat, index) => (
+              <ScrollReveal delay={index * 100} className="h-full" key={index}>
+                <StatCounter 
+                  end={stat.end} 
+                  suffix={stat.suffix} 
+                  label={stat.label} 
+                  icon={getMarqueeIcon(stat.iconName || 'Star')} 
+                />
+              </ScrollReveal>
+            ))}
           </div>
 
           {/* Detailed Features Grid */}
@@ -972,6 +895,49 @@ const Home: React.FC = () => {
         </div>
       </section>
 
+      {/* Gallery Section - Darker Theme */}
+      <section className="bg-brand-black py-20 text-brand-cream">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between mb-10">
+            <div>
+              <h2 className="text-3xl font-extrabold text-brand-cream font-serif uppercase tracking-wide">Visual Log</h2>
+              <p className="text-brand-cream/60 mt-2 uppercase text-xs tracking-widest">Captured by our community</p>
+            </div>
+            <a
+              href="https://instagram.com/wheelstowilderness"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden md:flex items-center gap-2 text-brand-olive font-bold hover:text-brand-sage transition"
+            >
+              <Camera size={20} /> @wheelstowilderness
+            </a>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-4 auto-rows-[200px] md:auto-rows-[300px]">
+            {galleryImages.map((img, idx) => (
+              <div
+                key={idx}
+                className={`
+                            relative overflow-hidden cursor-pointer group opacity-90 hover:opacity-100 transition-opacity
+                            ${idx === 0 ? 'col-span-2 row-span-2' : ''}
+                        `}
+                onClick={() => openLightbox(idx)}
+              >
+                <img
+                  src={getOptimizedImageUrl(img.imageUrl, 800)}
+                  alt={img.caption || `Gallery ${idx}`}
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  loading="lazy"
+                />
+                <div className="absolute inset-0 bg-brand-olive/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <span className="text-brand-cream border border-brand-cream px-4 py-2 uppercase text-xs font-bold tracking-widest hover:bg-brand-cream hover:text-brand-black transition">View</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Lightbox Modal */}
       {lightboxOpen && (
         <div className="fixed inset-0 z-[60] bg-brand-black/95 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in" onClick={closeLightbox}>
@@ -983,12 +949,19 @@ const Home: React.FC = () => {
             <ChevronLeft size={40} />
           </button>
 
-          <img
-            src={galleryImages[currentImageIndex]?.imageUrl}
-            alt={galleryImages[currentImageIndex]?.caption || "Full screen"}
-            className="max-h-[85vh] max-w-[90vw] object-contain border-4 border-brand-cream shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          />
+          <div className="flex flex-col items-center" onClick={(e) => e.stopPropagation()}>
+            <img
+              src={getOptimizedImageUrl(galleryImages[currentImageIndex]?.imageUrl, 1200)}
+              alt={galleryImages[currentImageIndex]?.caption || "Full screen"}
+              className="max-h-[75vh] max-w-[90vw] object-contain border-4 border-brand-cream shadow-2xl"
+            />
+            {galleryImages[currentImageIndex]?.caption && (
+              <div className="mt-4 flex items-center gap-2 text-white bg-black/60 backdrop-blur-md px-5 py-2.5 rounded-lg border border-white/20">
+                <MapPin size={16} className="text-yellow-400 flex-shrink-0" />
+                <span className="text-base font-bold tracking-wide">{galleryImages[currentImageIndex].caption}</span>
+              </div>
+            )}
+          </div>
 
           <button className="absolute right-4 top-1/2 -translate-y-1/2 text-brand-cream hover:text-gray-300 p-2 bg-white/10 rounded-full hover:bg-white/20 transition focus:outline-none" onClick={nextImage}>
             <ChevronRight size={40} />
@@ -999,6 +972,9 @@ const Home: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Social Proof Booking Notification */}
+      <BookingNotification trips={trips} />
 
       <Footer />
     </div>
