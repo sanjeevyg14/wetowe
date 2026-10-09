@@ -144,7 +144,7 @@ export async function downloadItineraryPDF(trip: Trip): Promise<void> {
     <!-- Brand -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;position:relative;z-index:1;">
       <div>
-        <div style="font-size:22px;font-weight:900;letter-spacing:2px;text-transform:uppercase;color:${brandCream};">🏕️ Wheels to Wilderness</div>
+        <div style="font-size:22px;font-weight:900;letter-spacing:2px;text-transform:uppercase;color:${brandCream};">🏕️ WHEELS TO WILDERNESS</div>
         <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;opacity:0.5;margin-top:2px;">Let's Get Lost Together</div>
       </div>
       <div style="text-align:right;">
@@ -556,8 +556,8 @@ export function downloadTicketPDF(booking: Booking): void {
     <div class="main">
       <div class="main-header">
         <div>
-          <div class="brand-name">🎒 WeTowe Adventures</div>
-          <div class="brand-tagline">Wheels to Wilderness</div>
+          <div class="brand-name">🎒 WHEELS TO WILDERNESS</div>
+          <div class="brand-tagline">Premium Expeditions</div>
         </div>
         <div class="pass-type">Boarding Pass</div>
       </div>
@@ -764,7 +764,7 @@ export function downloadManifestPDF(tripTitle: string, date: string, bookings: B
     </tbody>
   </table>
   <div class="footer">
-    WeTowe Adventures &bull; Boarding Manifest &bull; For official use only &bull; Please verify passenger details at boarding point
+    WHEELS TO WILDERNESS &bull; Boarding Manifest &bull; For official use only &bull; Please verify passenger details at boarding point
   </div>
 </body>
 </html>`;

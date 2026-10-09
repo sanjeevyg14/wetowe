@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
+import { motion, useScroll, useTransform, AnimatePresence, useSpring, useMotionValue } from 'framer-motion';
 import {
   MapPin, Calendar, Clock, Users, Star, ArrowRight, ChevronDown,
   Sun, Moon, Camera, Tent, Compass, Heart, Shield, Check,
@@ -10,6 +10,51 @@ import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import SEO from '../components/SEO';
+import { api } from '../services/api';
+
+// ─── 3D Tilt Card Component ─────────────────────────────────────────
+const TiltCard = ({ children, className }: { children: React.ReactNode, className?: string }) => {
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+
+  const mouseXSpring = useSpring(x, { stiffness: 150, damping: 15 });
+  const mouseYSpring = useSpring(y, { stiffness: 150, damping: 15 });
+
+  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], [15, -15]);
+  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], [-15, 15]);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    x.set(mouseX / width - 0.5);
+    y.set(mouseY / height - 0.5);
+  };
+
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+  };
+
+  return (
+    <motion.div
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{
+        rotateX,
+        rotateY,
+        transformStyle: "preserve-3d",
+      }}
+      className={className}
+    >
+      <div style={{ transform: "translateZ(30px)" }} className="w-full h-full">
+        {children}
+      </div>
+    </motion.div>
+  );
+};
 
 // ─── Countdown Timer ────────────────────────────────────────────────
 const CountdownTimer: React.FC<{ targetDate: Date }> = ({ targetDate }) => {
@@ -61,47 +106,56 @@ const CountdownTimer: React.FC<{ targetDate: Date }> = ({ targetDate }) => {
 const itinerary = [
   {
     day: 1,
-    title: 'Arrival in Bhuj',
+    title: 'Arrival in Bhuj & Local Sightseeing',
     icon: <Compass size={22} />,
-    time: 'Evening',
-    description: 'Arrive at Bhuj. Check into your heritage stay. Evening orientation, team introductions, and a traditional Kutchi welcome dinner under the stars.',
-    highlights: ['Airport/Station Pickup', 'Heritage Stay Check-in', 'Welcome Dinner'],
+    time: 'Full Day',
+    description: 'Arrive at Bhuj. Proceed for Bhuj local sightseeing. Check into your hotel (Dream Resort or similar). Enjoy a comfortable night stay in Bhuj.',
+    highlights: ['Pickup from Bhuj', 'Bhuj Local Sightseeing', 'Night Stay in Bhuj'],
     image: '/rann-culture.jpg',
   },
   {
     day: 2,
-    title: 'White Desert & Sunset',
+    title: 'Mandvi Excursion',
     icon: <Sun size={22} />,
     time: 'Full Day',
-    description: 'After breakfast, drive to the Great Rann of Kutch. Walk on the infinite white salt desert. Witness the magical sunset where the sky meets the white horizon. Camel ride across the salt flats.',
-    highlights: ['Great Rann Visit', 'Camel Safari', 'Sunset at White Desert'],
+    description: 'After breakfast, proceed to Mandvi for sightseeing. Return to Bhuj for the night.',
+    highlights: ['Mandvi Beach', 'Return to Bhuj', 'Night Stay in Bhuj'],
     image: '/rann-desert.jpg',
   },
   {
     day: 3,
-    title: 'Kutch Culture Trail',
-    icon: <Palette size={22} />,
+    title: 'Dholavira, Black Hill & Dhordo',
+    icon: <Mountain size={22} />,
     time: 'Full Day',
-    description: 'Explore the vibrant artisan villages of Kutch. Visit Bhujodi for weaving, Ajrakhpur for block printing, and the ancient Kutchi mud-hut villages (Bhungas) with their stunning mirror work.',
-    highlights: ['Artisan Village Visits', 'Textile Workshops', 'Bhunga Heritage Walk'],
-    image: '/rann-culture.jpg',
-  },
-  {
-    day: 4,
-    title: 'Full Moon Night & Farewell',
-    icon: <Moon size={22} />,
-    time: 'Full Day',
-    description: 'Visit Kala Dungar (Black Hill) — the highest point in Kutch. Afternoon free for local market shopping. Return to the White Desert for a magical full-moon night experience with bonfire and folk music. Farewell dinner.',
-    highlights: ['Kala Dungar Viewpoint', 'Full Moon Salt Desert', 'Bonfire & Folk Music'],
+    description: 'Explore Dholavira, visit the Black Hill (Kala Dungar), and head to Dhordo. Experience the White Rann. Night stay at Kutch Classic or similar.',
+    highlights: ['Dholavira', 'Kala Dungar', 'Night Stay in Dhordo'],
     image: '/rann-moonlight.jpg',
   },
   {
+    day: 4,
+    title: 'Journey to Sasangir',
+    icon: <Camera size={22} />,
+    time: 'Full Day',
+    description: 'Proceed from Dhordo towards Sasangir. Check into the resort (Anantam Resort or similar) and relax.',
+    highlights: ['Drive to Sasangir', 'Resort Check-in', 'Night Stay in Sasangir'],
+    image: '/rann-culture.jpg',
+  },
+  {
     day: 5,
-    title: 'Departure',
+    title: 'Sasangir Safari & Proceed to Diu',
+    icon: <Tent size={22} />,
+    time: 'Full Day',
+    description: 'After the Sasangir experience, drive to Diu. Check into your hotel (Rainbow or similar) and spend a relaxing evening by the coast.',
+    highlights: ['Sasangir Experience', 'Drive to Diu', 'Night Stay in Diu'],
+    image: '/rann-desert.jpg',
+  },
+  {
+    day: 6,
+    title: 'Departure from Diu',
     icon: <Heart size={22} />,
     time: 'Morning',
-    description: 'Breakfast and checkout. Drop to Bhuj airport/railway station. Carry home memories that will last a lifetime.',
-    highlights: ['Breakfast & Checkout', 'Station/Airport Drop', 'Lifetime Memories'],
+    description: 'After breakfast, check out from the hotel. Drop off at Diu for your onward journey with wonderful memories.',
+    highlights: ['Breakfast & Checkout', 'Diu Drop', 'Trip Concludes'],
     image: '/rann-hero.jpg',
   },
 ];
@@ -127,8 +181,8 @@ const RannOfKutch: React.FC = () => {
   const heroY = useTransform(scrollYProgress, [0, 1], ['0%', '40%']);
   const heroOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
 
-  // Trip launch date — set to ~2 months from now
-  const launchDate = new Date('2027-01-15T06:00:00');
+  // Trip launch date — set to 24 Dec
+  const launchDate = new Date('2026-12-24T06:00:00');
 
   useEffect(() => {
     const handleMouse = (e: MouseEvent) => {
@@ -144,12 +198,21 @@ const RannOfKutch: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setEnquiryStatus('submitting');
-    // Simulate API call
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Connect to the backend API for enquiries
+      await api.submitEnquiry({
+        name: formData.name,
+        phone: formData.phone,
+        email: formData.email,
+        Travellers: formData.travelers,
+        traveldate: '2026-12-24',
+        where: 'Gujarat Tour (Rann of Kutch)',
+        message: formData.message || 'I am interested in reserving a spot for the 6-day Gujarat Tour.',
+      });
       setEnquiryStatus('success');
       setFormData({ name: '', phone: '', email: '', travelers: '', message: '' });
-    } catch {
+    } catch (error) {
+      console.error('Failed to submit enquiry:', error);
       setEnquiryStatus('error');
     }
   };
@@ -162,9 +225,9 @@ const RannOfKutch: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col bg-brand-cream overflow-x-hidden font-sans">
       <SEO
-        title="Rann of Kutch Expedition — Gujarat | Wheels to Wilderness"
-        description="Experience the surreal white salt desert of the Great Rann of Kutch, Gujarat. 5-day curated expedition with camel safaris, full moon nights, Kutchi culture & more."
-        keywords="Rann of Kutch, Gujarat trip, white desert, salt desert, Rann Utsav, Kutch expedition, Gujarat travel, camel safari, full moon night"
+        title="Gujarat Tour — Rann of Kutch & Beyond | Wheels to Wilderness"
+        description="Experience the surreal white salt desert of the Great Rann of Kutch, Sasangir, and Diu. 6-day curated expedition with heritage stays and rich culture."
+        keywords="Rann of Kutch, Gujarat trip, white desert, salt desert, Rann Utsav, Sasangir, Diu, Gujarat travel"
         url="/rann-of-kutch"
       />
       <Navbar />
@@ -253,8 +316,8 @@ const RannOfKutch: React.FC = () => {
               className="flex flex-wrap items-center justify-center gap-3 sm:gap-4"
             >
               {[
-                { icon: <Calendar size={14} />, text: '5 Days / 4 Nights' },
-                { icon: <Users size={14} />, text: 'Max 12 Travelers' },
+                { icon: <Calendar size={14} />, text: '6 Days / 5 Nights' },
+                { icon: <Users size={14} />, text: '15 Travelers' },
                 { icon: <Star size={14} className="fill-amber-300 text-amber-300" />, text: 'Premium Experience' },
               ].map((pill, i) => (
                 <div
@@ -314,9 +377,9 @@ const RannOfKutch: React.FC = () => {
           </h2>
           <p className="text-lg md:text-xl text-brand-olive/60 max-w-3xl mx-auto leading-relaxed font-light">
             The Great Rann of Kutch is one of the largest salt deserts in the world — a surreal, lunar landscape
-            that stretches for over 7,500 sq km. During the Rann Utsav season, this vast white canvas transforms
-            into a cultural extravaganza. Walk barefoot on crystalline salt under the full moon, ride camels across
-            the horizon, and immerse yourself in 5,000 years of living Kutchi art and tradition.
+            that stretches for over 7,500 sq km. This 6-day Gujarat tour covers the infinite white canvas of Kutch,
+            the wild beauty of Sasangir, and the coastal charm of Diu. Immerse yourself in 5,000 years of living
+            traditions and create unforgettable memories.
           </p>
 
           {/* Quick Stats */}
@@ -325,7 +388,7 @@ const RannOfKutch: React.FC = () => {
               { value: '7,505', unit: 'sq km', label: 'White Desert Area' },
               { value: '5,000+', unit: 'years', label: 'Cultural Heritage' },
               { value: '4.9', unit: '★', label: 'Traveler Rating' },
-              { value: '12', unit: 'max', label: 'Travelers Per Batch' },
+              { value: '15', unit: 'max', label: 'Travelers Per Batch' },
             ].map((stat, i) => (
               <motion.div
                 key={i}
@@ -386,16 +449,18 @@ const RannOfKutch: React.FC = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.08, duration: 0.6 }}
                 viewport={{ once: true }}
-                className="group relative bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 hover:bg-white/10 hover:border-white/20 transition-all duration-500 cursor-default overflow-hidden"
+                style={{ perspective: 1000 }}
               >
-                {/* Glow effect on hover */}
-                <div className={`absolute -top-20 -right-20 w-40 h-40 bg-gradient-to-br ${exp.color} rounded-full opacity-0 group-hover:opacity-20 blur-3xl transition-opacity duration-700`} />
+                <TiltCard className="group relative bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 hover:bg-white/10 hover:border-white/20 transition-all duration-500 cursor-default overflow-hidden h-full">
+                  {/* Glow effect on hover */}
+                  <div className={`absolute -top-20 -right-20 w-40 h-40 bg-gradient-to-br ${exp.color} rounded-full opacity-0 group-hover:opacity-20 blur-3xl transition-opacity duration-700`} style={{ transform: "translateZ(-10px)" }} />
 
-                <div className={`relative z-10 w-14 h-14 rounded-xl bg-gradient-to-br ${exp.color} flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
-                  {exp.icon}
-                </div>
-                <h3 className="text-xl font-bold font-serif mb-3 relative z-10">{exp.title}</h3>
-                <p className="text-white/50 text-sm leading-relaxed relative z-10">{exp.desc}</p>
+                  <div className={`relative z-10 w-14 h-14 rounded-xl bg-gradient-to-br ${exp.color} flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg`} style={{ transform: "translateZ(20px)" }}>
+                    {exp.icon}
+                  </div>
+                  <h3 className="text-xl font-bold font-serif mb-3 relative z-10" style={{ transform: "translateZ(30px)" }}>{exp.title}</h3>
+                  <p className="text-white/50 text-sm leading-relaxed relative z-10" style={{ transform: "translateZ(20px)" }}>{exp.desc}</p>
+                </TiltCard>
               </motion.div>
             ))}
           </div>
@@ -420,7 +485,7 @@ const RannOfKutch: React.FC = () => {
               Your <span className="italic text-brand-beige">Journey</span> Unfolds
             </h2>
             <p className="text-brand-olive/50 max-w-xl mx-auto">
-              5 days of discovery across one of the most extraordinary landscapes on Earth.
+              6 days of discovery across some of the most extraordinary landscapes in Gujarat.
             </p>
           </div>
 
@@ -598,25 +663,25 @@ const RannOfKutch: React.FC = () => {
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <div className="max-w-xl mx-auto">
             {/* Standard */}
             <div className="bg-brand-beige rounded-2xl border border-brand-cream/20 p-8 shadow-sm hover:shadow-lg transition-all duration-300">
               <div className="text-[10px] uppercase tracking-[0.2em] text-brand-black/40 font-bold mb-2">Standard</div>
               <div className="flex items-baseline gap-2 mb-4">
-                <span className="text-4xl font-black text-brand-black font-serif">₹14,999</span>
-                <span className="text-brand-black/40 text-sm">/person</span>
+                <span className="text-4xl font-black text-brand-black font-serif">₹22,500</span>
+                <span className="text-brand-black/40 text-sm">/person + 5% GST Extra</span>
               </div>
-              <p className="text-brand-black/50 text-sm mb-8">The complete Rann of Kutch experience.</p>
+              <p className="text-brand-black/50 text-sm mb-8">The complete Gujarat Tour (6D/5N).</p>
 
               <div className="space-y-3 mb-8">
                 {[
-                  '4 Nights Heritage Stay',
-                  'All Meals Included',
-                  'Camel Safari',
-                  'White Desert Access',
-                  'Cultural Village Tours',
-                  'Expert Trip Leader',
-                  'Airport/Station Transfers',
+                  'AC Transportation (17 Seat Tempo Traveller)',
+                  '3 Star Hotel Accommodations (5 Triple Sharing)',
+                  '5 Time Breakfast and Dinner (MAP Plan)',
+                  'Pure Veg Food Buffet Unlimited',
+                  'All Sightseeing Covered',
+                  'Best Experience Driver',
+                  '100% Quality Service',
                 ].map((item, i) => (
                   <div key={i} className="flex items-center gap-3 text-sm text-brand-black/70">
                     <Check size={16} className="text-brand-sage flex-shrink-0" />
@@ -630,45 +695,6 @@ const RannOfKutch: React.FC = () => {
                 className="block text-center bg-brand-cream text-brand-olive font-bold py-3.5 rounded-xl hover:bg-brand-black hover:text-brand-olive transition-all duration-300 text-sm uppercase tracking-wider"
               >
                 Enquire Now
-              </a>
-            </div>
-
-            {/* Early Bird */}
-            <div className="relative bg-brand-cream rounded-2xl p-8 shadow-xl shadow-brand-cream/20 text-brand-olive">
-              {/* Badge */}
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-400 to-orange-400 text-brand-black text-[10px] font-black uppercase tracking-[0.2em] px-4 py-1.5 rounded-full shadow-lg">
-                🔥 Early Bird — Save ₹2,000
-              </div>
-
-              <div className="text-[10px] uppercase tracking-[0.2em] text-brand-olive/50 font-bold mb-2 mt-2">Early Bird</div>
-              <div className="flex items-baseline gap-2 mb-1">
-                <span className="text-4xl font-black font-serif text-brand-olive">₹12,999</span>
-                <span className="text-brand-olive/40 text-sm">/person</span>
-              </div>
-              <div className="text-sm text-brand-olive/40 line-through mb-4">₹14,999</div>
-              <p className="text-brand-olive/60 text-sm mb-8">Limited offer — first 20 bookings only.</p>
-
-              <div className="space-y-3 mb-8">
-                {[
-                  'Everything in Standard',
-                  '🌙 Full Moon Night Experience',
-                  '🎵 Private Folk Music Evening',
-                  '📸 Professional Trip Photos',
-                  '🎁 Exclusive Kutchi Souvenir',
-                  '⭐ Priority Campsite Selection',
-                ].map((item, i) => (
-                  <div key={i} className="flex items-center gap-3 text-sm text-brand-olive/80">
-                    <Check size={16} className="text-brand-sage flex-shrink-0" />
-                    <span>{item}</span>
-                  </div>
-                ))}
-              </div>
-
-              <a
-                href="#enquiry"
-                className="block text-center bg-brand-olive text-brand-cream font-bold py-3.5 rounded-xl hover:bg-brand-beige hover:text-brand-black transition-all duration-300 text-sm uppercase tracking-wider shadow-lg"
-              >
-                Grab Early Bird Spot
               </a>
             </div>
           </div>

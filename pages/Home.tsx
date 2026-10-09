@@ -643,8 +643,7 @@ const Home: React.FC = () => {
         <div className="max-w-5xl mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-extrabold text-brand-olive font-serif">Traveler Tales</h2>
-          </div>
-
+          {testimonials.length > 0 && (
             <div
               className="relative bg-brand-beige rounded-2xl border border-brand-olive/10 p-10 md:p-14 mx-auto max-w-4xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:-translate-y-1 transition-all duration-500"
               onMouseEnter={() => setIsTestimonialHovered(true)}
